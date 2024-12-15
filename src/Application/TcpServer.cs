@@ -63,7 +63,7 @@ public class TcpServer
         
         using var stream = client.GetStream();
         
-        var buffer = new byte[1024];
+        var buffer = new byte[2048];
         var bytesRead = stream.Read(buffer, 0, buffer.Length);
         var message = Encoding.UTF8.GetString(buffer, 0, bytesRead);
                 
