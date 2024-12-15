@@ -43,22 +43,7 @@ public class TcpServer
             try
             {
                 var client = _tcpListener.AcceptTcpClient();
-                using var stream = client.GetStream();
-                
-                var buffer = new byte[1024];
-                var bytesRead = stream.Read(buffer, 0, buffer.Length);
-                var message = Encoding.UTF8.GetString(buffer, 0, bytesRead);
-                
-                var body = "Hello World";
-                var responseMessage = $"""
-                                      HTTP/1.1 200 OK
-                                      Date: {DateTime.UtcNow:R}
-                                      Content-Length: {body.Length}
-                                      Content-Type: text/plain
-                                      
-                                      {body}
-                                      """;
-                stream.Write(Encoding.UTF8.GetBytes(responseMessage));
+                ThreadPool.QueueUserWorkItem(HandleRequest, client);
             }
             catch (SocketException ex) when (ex.SocketErrorCode == SocketError.Interrupted)
             {
@@ -67,5 +52,31 @@ public class TcpServer
         }
         
         Console.WriteLine("Server stopped");
+    }
+
+    private void HandleRequest(object? state)
+    {
+        if (state is not TcpClient client)
+        {
+            return;
+        }
+        
+        using var stream = client.GetStream();
+        
+        var buffer = new byte[1024];
+        var bytesRead = stream.Read(buffer, 0, buffer.Length);
+        var message = Encoding.UTF8.GetString(buffer, 0, bytesRead);
+                
+        var body = "Hello World";
+        var responseMessage = $"""
+                               HTTP/1.1 200 OK
+                               Date: {DateTime.UtcNow:R}
+                               Content-Length: {body.Length}
+                               Content-Type: text/plain
+
+                               {body}
+                               """;
+        stream.Write(Encoding.UTF8.GetBytes(responseMessage));
+        client.Close();
     }
 }
