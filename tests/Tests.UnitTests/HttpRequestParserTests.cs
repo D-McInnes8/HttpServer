@@ -120,4 +120,23 @@ public class HttpRequestParserTests
         // Assert
         Assert.False(httpRequest.HasBody);
     }
+    
+    [Theory]
+    [InlineData("GET / HTTP/1.1\r\nHost: localhost\r\n\r\n", "localhost")]
+    [InlineData("GET / HTTP/1.1\nHost: localhost\n\n", "localhost")]
+    [InlineData("GET / HTTP/1.1\rHost: localhost\r\r", "localhost")]
+    public void RequestWithDifferentNewLineCharacters_ParsesCorrectly(string request, string expectedHost)
+    {
+        // Act
+        var httpRequest = HttpRequestParser.Parse(request);
+
+        // Assert
+        Assert.Multiple(() =>
+        {
+            Assert.Equal(HttpRequestMethod.GET, httpRequest.Method);
+            Assert.Equal("/", httpRequest.Path);
+            Assert.Equal("HTTP/1.1", httpRequest.HttpVersion);
+            Assert.Equal(expectedHost, httpRequest.Headers["Host"]);
+        });
+    }
 }

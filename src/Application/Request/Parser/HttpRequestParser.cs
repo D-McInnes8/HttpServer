@@ -1,54 +1,97 @@
+using System.Diagnostics;
+
 namespace Application.Request.Parser;
+
+public ref struct SpanReader
+{
+    private ReadOnlySpan<char> _s;
+    private int _pos;
+    
+    public SpanReader(ReadOnlySpan<char> s)
+    {
+        _s = s;
+        _pos = 0;
+    }
+
+    public ReadOnlySpan<char> ReadLine()
+    {
+        for (var i = _pos; i < _s.Length; i++)
+        {
+            if (i < _s.Length - 1
+                && _s[i] == '\r' && _s[i + 1] == '\n')
+            {
+                var line = _s[_pos..i];
+                _pos = i + 2;
+                return line;
+            }
+
+            if (_s[i] == '\r' || _s[i] == '\n')
+            {
+                var line = _s[_pos..i];
+                _pos = i + 1;
+                return line;
+            }
+        }
+
+        var lastLine = _s[_pos..];
+        _pos = _s.Length;
+        return lastLine;
+    }
+
+    public ReadOnlySpan<char> ReadToEnd()
+    {
+        return _s[_pos..];
+    }
+}
 
 public static class HttpRequestParser
 {
     public static HttpRequest Parse(ReadOnlySpan<char> request)
     {
-        for (int i = 0; i < request.Length; i++)
-        {
-            if (request[i] == '\r' && request[i + 1] == '\n' && request[i + 2] == '\r' && request[i + 3] == '\n')
-            {
-                var header = request[..i];
-                var body = request[(i + 4)..];
-                var (method, path) = ParseHeader(header);
-                return new HttpRequest
-                {
-                    Method = method,
-                    Path = path,
-                    Body = body.Length > 0 ? body.ToString() : null,
-                    Headers = new Dictionary<string, string>()
-                };
-            }
-        }
+        var spanReader = new SpanReader(request);
+        var requestLine = spanReader.ReadLine(); //.ToString();
 
-        throw new InvalidOperationException();
+        var tokenizer = new StringTokenizer(requestLine, [' ']);
+        var method = ParseMethod(tokenizer[0]);
+        var path = tokenizer[1].ToString();
+        var httpVersion = tokenizer[2].ToString();
+
+        var headers = new Dictionary<string, string>();
+
+        ReadOnlySpan<char> line;
+        do
+        {
+            line = spanReader.ReadLine();
+            _ = TryGetParsedHeader(line, out var httpHeader);
+            headers.Add(httpHeader.Key, httpHeader.Value);
+        }
+        while (line.Length > 0 && line is not "\r\n" && line is not "\r" && line is not "\n");
+
+        var body = spanReader.ReadToEnd().ToString();
+
+        return new HttpRequest
+        {
+            Headers = headers,
+            Method = method,
+            Path = path,
+            Body = string.IsNullOrWhiteSpace(body) ? null : body,
+            HttpVersion = httpVersion
+        };
     }
     
-    private static (HttpRequestMethod, string) ParseHeader(ReadOnlySpan<char> header)
+    private static bool TryGetParsedHeader(ReadOnlySpan<char> header, out KeyValuePair<string, string> httpHeader)
     {
-        var parts = header.Split(' ');
-        
-        HttpRequestMethod method = HttpRequestMethod.UNKNOWN;
-        string? path = null;
-        int count = 0;
-        
-        foreach (var part in parts)
+        var delimiterIndex = header.IndexOf(':');
+        if (delimiterIndex != -1)
         {
-            if (count == 0)
-            {
-                method = ParseMethod(header[part.Start.Value..part.End.Value]);
-            }
-            else if (count == 1)
-            {
-                path = header[part.Start.Value..part.End.Value].ToString();
-            }
-
-            count++;
+            var key = header[..delimiterIndex].ToString();
+            var value = header[(delimiterIndex + 2)..].ToString();
+            httpHeader = new KeyValuePair<string, string>(key, value);
+            return true;
         }
-        //var method = ParseMethod(parts.;
-        //var path = parts[1].ToString();
         
-        return (method, path);
+        httpHeader = new KeyValuePair<string, string>(string.Empty, string.Empty);
+        return false;
     }
     
     private static HttpRequestMethod ParseMethod(ReadOnlySpan<char> method)
