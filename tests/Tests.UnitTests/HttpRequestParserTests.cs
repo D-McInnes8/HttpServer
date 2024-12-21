@@ -139,4 +139,17 @@ public class HttpRequestParserTests
             Assert.Equal(expectedHost, httpRequest.Headers["Host"]);
         });
     }
+
+    [Fact]
+    public void RequestWithContentTypeHeader_ShouldSetContentTypeProperty()
+    {
+        // Arrange
+        const string request = "POST /submit HTTP/1.1\r\nHost: localhost\r\nContent-Type: application/json\r\n\r\n";
+        
+        // Act
+        var httpRequest = HttpRequestParser.Parse(request);
+        
+        // Assert
+        Assert.Equal("application/json", httpRequest.ContentType);
+    }
 }

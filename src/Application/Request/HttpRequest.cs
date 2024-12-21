@@ -8,4 +8,5 @@ public class HttpRequest
     public bool HasBody => Body is not null;
     public string? Body { get; init; }
     public required Dictionary<string, string> Headers { get; init; }
+    public string? ContentType { get; init; }
 }

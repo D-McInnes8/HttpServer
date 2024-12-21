@@ -75,7 +75,8 @@ public static class HttpRequestParser
             Method = method,
             Path = path,
             Body = string.IsNullOrWhiteSpace(body) ? null : body,
-            HttpVersion = httpVersion
+            HttpVersion = httpVersion,
+            ContentType = headers.GetValueOrDefault("Content-Type")
         };
     }
     
