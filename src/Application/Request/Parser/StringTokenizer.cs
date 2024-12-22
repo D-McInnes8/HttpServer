@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Diagnostics;
 
 namespace Application.Request.Parser;
@@ -7,6 +8,8 @@ public readonly ref struct StringTokenizer
     private readonly ReadOnlySpan<char> _s;
     private readonly char[] _delimiters;
     private readonly List<Range> _tokens;
+
+    public IReadOnlyCollection<Range> Tokens => _tokens;
     
     public StringTokenizer(ReadOnlySpan<char> s, char[] delimiters)
     {

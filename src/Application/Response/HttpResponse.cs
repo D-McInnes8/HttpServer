@@ -10,7 +10,7 @@ public class HttpResponse
     
     public HttpBody? Body { get; set; }
     
-    public string HttpVersion { get; set; }
+    public string HttpVersion { get; set; } = "HTTP/1.1";
     
     [SetsRequiredMembers]
     public HttpResponse(HttpResponseStatusCode statusCode)

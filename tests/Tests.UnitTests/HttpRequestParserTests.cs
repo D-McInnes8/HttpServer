@@ -152,4 +152,33 @@ public class HttpRequestParserTests
         // Assert
         Assert.Equal("application/json", httpRequest.ContentType);
     }
+
+    [Fact]
+    public void RequestWithQueryParameters_SetQueryParametersCorrectly()
+    {
+        // Arrange
+        const string request = "GET /api/v1/resource?query=param HTTP/1.1\r\nHost: localhost\r\n\r\n";
+        
+        // Act
+        var httpRequest = HttpRequestParser.Parse(request);
+        
+        // Assert
+        Assert.Single(httpRequest.QueryParameters);
+        Assert.Equal("param", httpRequest.QueryParameters["query"]);
+    }
+    
+    [Fact]
+    public void RequestWithMultipleQueryParameters_SetQueryParametersCorrectly()
+    {
+        // Arrange
+        const string request = "GET /api/v1/resource?query=param&filter=123 HTTP/1.1\r\nHost: localhost\r\n\r\n";
+        
+        // Act
+        var httpRequest = HttpRequestParser.Parse(request);
+        
+        // Assert
+        Assert.Equal(2, httpRequest.QueryParameters.Count);
+        Assert.Equal("param", httpRequest.QueryParameters["query"]);
+        Assert.Equal("123", httpRequest.QueryParameters["filter"]);
+    }
 }

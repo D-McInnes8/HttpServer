@@ -1,4 +1,6 @@
 ﻿using Application;
+using Application.Request;
 
-var tcpServer = new TcpServer(9999);
-await tcpServer.StartAsync();
+var httpServer = new HttpServer(9999);
+httpServer.AddRoute(HttpRequestMethod.GET, "/");
+await httpServer.StartAsync();

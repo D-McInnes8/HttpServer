@@ -69,15 +69,41 @@ public static class HttpRequestParser
 
         var body = spanReader.ReadToEnd().ToString();
 
-        return new HttpRequest
+        return new HttpRequest(method, path)
         {
             Headers = headers,
-            Method = method,
-            Path = path,
             Body = string.IsNullOrWhiteSpace(body) ? null : body,
             HttpVersion = httpVersion,
-            ContentType = headers.GetValueOrDefault("Content-Type")
+            ContentType = headers.GetValueOrDefault("Content-Type"),
         };
+    }
+    
+    public static (string Path, Dictionary<string, string> Parameters) ParsePath(ReadOnlySpan<char> path)
+    {
+        var parameters = new Dictionary<string, string>();
+        var queryIndex = path.IndexOf('?');
+        if (queryIndex == -1)
+        {
+            return (path.ToString(), parameters);
+        }
+        
+        var pathString = path[..queryIndex].ToString();
+        var query = path[(queryIndex + 1)..];
+        
+        var queryTokenizer = new StringTokenizer(query, ['&']);
+        foreach (var range in queryTokenizer.Tokens)
+        {
+            var queryParam = query[range.Start..range.End];
+            var delimiterIndex = queryParam.IndexOf('=');
+            if (delimiterIndex != -1)
+            {
+                var key = queryParam[..delimiterIndex].ToString();
+                var value = queryParam[(delimiterIndex + 1)..].ToString();
+                parameters.Add(key, value);
+            }
+        }
+
+        return (pathString, parameters);
     }
     
     private static bool TryGetParsedHeader(ReadOnlySpan<char> header, out KeyValuePair<string, string> httpHeader)
