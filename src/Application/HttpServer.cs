@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using Application.Request;
 using Application.Request.Parser;
+using Application.Response;
 using Application.Response.Internal;
 using Application.Routing;
 using Microsoft.Extensions.DependencyInjection;
@@ -51,9 +52,9 @@ public class HttpServer : IHttpServer
         await _tcpServer.StopAsync();
     }
 
-    public void AddRoute(HttpRequestMethod method, string path)
+    public void AddRoute(HttpRequestMethod method, string path, Func<HttpRequest, HttpResponse> handler)
     {
-        _requestHandler.AddRoute(method, path);
+        _requestHandler.AddRoute(method, path, handler);
     }
 
     private string HandleRequest(string request)

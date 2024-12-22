@@ -18,9 +18,9 @@ public class RequestHandler
         _routes = routes.ToList();
     }
 
-    public void AddRoute(HttpRequestMethod method, string path)
+    public void AddRoute(HttpRequestMethod method, string path, Func<HttpRequest, HttpResponse> handler)
     {
-        _routes.Add(new Route(method, path));
+        _routes.Add(new Route(method, path, handler));
     }
 
     public HttpResponse HandleRequest(HttpRequest httpRequest)
