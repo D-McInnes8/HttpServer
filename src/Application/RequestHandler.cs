@@ -25,13 +25,23 @@ public class RequestHandler
 
     public HttpResponse HandleRequest(HttpRequest httpRequest)
     {
-        if (_routes.Any(route => route.IsMatch(httpRequest.Method, httpRequest.Route)))
+        foreach (var route in _routes)
         {
-            return new HttpResponse(HttpResponseStatusCode.OK, new HttpBody
+            if (route.IsMatch(httpRequest.Method, httpRequest.Route))
             {
-                ContentType = "text/plain",
-                Content = "Hello, World!"
-            });
+                try
+                {
+                    return route.Handler(httpRequest);
+                }
+                catch (Exception ex)
+                {
+                    return new HttpResponse(HttpResponseStatusCode.InternalServerError, new HttpBody
+                    {
+                        ContentType = "text/plain",
+                        Content = ex.Message
+                    });
+                }
+            }
         }
 
         return new HttpResponse(HttpResponseStatusCode.NotFound);

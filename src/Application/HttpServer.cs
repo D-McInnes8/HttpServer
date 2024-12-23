@@ -10,7 +10,10 @@ namespace Application;
 
 public interface IHttpServer
 {
-    IServiceProvider Services { get; }   
+    IServiceProvider Services { get; }
+    int Port { get; }
+    Uri LocalEndpoint { get; }
+    
     Task StartAsync();
     Task StopAsync();
 }
@@ -18,6 +21,8 @@ public interface IHttpServer
 public class HttpServer : IHttpServer
 {
     public IServiceProvider Services { get; }
+    public int Port => _tcpServer.Port;
+    public Uri LocalEndpoint => _tcpServer.LocalEndpoint;
     
     private readonly TcpServer _tcpServer;
     private readonly RequestHandler _requestHandler;
