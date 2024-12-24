@@ -4,7 +4,7 @@ using Application.Response;
 
 namespace Tests.IntegrationTests;
 
-public class HttpResponseBodyTests: IAsyncLifetime
+public class HttpResponseBodyTests : IAsyncLifetime
 {
     private readonly HttpServer _httpServer = new HttpServer(9996);
     private readonly HttpClient _httpClient = new HttpClient();

@@ -20,6 +20,28 @@ public class HttpRequestMetadataTests : IAsyncLifetime
         _httpClient.Dispose();
         await _httpServer.StopAsync();
     }
+
+    [Theory]
+    [InlineData("query", "Hello")]
+    [InlineData("name", "World")]
+    [InlineData("age", "42")]
+    [InlineData("city", "New York")]
+    public async Task HttpRequestMetadata_RequestWithSingleQueryParameter_ShouldParseQueryParameter(string param, string value)
+    {
+        // Arrange
+        _httpServer.AddRoute(HttpRequestMethod.GET, "/test", (request) =>
+        {
+            Assert.Equal(value, request.QueryParameters[param]);
+            return new HttpResponse(HttpResponseStatusCode.OK);
+        });
+        
+        // Act
+        var message = new HttpRequestMessage(HttpMethod.Get, $"/test?{param}={value}");
+        var response = await _httpClient.SendAsync(message);
+        
+        // Assert
+        Assert.True(response.IsSuccessStatusCode);
+    }
     
     [Fact]
     public async Task HttpRequestMetadata_RequestWithQueryParameters_ShouldParseQueryParameters()
