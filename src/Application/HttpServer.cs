@@ -64,8 +64,9 @@ public class HttpServer : IHttpServer
 
     private string HandleRequest(string request)
     {
+        using var scope = Services.CreateScope();
         var httpRequest = HttpRequestParser.Parse(request);
-        var httpResponse = _requestHandler.HandleRequest(httpRequest);
+        var httpResponse = _requestHandler.HandleRequest(httpRequest, scope.ServiceProvider);
         var response = HttpResponseWriter.WriteResponse(httpResponse);
         return response;
     }

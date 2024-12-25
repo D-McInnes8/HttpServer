@@ -1,3 +1,4 @@
+using Application.Pipeline;
 using Application.Request;
 using Application.Response;
 using Application.Routing;
@@ -23,14 +24,20 @@ public class RequestHandler
         _routes.Add(new Route(method, path, handler));
     }
 
-    public HttpResponse HandleRequest(HttpRequest httpRequest)
+    public HttpResponse HandleRequest(HttpRequest httpRequest, IServiceProvider serviceProvider)
     {
-        foreach (var route in _routes)
+        var requestPipeline = new TypedRequestPipeline(serviceProvider);
+        requestPipeline.AddPlugin<RoutingPlugin>();
+        return requestPipeline.ExecuteAsync(httpRequest).GetAwaiter().GetResult();
+
+
+        /*foreach (var route in _routes)
         {
             if (route.IsMatch(httpRequest.Method, httpRequest.Route))
             {
                 try
                 {
+                    //var response = requestPipeline.ExecuteAsync(route.Handler);
                     return route.Handler(httpRequest);
                 }
                 catch (Exception ex)
@@ -44,6 +51,6 @@ public class RequestHandler
             }
         }
 
-        return new HttpResponse(HttpResponseStatusCode.NotFound);
+        return new HttpResponse(HttpResponseStatusCode.NotFound);*/
     }
 }

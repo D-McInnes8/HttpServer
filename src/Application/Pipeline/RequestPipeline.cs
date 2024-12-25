@@ -1,3 +1,4 @@
+using Application.Request;
 using Application.Response;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -5,29 +6,41 @@ namespace Application.Pipeline;
 
 public interface IRequestPipeline
 {
-    Task<HttpResponse> ExecuteAsync(Func<RequestPipelineContext, Task<HttpResponse>> requestHandler);
+    Task<HttpResponse> ExecuteAsync(HttpRequest httpRequest);
 }
 
-public class RequestPipeline : IRequestPipeline
+public class TypedRequestPipeline : IRequestPipeline
 {
-    private readonly ServiceProvider _serviceProvider;
-    private readonly ICollection<IRequestPipelinePlugin> _plugins;
-
-    public RequestPipeline(ServiceProvider serviceProvider, ICollection<IRequestPipelinePlugin> plugins)
+    private readonly IServiceProvider _serviceProvider;
+    private readonly ICollection<Type> _plugins;
+    private Func<HttpRequest, Task<HttpResponse>> DefaultHandler { get; init; }
+        = _ => Task.FromResult(new HttpResponse(HttpResponseStatusCode.OK, new HttpBody("text/plain", "Hello, World!")));
+    
+    public TypedRequestPipeline(IServiceProvider serviceProvider)
     {
         _serviceProvider = serviceProvider;
-        _plugins = plugins;
+        _plugins = new List<Type>();
     }
 
-    public Task<HttpResponse> ExecuteAsync(Func<RequestPipelineContext, Task<HttpResponse>> requestHandler)
+    public void AddPlugin<T>() where T : IRequestPipelinePlugin
     {
-        var requestPipelineContext = new RequestPipelineContext();
+        _plugins.Add(typeof(T));
+    }
+    
+    public async Task<HttpResponse> ExecuteAsync(HttpRequest httpRequest)
+    {
+        var requestPipelineContext = new RequestPipelineContext(httpRequest);
         var pipeline = _plugins
-            .Select<IRequestPipelinePlugin, Func<RequestPipelineContext, Func<RequestPipelineContext, Task<HttpResponse>>, Task<HttpResponse>>>(p => p.InvokeAsync)
             .Aggregate(
-                seed: requestHandler,
-                func: (next, plugin) => ctx => plugin.Invoke(ctx, next));
-
-        return pipeline(requestPipelineContext);
+                seed: ExecuteRequestHandler,
+                func: (next, type) => ctx
+                    => ((IRequestPipelinePlugin)_serviceProvider.GetRequiredService(type)).InvokeAsync(ctx, next));
+        
+        return await pipeline(requestPipelineContext);
+    }
+    
+    private Task<HttpResponse> ExecuteRequestHandler(RequestPipelineContext context)
+    {
+        return DefaultHandler(context.Request);
     }
 }

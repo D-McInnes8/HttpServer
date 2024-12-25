@@ -2,6 +2,7 @@ using Application;
 using Application.Request;
 using Application.Response;
 using Application.Routing;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Tests.UnitTests;
 
@@ -15,11 +16,12 @@ public class RequestHandlerTests
         {
             new Route(HttpRequestMethod.GET, "/helloworld")
         };
+        var serviceProvider = new ServiceCollection().BuildServiceProvider();
         var requestHandler = new RequestHandler(routes);
         var httpRequest = new HttpRequest(HttpRequestMethod.GET, "/helloworld");
         
         // Act
-        var response = requestHandler.HandleRequest(httpRequest);
+        var response = requestHandler.HandleRequest(httpRequest, serviceProvider);
         
         // Assert
         Assert.Equal(HttpResponseStatusCode.OK, response.StatusCode);
@@ -33,11 +35,12 @@ public class RequestHandlerTests
         {
             new Route(HttpRequestMethod.GET, "/helloworld")
         };
+        var serviceProvider = new ServiceCollection().BuildServiceProvider();
         var requestHandler = new RequestHandler(routes);
         var httpRequest = new HttpRequest(HttpRequestMethod.GET, "/notfound");
         
         // Act
-        var response = requestHandler.HandleRequest(httpRequest);
+        var response = requestHandler.HandleRequest(httpRequest, serviceProvider);
         
         // Assert
         Assert.Equal(HttpResponseStatusCode.NotFound, response.StatusCode);
@@ -51,11 +54,12 @@ public class RequestHandlerTests
         {
             new Route(HttpRequestMethod.GET, "/helloworld")
         };
+        var serviceProvider = new ServiceCollection().BuildServiceProvider();
         var requestHandler = new RequestHandler(routes);
         var httpRequest = new HttpRequest(HttpRequestMethod.POST, "/helloworld");
         
         // Act
-        var response = requestHandler.HandleRequest(httpRequest);
+        var response = requestHandler.HandleRequest(httpRequest, serviceProvider);
         
         // Assert
         Assert.Equal(HttpResponseStatusCode.NotFound, response.StatusCode);
@@ -69,11 +73,12 @@ public class RequestHandlerTests
         {
             new Route(HttpRequestMethod.GET, "/helloworld")
         };
+        var serviceProvider = new ServiceCollection().BuildServiceProvider();
         var requestHandler = new RequestHandler(routes);
         var httpRequest = new HttpRequest(HttpRequestMethod.GET, "/notfound");
         
         // Act
-        var response = requestHandler.HandleRequest(httpRequest);
+        var response = requestHandler.HandleRequest(httpRequest, serviceProvider);
         
         // Assert
         Assert.Equal(HttpResponseStatusCode.NotFound, response.StatusCode);
@@ -88,11 +93,12 @@ public class RequestHandlerTests
             new Route(HttpRequestMethod.GET, "/"),
             new Route(HttpRequestMethod.GET, "/helloworld")
         };
+        var serviceProvider = new ServiceCollection().BuildServiceProvider();
         var requestHandler = new RequestHandler(routes);
         var httpRequest = new HttpRequest(HttpRequestMethod.GET, "/helloworld");
         
         // Act
-        var response = requestHandler.HandleRequest(httpRequest);
+        var response = requestHandler.HandleRequest(httpRequest, serviceProvider);
         
         // Assert
         Assert.Equal(HttpResponseStatusCode.OK, response.StatusCode);
@@ -107,11 +113,12 @@ public class RequestHandlerTests
             new Route(HttpRequestMethod.GET, "/"),
             new Route(HttpRequestMethod.GET, "/helloworld")
         };
+        var serviceProvider = new ServiceCollection().BuildServiceProvider();
         var requestHandler = new RequestHandler(routes);
         var httpRequest = new HttpRequest(HttpRequestMethod.GET, "/notfound");
         
         // Act
-        var response = requestHandler.HandleRequest(httpRequest);
+        var response = requestHandler.HandleRequest(httpRequest, serviceProvider);
         
         // Assert
         Assert.Equal(HttpResponseStatusCode.NotFound, response.StatusCode);
@@ -126,11 +133,12 @@ public class RequestHandlerTests
             new Route(HttpRequestMethod.GET, "/"),
             new Route(HttpRequestMethod.GET, "/helloworld")
         };
+        var serviceProvider = new ServiceCollection().BuildServiceProvider();
         var requestHandler = new RequestHandler(routes);
         var httpRequest = new HttpRequest(HttpRequestMethod.GET, "/");
         
         // Act
-        var response = requestHandler.HandleRequest(httpRequest);
+        var response = requestHandler.HandleRequest(httpRequest, serviceProvider);
         
         // Assert
         Assert.Equal(HttpResponseStatusCode.OK, response.StatusCode);
@@ -144,11 +152,12 @@ public class RequestHandlerTests
         {
             new Route(HttpRequestMethod.GET, "/helloworld/")
         };
+        var serviceProvider = new ServiceCollection().BuildServiceProvider();
         var requestHandler = new RequestHandler(routes);
         var httpRequest = new HttpRequest(HttpRequestMethod.GET, "/helloworld");
         
         // Act
-        var response = requestHandler.HandleRequest(httpRequest);
+        var response = requestHandler.HandleRequest(httpRequest, serviceProvider);
         
         // Assert
         Assert.Equal(HttpResponseStatusCode.NotFound, response.StatusCode);
@@ -162,11 +171,12 @@ public class RequestHandlerTests
         {
             new Route(HttpRequestMethod.GET, "/helloworld")
         };
+        var serviceProvider = new ServiceCollection().BuildServiceProvider();
         var requestHandler = new RequestHandler(routes);
         var httpRequest = new HttpRequest(HttpRequestMethod.GET, "/helloworld?name=World");
         
         // Act
-        var response = requestHandler.HandleRequest(httpRequest);
+        var response = requestHandler.HandleRequest(httpRequest, serviceProvider);
         
         // Assert
         Assert.Equal(HttpResponseStatusCode.OK, response.StatusCode);
