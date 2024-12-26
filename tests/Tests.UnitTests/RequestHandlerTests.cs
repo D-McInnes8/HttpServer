@@ -8,20 +8,33 @@ namespace Tests.UnitTests;
 
 public class RequestHandlerTests
 {
+    private readonly IServiceProvider _serviceProvider;
+
+    public RequestHandlerTests()
+    {
+        var services = new ServiceCollection();
+        services.AddSingleton<IRouteRegistry, RouteRegistry>();
+        services.AddScoped<RoutingPlugin>();
+        _serviceProvider = services.BuildServiceProvider();
+    }
+
+    private void AddRoute(string path)
+    {
+        _serviceProvider
+            .GetRequiredService<IRouteRegistry>()
+            .AddRoute(HttpRequestMethod.GET, path, _ => new HttpResponse(HttpResponseStatusCode.OK));
+    }
+    
     [Fact]
     public void HandleRequest_WithMatchingRoute_ReturnsOkResponse()
     {
         // Arrange
-        var routes = new[]
-        {
-            new Route(HttpRequestMethod.GET, "/helloworld")
-        };
-        var serviceProvider = new ServiceCollection().BuildServiceProvider();
-        var requestHandler = new RequestHandler(routes);
+        AddRoute("/helloworld");
+        var requestHandler = new RequestHandler();
         var httpRequest = new HttpRequest(HttpRequestMethod.GET, "/helloworld");
         
         // Act
-        var response = requestHandler.HandleRequest(httpRequest, serviceProvider);
+        var response = requestHandler.HandleRequest(httpRequest, _serviceProvider);
         
         // Assert
         Assert.Equal(HttpResponseStatusCode.OK, response.StatusCode);
@@ -31,16 +44,12 @@ public class RequestHandlerTests
     public void HandleRequest_WithNonMatchingRoute_ReturnsNotFoundResponse()
     {
         // Arrange
-        var routes = new[]
-        {
-            new Route(HttpRequestMethod.GET, "/helloworld")
-        };
-        var serviceProvider = new ServiceCollection().BuildServiceProvider();
-        var requestHandler = new RequestHandler(routes);
+        AddRoute("/helloworld");
+        var requestHandler = new RequestHandler();
         var httpRequest = new HttpRequest(HttpRequestMethod.GET, "/notfound");
         
         // Act
-        var response = requestHandler.HandleRequest(httpRequest, serviceProvider);
+        var response = requestHandler.HandleRequest(httpRequest, _serviceProvider);
         
         // Assert
         Assert.Equal(HttpResponseStatusCode.NotFound, response.StatusCode);
@@ -50,16 +59,12 @@ public class RequestHandlerTests
     public void HandleRequest_WithMatchingRouteButDifferentMethod_ReturnsNotFoundResponse()
     {
         // Arrange
-        var routes = new[]
-        {
-            new Route(HttpRequestMethod.GET, "/helloworld")
-        };
-        var serviceProvider = new ServiceCollection().BuildServiceProvider();
-        var requestHandler = new RequestHandler(routes);
+        AddRoute("/helloworld");
+        var requestHandler = new RequestHandler();
         var httpRequest = new HttpRequest(HttpRequestMethod.POST, "/helloworld");
         
         // Act
-        var response = requestHandler.HandleRequest(httpRequest, serviceProvider);
+        var response = requestHandler.HandleRequest(httpRequest, _serviceProvider);
         
         // Assert
         Assert.Equal(HttpResponseStatusCode.NotFound, response.StatusCode);
@@ -69,16 +74,12 @@ public class RequestHandlerTests
     public void HandleRequest_WithNonMatchingRouteButSameMethod_ReturnsNotFoundResponse()
     {
         // Arrange
-        var routes = new[]
-        {
-            new Route(HttpRequestMethod.GET, "/helloworld")
-        };
-        var serviceProvider = new ServiceCollection().BuildServiceProvider();
-        var requestHandler = new RequestHandler(routes);
+        AddRoute("/helloworld");
+        var requestHandler = new RequestHandler();
         var httpRequest = new HttpRequest(HttpRequestMethod.GET, "/notfound");
         
         // Act
-        var response = requestHandler.HandleRequest(httpRequest, serviceProvider);
+        var response = requestHandler.HandleRequest(httpRequest, _serviceProvider);
         
         // Assert
         Assert.Equal(HttpResponseStatusCode.NotFound, response.StatusCode);
@@ -88,17 +89,13 @@ public class RequestHandlerTests
     public void HandleRequest_WithMultipleRoutes_ReturnsOkResponse()
     {
         // Arrange
-        var routes = new[]
-        {
-            new Route(HttpRequestMethod.GET, "/"),
-            new Route(HttpRequestMethod.GET, "/helloworld")
-        };
-        var serviceProvider = new ServiceCollection().BuildServiceProvider();
-        var requestHandler = new RequestHandler(routes);
+        AddRoute("/");
+        AddRoute("/helloworld");
+        var requestHandler = new RequestHandler();
         var httpRequest = new HttpRequest(HttpRequestMethod.GET, "/helloworld");
         
         // Act
-        var response = requestHandler.HandleRequest(httpRequest, serviceProvider);
+        var response = requestHandler.HandleRequest(httpRequest, _serviceProvider);
         
         // Assert
         Assert.Equal(HttpResponseStatusCode.OK, response.StatusCode);
@@ -108,17 +105,13 @@ public class RequestHandlerTests
     public void HandleRequest_WithMultipleRoutes_ReturnsNotFoundResponse()
     {
         // Arrange
-        var routes = new[]
-        {
-            new Route(HttpRequestMethod.GET, "/"),
-            new Route(HttpRequestMethod.GET, "/helloworld")
-        };
-        var serviceProvider = new ServiceCollection().BuildServiceProvider();
-        var requestHandler = new RequestHandler(routes);
+        AddRoute("/");
+        AddRoute("/helloworld");
+        var requestHandler = new RequestHandler();
         var httpRequest = new HttpRequest(HttpRequestMethod.GET, "/notfound");
         
         // Act
-        var response = requestHandler.HandleRequest(httpRequest, serviceProvider);
+        var response = requestHandler.HandleRequest(httpRequest, _serviceProvider);
         
         // Assert
         Assert.Equal(HttpResponseStatusCode.NotFound, response.StatusCode);
@@ -128,17 +121,13 @@ public class RequestHandlerTests
     public void HandleRequest_WithMultipleRoutes_ReturnsOkResponseForFirstMatchingRoute()
     {
         // Arrange
-        var routes = new[]
-        {
-            new Route(HttpRequestMethod.GET, "/"),
-            new Route(HttpRequestMethod.GET, "/helloworld")
-        };
-        var serviceProvider = new ServiceCollection().BuildServiceProvider();
-        var requestHandler = new RequestHandler(routes);
+        AddRoute("/");
+        AddRoute("/helloworld");
+        var requestHandler = new RequestHandler();
         var httpRequest = new HttpRequest(HttpRequestMethod.GET, "/");
         
         // Act
-        var response = requestHandler.HandleRequest(httpRequest, serviceProvider);
+        var response = requestHandler.HandleRequest(httpRequest, _serviceProvider);
         
         // Assert
         Assert.Equal(HttpResponseStatusCode.OK, response.StatusCode);
@@ -148,16 +137,12 @@ public class RequestHandlerTests
     public void HandleRequest_MissingTrailingSlash_ReturnsNotFoundResponse()
     {
         // Arrange
-        var routes = new[]
-        {
-            new Route(HttpRequestMethod.GET, "/helloworld/")
-        };
-        var serviceProvider = new ServiceCollection().BuildServiceProvider();
-        var requestHandler = new RequestHandler(routes);
+        AddRoute("/helloworld/");
+        var requestHandler = new RequestHandler();
         var httpRequest = new HttpRequest(HttpRequestMethod.GET, "/helloworld");
         
         // Act
-        var response = requestHandler.HandleRequest(httpRequest, serviceProvider);
+        var response = requestHandler.HandleRequest(httpRequest, _serviceProvider);
         
         // Assert
         Assert.Equal(HttpResponseStatusCode.NotFound, response.StatusCode);
@@ -167,16 +152,12 @@ public class RequestHandlerTests
     public void HandleRequest_WithQueryParameters_ReturnsOkResponse()
     {
         // Arrange
-        var routes = new[]
-        {
-            new Route(HttpRequestMethod.GET, "/helloworld")
-        };
-        var serviceProvider = new ServiceCollection().BuildServiceProvider();
-        var requestHandler = new RequestHandler(routes);
+        AddRoute("/helloworld");
+        var requestHandler = new RequestHandler();
         var httpRequest = new HttpRequest(HttpRequestMethod.GET, "/helloworld?name=World");
         
         // Act
-        var response = requestHandler.HandleRequest(httpRequest, serviceProvider);
+        var response = requestHandler.HandleRequest(httpRequest, _serviceProvider);
         
         // Assert
         Assert.Equal(HttpResponseStatusCode.OK, response.StatusCode);

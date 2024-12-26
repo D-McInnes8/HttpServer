@@ -69,7 +69,7 @@ public class HttpRequestMetadataTests : IAsyncLifetime
     [InlineData("Authorization", "Bearer 123456")]
     [InlineData("Accept", "text/html")]
     [InlineData("Host", "localhost:9999")]
-    [InlineData("Referer", "http://example.com")]
+    [InlineData("Referer", "http://example.com/")]
     [InlineData("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64)")]
     [InlineData("X-Custom-Header", "CustomValue")]
     [InlineData("X-Number-Header", "1234567890")]

@@ -44,6 +44,8 @@ public class HttpServer : IHttpServer
         _requestHandler = new RequestHandler();
 
         var services = new ServiceCollection();
+        services.AddSingleton<IRouteRegistry, RouteRegistry>();
+        services.AddScoped<RoutingPlugin>();
         Services = services.BuildServiceProvider();
     }
 
@@ -59,7 +61,9 @@ public class HttpServer : IHttpServer
 
     public void AddRoute(HttpRequestMethod method, string path, Func<HttpRequest, HttpResponse> handler)
     {
-        _requestHandler.AddRoute(method, path, handler);
+        //_requestHandler.AddRoute(method, path, handler);
+        var routeRegistry = Services.GetRequiredService<IRouteRegistry>();
+        routeRegistry.AddRoute(method, path, handler);
     }
 
     private string HandleRequest(string request)

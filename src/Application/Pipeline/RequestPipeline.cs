@@ -41,6 +41,11 @@ public class TypedRequestPipeline : IRequestPipeline
     
     private Task<HttpResponse> ExecuteRequestHandler(RequestPipelineContext context)
     {
+        if (context.Route is not null)
+        {
+            return Task.FromResult(context.Route.Handler(context.Request));
+        }
+        
         return DefaultHandler(context.Request);
     }
 }

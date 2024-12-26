@@ -30,7 +30,7 @@ public class Route
         Handler = handler;
     }
     
-    public bool IsMatch(HttpRequest httpRequest) => IsMatch(httpRequest.Method, httpRequest.Path);
+    public bool IsMatch(HttpRequest httpRequest) => IsMatch(httpRequest.Method, httpRequest.Route);
     
     public bool IsMatch(HttpRequestMethod method, string path)
     {
