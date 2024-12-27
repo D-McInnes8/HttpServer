@@ -28,7 +28,14 @@ public class RequestHandler
     {
         var requestPipeline = new TypedRequestPipeline(serviceProvider);
         requestPipeline.AddPlugin<RoutingPlugin>();
-        return requestPipeline.ExecuteAsync(httpRequest).GetAwaiter().GetResult();
+        try
+        {
+            return requestPipeline.ExecuteAsync(httpRequest).GetAwaiter().GetResult();
+        }
+        catch (Exception)
+        {
+            return new HttpResponse(HttpResponseStatusCode.InternalServerError);
+        }
 
 
         /*foreach (var route in _routes)

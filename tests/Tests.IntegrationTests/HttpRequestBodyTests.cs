@@ -1,6 +1,7 @@
 using Application;
 using Application.Request;
 using Application.Response;
+using NSubstitute;
 
 namespace Tests.IntegrationTests;
 
@@ -24,14 +25,11 @@ public class HttpRequestBodyTests : IAsyncLifetime
     [Fact]
     public async Task HttpRequestBody_RequestWithPlainTextBody_ShouldParseBody()
     {
-        // Arrange & Assert
-        _httpServer.AddRoute(HttpRequestMethod.POST, "/test", (request) =>
+        // Arrange
+        HttpRequest? actual = null;
+        _httpServer.AddRoute(HttpRequestMethod.POST, "/test", request =>
         {
-            Assert.Multiple(() =>
-            {
-                Assert.Equal("Hello, World!", request.Body);
-                Assert.Equal("text/plain; charset=utf-8", request.ContentType);
-            });
+            actual = request;
             return new HttpResponse(HttpResponseStatusCode.OK);
         });
         
@@ -41,5 +39,13 @@ public class HttpRequestBodyTests : IAsyncLifetime
             Content = new StringContent("Hello, World!")
         };
         _ = await _httpClient.SendAsync(message);
+        
+        // Assert
+        Assert.NotNull(actual);
+        Assert.Multiple(() =>
+        {
+            Assert.Equal("Hello, World!", actual.Body);
+            Assert.Equal("text/plain; charset=utf-8", actual.ContentType);
+        });
     }
 }

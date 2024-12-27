@@ -1,6 +1,7 @@
 using Application;
 using Application.Request;
 using Application.Response;
+using NSubstitute;
 
 namespace Tests.IntegrationTests;
 
@@ -29,39 +30,46 @@ public class HttpRequestMetadataTests : IAsyncLifetime
     public async Task HttpRequestMetadata_RequestWithSingleQueryParameter_ShouldParseQueryParameter(string param, string value)
     {
         // Arrange
+        HttpRequest? actual = null;
         _httpServer.AddRoute(HttpRequestMethod.GET, "/test", (request) =>
         {
-            Assert.Equal(value, request.QueryParameters[param]);
+            actual = request;
             return new HttpResponse(HttpResponseStatusCode.OK);
         });
         
         // Act
         var message = new HttpRequestMessage(HttpMethod.Get, $"/test?{param}={value}");
-        var response = await _httpClient.SendAsync(message);
+        _ = await _httpClient.SendAsync(message);
         
         // Assert
-        Assert.True(response.IsSuccessStatusCode);
+        Assert.NotNull(actual);
+        Assert.Equal(value, actual.QueryParameters[param]);
     }
     
     [Fact]
     public async Task HttpRequestMetadata_RequestWithQueryParameters_ShouldParseQueryParameters()
     {
         // Arrange
+        HttpRequest? actual = null;
         _httpServer.AddRoute(HttpRequestMethod.GET, "/test", (request) =>
         {
-            Assert.Equal("Hello", request.QueryParameters["query"]);
-            Assert.Equal("World", request.QueryParameters["name"]);
-            Assert.Equal("42", request.QueryParameters["age"]);
-            Assert.Equal("New York", request.QueryParameters["city"]);
+            actual = request;
             return new HttpResponse(HttpResponseStatusCode.OK);
         });
         
         // Act
         var message = new HttpRequestMessage(HttpMethod.Get, "/test?query=Hello&name=World&age=42&city=New York");
-        var response = await _httpClient.SendAsync(message);
+        _ = await _httpClient.SendAsync(message);
         
         // Assert
-        Assert.True(response.IsSuccessStatusCode);
+        Assert.NotNull(actual);
+        Assert.Multiple(() =>
+        {
+            Assert.Equal("Hello", actual.QueryParameters["query"]);
+            Assert.Equal("World", actual.QueryParameters["name"]);
+            Assert.Equal("42", actual.QueryParameters["age"]);
+            Assert.Equal("New York", actual.QueryParameters["city"]);
+        });
     }
 
     [Theory]
