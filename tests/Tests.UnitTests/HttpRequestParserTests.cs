@@ -181,4 +181,20 @@ public class HttpRequestParserTests
         Assert.Equal("param", httpRequest.QueryParameters["query"]);
         Assert.Equal("123", httpRequest.QueryParameters["filter"]);
     }
+    
+    [Theory]
+    [InlineData("GET /api/v1/resource?query=param&query=123 HTTP/1.1\r\nHost: localhost\r\n\r\n")]
+    [InlineData("GET /api/v1/resource?query=param,123 HTTP/1.1\r\nHost: localhost\r\n\r\n")]
+    public void RequestWithDuplicateQueryParameters_ShouldParseBothParameters(string request)
+    {
+        // Act
+        var httpRequest = HttpRequestParser.Parse(request);
+        
+        // Assert
+        Assert.Multiple(() =>
+        {
+            Assert.Single(httpRequest.QueryParameters);
+            Assert.Equal("param,123", httpRequest.QueryParameters["query"]);
+        });
+    }
 }

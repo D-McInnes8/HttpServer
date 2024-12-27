@@ -30,7 +30,7 @@ public class HttpRequestBodyTests : IAsyncLifetime
         _httpServer.AddRoute(HttpRequestMethod.POST, "/test", request =>
         {
             actual = request;
-            return new HttpResponse(HttpResponseStatusCode.OK);
+            return HttpResponse.Ok();
         });
         
         // Act

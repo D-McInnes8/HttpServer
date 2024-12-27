@@ -1,3 +1,4 @@
+using System.Collections.Specialized;
 using System.Diagnostics;
 
 namespace Application.Request.Parser;
@@ -78,9 +79,9 @@ public static class HttpRequestParser
         };
     }
     
-    public static (string Path, Dictionary<string, string> Parameters) ParsePath(ReadOnlySpan<char> path)
+    public static (string Path, NameValueCollection Parameters) ParsePath(ReadOnlySpan<char> path)
     {
-        var parameters = new Dictionary<string, string>();
+        var parameters = new NameValueCollection();
         var queryIndex = path.IndexOf('?');
         if (queryIndex == -1)
         {

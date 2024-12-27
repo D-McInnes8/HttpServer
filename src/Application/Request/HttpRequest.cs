@@ -1,3 +1,4 @@
+using System.Collections.Specialized;
 using System.Diagnostics.CodeAnalysis;
 using Application.Request.Parser;
 
@@ -13,7 +14,7 @@ public class HttpRequest
     public string? Body { get; init; }
     public required Dictionary<string, string> Headers { get; init; }
     public string? ContentType { get; init; }
-    public Dictionary<string, string> QueryParameters { get; init; }
+    public NameValueCollection QueryParameters { get; init; }
 
     [SetsRequiredMembers]
     public HttpRequest(HttpRequestMethod method, string path)
@@ -21,7 +22,7 @@ public class HttpRequest
         Method = method;
         Path = path;
         Headers = new Dictionary<string, string>();
-        QueryParameters = new Dictionary<string, string>();
+        QueryParameters = new NameValueCollection();
 
         var (route, parameters) = HttpRequestParser.ParsePath(Path);
         Route = route;

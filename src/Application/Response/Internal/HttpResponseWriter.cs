@@ -15,12 +15,6 @@ public class HttpResponseWriter
         var sb = new StringBuilder();
         
         sb.Append($"{response.HttpVersion} {(int)response.StatusCode} {response.StatusCode}\r\n");
-        /*if (response.StatusCode.ToString() != ((int)response.StatusCode).ToString())
-        {
-            sb.Append($" {response.StatusCode}");
-        }
-        sb.Append("\r\n");*/
-        // {response.StatusCode}\r\n");
         
         foreach (var (key, value) in response.Headers)
         {
