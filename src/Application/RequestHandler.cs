@@ -26,7 +26,7 @@ public class RequestHandler
 
     public HttpResponse HandleRequest(HttpRequest httpRequest, IServiceProvider serviceProvider)
     {
-        var requestPipeline = new TypedRequestPipeline(serviceProvider);
+        var requestPipeline = new RequestPipeline(serviceProvider);
         requestPipeline.AddPlugin<RoutingPlugin>();
         try
         {

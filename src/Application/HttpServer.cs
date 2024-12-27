@@ -33,11 +33,11 @@ public class HttpServer : IHttpServer
         new Route { Method = HttpRequestMethod.GET, Path = "/helloworld/" }
     ];*/
 
-    public HttpServer() : this(9999)
+    /*public HttpServer() : this(9999)
     {
-    }
+    }*/
 
-    public HttpServer(int port)
+    /*public HttpServer(int port)
     {
         Debug.Assert(port >= 0);
         _tcpServer = new TcpServer(port, HandleRequest);
@@ -47,6 +47,15 @@ public class HttpServer : IHttpServer
         services.AddSingleton<IRouteRegistry, RouteRegistry>();
         services.AddScoped<RoutingPlugin>();
         Services = services.BuildServiceProvider();
+    }*/
+
+    internal HttpServer(int port, IServiceProvider serviceProvider)
+    {
+        Services = serviceProvider;
+        
+        ArgumentOutOfRangeException.ThrowIfNegative(port, nameof(port));
+        _tcpServer = new TcpServer(port, HandleRequest);
+        _requestHandler = new RequestHandler();
     }
 
     public async Task StartAsync()
@@ -74,4 +83,6 @@ public class HttpServer : IHttpServer
         var response = HttpResponseWriter.WriteResponse(httpResponse);
         return response;
     }
+    
+    public static IHttpServerBuilder CreateBuilder(int port) => new HttpServerBuilder(port);
 }

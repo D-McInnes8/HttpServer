@@ -3,7 +3,7 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace Application;
 
-public readonly struct HttpContentType : IParsable<HttpContentType>
+public readonly struct HttpContentType : IEquatable<HttpContentType>, IParsable<HttpContentType>, ISpanParsable<HttpContentType>
 {
     public required string Type { get; init; } = "text";
     public required string SubType { get; init; } = "plain";
@@ -55,6 +55,11 @@ public readonly struct HttpContentType : IParsable<HttpContentType>
 
         return Parse(s);
     }
+    
+    public static HttpContentType Parse(ReadOnlySpan<char> s, IFormatProvider? provider)
+    {
+        return Parse(s);
+    }
 
     public static HttpContentType Parse(ReadOnlySpan<char> s)
     {
@@ -77,6 +82,11 @@ public readonly struct HttpContentType : IParsable<HttpContentType>
     }
 
     public static bool TryParse([NotNullWhen(true)] string? s, IFormatProvider? provider, out HttpContentType result)
+    {
+        return TryParse(s, out result);
+    }
+
+    public static bool TryParse(ReadOnlySpan<char> s, IFormatProvider? provider, out HttpContentType result)
     {
         return TryParse(s, out result);
     }
@@ -127,5 +137,14 @@ public readonly struct HttpContentType : IParsable<HttpContentType>
         return true;
     }
 
+    public bool Equals(HttpContentType other)
+    {
+        return Type == other.Type
+               && SubType == other.SubType;
+    }
+
+    public override bool Equals(object? obj) => obj is HttpContentType type && Equals(type);
+    public override int GetHashCode() => HashCode.Combine(Type, SubType);
+    
     public override string ToString() => $"{Type}/{SubType}";
 }

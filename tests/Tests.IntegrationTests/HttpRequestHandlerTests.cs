@@ -1,12 +1,13 @@
 using System.Net;
 using Application;
 using Application.Request;
+using Application.Response;
 
 namespace Tests.IntegrationTests;
 
 public class HttpRequestHandlerTests : IAsyncLifetime
 {
-    private readonly HttpServer _httpServer = new HttpServer(9995);
+    private readonly HttpServer _httpServer = HttpServer.CreateBuilder(9995).Build();
     private readonly HttpClient _httpClient = new HttpClient();
 
     public async Task InitializeAsync()
