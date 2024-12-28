@@ -5,34 +5,40 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Application.Pipeline;
 
-public interface IRequestPipeline
+public interface IRequestPipeline3
 {
     Task<HttpResponse> ExecuteAsync(HttpRequest httpRequest);
     
     
 }
 
-public interface IRequestPipeline2
+/// <summary>
+/// 
+/// </summary>
+public interface IRequestPipeline
 {
     /// <summary>
     /// 
     /// </summary>
-    /// <param name="httpRequest"></param>
-    /// <returns></returns>
-    public Task<HttpResponse> ExecuteAsync(HttpRequest httpRequest);
+    public string Name { get; }
     
     /// <summary>
     /// 
     /// </summary>
-    /// <typeparam name="T"></typeparam>
-    public void AddPlugin<T>() where T : IRequestPipelinePlugin;
+    public static abstract IReadOnlyCollection<Type> DefaultPlugins { get; }
     
+    /// <summary>
+    /// 
+    /// </summary>
+    public IReadOnlyCollection<Type> Plugins { get; }
+
     /// <summary>
     /// 
     /// </summary>
     /// <param name="ctx"></param>
+    /// <param name="next"></param>
     /// <returns></returns>
-    public Task<HttpResponse> RouteRequest(RequestPipelineContext ctx);
+    public Task<HttpResponse> RouteRequest(RequestPipelineContext ctx,  Func<RequestPipelineContext,Task<HttpResponse>> next);
     
     /// <summary>
     /// 
@@ -40,6 +46,25 @@ public interface IRequestPipeline2
     /// <param name="ctx"></param>
     /// <returns></returns>
     public Task<HttpResponse> HandleRequest(RequestPipelineContext ctx);
+}
+
+public class Testipeline : IRequestPipeline
+{
+    public string Name { get; }
+
+    public static IReadOnlyCollection<Type> DefaultPlugins { get; } = [];
+    
+    public IReadOnlyCollection<Type> Plugins { get; }
+    
+    public Task<HttpResponse> RouteRequest(RequestPipelineContext ctx, Func<RequestPipelineContext, Task<HttpResponse>> next)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<HttpResponse> HandleRequest(RequestPipelineContext ctx)
+    {
+        throw new NotImplementedException();
+    }
 }
 
 public abstract class HttpRequestPipeline
@@ -66,9 +91,7 @@ public abstract class HttpRequestPipeline
                 seed: HandleRequest,
                 func: (next, type) => ctx
                     => ((IRequestPipelinePlugin)_serviceProvider.GetRequiredService(type)).InvokeAsync(ctx, next));
-
-        //Func<RequestPipelineContext, Task<HttpResponse>> withRouter = (ctx) => RouteRequest(ctx, (innerCtx) => pipeline(innerCtx));
-        //return await pipeline(requestPipelineContext);
+        
         return await RouteRequest(requestPipelineContext, pipeline);
     }
 
@@ -122,7 +145,7 @@ public class RequestPipeline2 : HttpRequestPipeline
 }
 
 
-public class RequestPipeline : IRequestPipeline
+public class RequestPipeline : IRequestPipeline3
 {
     private readonly IServiceProvider _serviceProvider;
     private readonly ICollection<Type> _plugins;

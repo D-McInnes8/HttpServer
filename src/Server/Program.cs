@@ -16,13 +16,22 @@ httpServer.AddRoute(HttpRequestMethod.GET, "/", (_) => new HttpResponse(HttpResp
     ContentType = "text/plain"
 }));
 
-/*httpServer.AddRequestPipeline<RequestPipeline2>()
+httpServer.AddRequestPipeline<Testipeline>()
     .ConfigurePipeline(options =>
     {
         options.AddPlugin<RoutingPlugin>();
+    })
+    .UseDefaultHandler(async (request) =>
+    {
+        await Task.Yield();
+        return new HttpResponse(HttpResponseStatusCode.OK, new HttpBody()
+        {
+            Content = "Hello, World!",
+            ContentType = "text/plain"
+        });
     });
 
-httpServer.AddHttpEndpointPipeline("Response Pipeline", priority: 1)
+/*httpServer.AddHttpEndpointPipeline("Response Pipeline", priority: 1)
     .ConfigureRequestPipeline(options =>
     {
         options.UsePlugin<RoutingPlugin>();
