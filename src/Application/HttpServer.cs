@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using Application.Pipeline;
 using Application.Request;
 using Application.Request.Parser;
 using Application.Response;
@@ -85,4 +86,9 @@ public class HttpServer : IHttpServer
     }
     
     public static IHttpServerBuilder CreateBuilder(int port) => new HttpServerBuilder(port);
+    
+    public IRequestPipelineBuilder<T> AddRequestPipeline<T>() where T : IRequestPipeline
+    {
+        return new RequestPipelineBuilder<T>(Services);
+    }
 }
