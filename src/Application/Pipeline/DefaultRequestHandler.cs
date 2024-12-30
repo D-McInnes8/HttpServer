@@ -10,6 +10,6 @@ public class DefaultRequestHandler : IRequestHandler
     /// <inheritdoc />
     public Task<HttpResponse> HandleAsync(RequestPipelineContext ctx)
     {
-        return Task.FromResult(HttpResponse.Ok("Hello, World from a Pipeline!"));
+        return Task.FromResult(HttpResponse.NotFound());
     }
 }

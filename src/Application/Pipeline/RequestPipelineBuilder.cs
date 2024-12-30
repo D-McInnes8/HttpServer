@@ -8,6 +8,17 @@ namespace Application.Pipeline;
 public class RequestPipelineBuilderOptions
 {
     private readonly List<Type> _plugins = new();
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="services"></param>
+    public RequestPipelineBuilderOptions(IServiceProvider services)
+    {
+        Services = services;
+    }
+
+    public IServiceProvider Services { get; }
     
     /// <summary>
     /// 

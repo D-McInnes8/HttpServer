@@ -11,7 +11,7 @@ internal class DefaultPipelineRegistry : IPipelineRegistry
 
     public DefaultPipelineRegistry()
     {
-        var globalPipelineOptions = new RequestPipelineBuilderOptions()
+        var globalPipelineOptions = new RequestPipelineBuilderOptions(null!)
         {
             Name = "Global",
         };

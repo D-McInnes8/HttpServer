@@ -1,11 +1,7 @@
-using System.Diagnostics;
 using Application.Pipeline;
 using Application.Pipeline.Registry;
-using Application.Request;
 using Application.Request.Parser;
-using Application.Response;
 using Application.Response.Internal;
-using Application.Routing;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Application;
@@ -18,6 +14,10 @@ public interface IHttpServer
     
     Task StartAsync();
     Task StopAsync();
+
+    public IHttpServer AddPipeline<TOptions>(Action<TOptions> configure) where TOptions : RequestPipelineBuilderOptions;
+    IHttpServer AddPipeline<TOptions>(string pipelineName, Action<TOptions> configure)
+        where TOptions : RequestPipelineBuilderOptions;
 }
 
 public class HttpServer : IHttpServer
@@ -29,28 +29,6 @@ public class HttpServer : IHttpServer
     private readonly TcpServer _tcpServer;
     private readonly RequestHandler _requestHandler;
     private readonly IPipelineRegistry _pipelineRegistry;
-
-    /*private readonly Route[] _routes =
-    [
-        new Route { Method = HttpRequestMethod.GET, Path = "/" },
-        new Route { Method = HttpRequestMethod.GET, Path = "/helloworld/" }
-    ];*/
-
-    /*public HttpServer() : this(9999)
-    {
-    }*/
-
-    /*public HttpServer(int port)
-    {
-        Debug.Assert(port >= 0);
-        _tcpServer = new TcpServer(port, HandleRequest);
-        _requestHandler = new RequestHandler();
-
-        var services = new ServiceCollection();
-        services.AddSingleton<IRouteRegistry, RouteRegistry>();
-        services.AddScoped<RoutingPlugin>();
-        Services = services.BuildServiceProvider();
-    }*/
 
     internal HttpServer(int port, IServiceProvider serviceProvider)
     {
@@ -72,13 +50,6 @@ public class HttpServer : IHttpServer
         await _tcpServer.StopAsync();
     }
 
-    public void AddRoute(HttpRequestMethod method, string path, Func<HttpRequest, HttpResponse> handler)
-    {
-        //_requestHandler.AddRoute(method, path, handler);
-        var routeRegistry = Services.GetRequiredService<IRouteRegistry>();
-        routeRegistry.AddRoute(method, path, handler);
-    }
-
     private string HandleRequest(string request)
     {
         using var scope = Services.CreateScope();
@@ -92,7 +63,7 @@ public class HttpServer : IHttpServer
     
     public IHttpServer AddPipeline(Action<RequestPipelineBuilderOptions> configure)
     {
-        var pipelineOptions = new RequestPipelineBuilderOptions()
+        var pipelineOptions = new RequestPipelineBuilderOptions(Services)
         {
             Name = $"Pipeline {Guid.NewGuid():N}"
         };
@@ -101,12 +72,26 @@ public class HttpServer : IHttpServer
         return this;
     }
 
+    public IHttpServer AddPipeline<TOptions>(Action<TOptions> configure) where TOptions : RequestPipelineBuilderOptions
+    {
+        return AddPipeline(Guid.NewGuid().ToString("N"), configure);
+    }
+
     public IHttpServer AddPipeline(string pipelineName, Action<RequestPipelineBuilderOptions> configure)
     {
-        var pipelineOptions = new RequestPipelineBuilderOptions
+        var pipelineOptions = new RequestPipelineBuilderOptions(Services)
         {
             Name = pipelineName
         };
+        configure(pipelineOptions);
+        _pipelineRegistry.AddPipeline(pipelineOptions.Name, pipelineOptions);
+        return this;
+    }
+    
+    public IHttpServer AddPipeline<TOptions>(string pipelineName, Action<TOptions> configure) where TOptions : RequestPipelineBuilderOptions
+    {
+        var pipelineOptions = ActivatorUtilities.CreateInstance<TOptions>(Services);
+        pipelineOptions.Name = pipelineName;
         configure(pipelineOptions);
         _pipelineRegistry.AddPipeline(pipelineOptions.Name, pipelineOptions);
         return this;
