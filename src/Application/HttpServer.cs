@@ -87,8 +87,52 @@ public class HttpServer : IHttpServer
     
     public static IHttpServerBuilder CreateBuilder(int port) => new HttpServerBuilder(port);
     
-    public IRequestPipelineBuilder<T> AddRequestPipeline<T>() where T : IRequestPipeline
+    public IRequestPipelineBuilder2<T> AddRequestPipeline<T>() where T : IRequestPipeline
     {
-        return new RequestPipelineBuilder<T>(Services);
+        return AddRequestPipeline<T>(pipelineName: typeof(T).Name);
     }
+
+    public IRequestPipelineBuilder2<T> AddRequestPipeline<T>(string pipelineName) where T : IRequestPipeline
+    {
+        var pipelineRegistry = Services.GetRequiredService<PipelineRegistry>();
+        pipelineRegistry.AddPipeline<T>(name: pipelineName);
+        return new RequestPipelineBuilder2<T>(pipelineName, Services);
+    }
+    
+    public IHttpServer AddPipeline<T>(Action<IRequestPipelineBuilder<T>> configure) where T : RequestPipelineBuilderOptions
+    {
+        var pipelineBuilder = new RequestPipelineBuilder<T>(Services);
+        configure(pipelineBuilder);
+        var pipelineDefinition = pipelineBuilder.Build();
+        return this;
+    }
+    
+    public IHttpServer AddPipeline<T>(string pipelineName, Action<IRequestPipelineBuilder<T>> configure) where T : RequestPipelineBuilderOptions
+    {
+        var pipelineBuilder = new RequestPipelineBuilder<T>(Services);
+        configure(pipelineBuilder);
+        var pipelineDefinition = pipelineBuilder.Build();
+        return this;
+    }
+    
+    public IHttpServer AddPipeline(string pipelineName, Action<IRequestPipelineBuilder<RequestPipelineBuilderOptions>> configure)
+    {
+        var pipelineBuilder = new RequestPipelineBuilder<RequestPipelineBuilderOptions>(Services);
+        configure(pipelineBuilder);
+        var pipelineDefinition = pipelineBuilder.Build();
+        return this;
+    }
+    
+    public IHttpServer AddPipeline(Action<IRequestPipelineBuilder<RequestPipelineBuilderOptions>> configure)
+    {
+        var pipelineBuilder = new RequestPipelineBuilder<RequestPipelineBuilderOptions>(Services);
+        configure(pipelineBuilder);
+        var pipelineDefinition = pipelineBuilder.Build();
+        return this;
+    }
+}
+
+public class PipelineOptions
+{
+    
 }

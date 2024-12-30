@@ -7,9 +7,11 @@ namespace Application.Pipeline;
 
 public interface IRequestPipeline3
 {
+    public string Name { get; }
+    
+    public RequestPipelineBuilderOptions Options { get; }
+    
     Task<HttpResponse> ExecuteAsync(HttpRequest httpRequest);
-    
-    
 }
 
 /// <summary>
@@ -21,11 +23,11 @@ public interface IRequestPipeline
     /// 
     /// </summary>
     public string Name { get; }
-    
-    /// <summary>
+
+    /*/// <summary>
     /// 
     /// </summary>
-    public static abstract IReadOnlyCollection<Type> DefaultPlugins { get; }
+    public static abstract IReadOnlyCollection<Type> DefaultPlugins { get; }*/
     
     /// <summary>
     /// 
@@ -149,6 +151,10 @@ public class RequestPipeline : IRequestPipeline3
 {
     private readonly IServiceProvider _serviceProvider;
     private readonly ICollection<Type> _plugins;
+
+    public string Name => Options.Name;
+    public RequestPipelineBuilderOptions Options { get; }
+    
     private Func<HttpRequest, Task<HttpResponse>> DefaultHandler { get; init; }
         = _ => Task.FromResult(new HttpResponse(HttpResponseStatusCode.OK, new HttpBody("text/plain", "Hello, World!")));
     
@@ -158,11 +164,18 @@ public class RequestPipeline : IRequestPipeline3
         _plugins = new List<Type>();
     }
 
+    public RequestPipeline(RequestPipelineBuilderOptions options)
+    {
+        _serviceProvider = null!;
+        _plugins = new List<Type>();
+        Options = options;
+    }
+
     public void AddPlugin<T>() where T : IRequestPipelinePlugin
     {
         _plugins.Add(typeof(T));
     }
-    
+
     public async Task<HttpResponse> ExecuteAsync(HttpRequest httpRequest)
     {
         var requestPipelineContext = new RequestPipelineContext(httpRequest, _serviceProvider);
