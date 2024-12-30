@@ -1,4 +1,5 @@
 using Application;
+using Application.Pipeline.Endpoints;
 using Application.Request;
 using Application.Response;
 using NSubstitute;
@@ -31,10 +32,13 @@ public class HttpRequestMetadataTests : IAsyncLifetime
     {
         // Arrange
         HttpRequest? actual = null;
-        _httpServer.AddRoute(HttpRequestMethod.GET, "/test", (request) =>
+        _httpServer.AddEndpointPipeline(options =>
         {
-            actual = request;
-            return new HttpResponse(HttpResponseStatusCode.OK);
+            options.MapRoute(HttpRequestMethod.GET, "/test", request =>
+            {
+                actual = request;
+                return HttpResponse.Ok();
+            });
         });
         
         // Act
@@ -51,10 +55,13 @@ public class HttpRequestMetadataTests : IAsyncLifetime
     {
         // Arrange
         HttpRequest? actual = null;
-        _httpServer.AddRoute(HttpRequestMethod.GET, "/test", (request) =>
+        _httpServer.AddEndpointPipeline(options =>
         {
-            actual = request;
-            return new HttpResponse(HttpResponseStatusCode.OK);
+            options.MapRoute(HttpRequestMethod.GET, "/test", request =>
+            {
+                actual = request;
+                return HttpResponse.Ok();
+            });
         });
         
         // Act
@@ -86,10 +93,14 @@ public class HttpRequestMetadataTests : IAsyncLifetime
     public async Task HttpRequestMetadata_RequestWithSingleHeader_ShouldParseHeader(string headerName, string headerValue)
     {
         // Arrange & Assert
-        _httpServer.AddRoute(HttpRequestMethod.GET, "/test", (request) =>
+        HttpRequest? actual = null;
+        _httpServer.AddEndpointPipeline(options =>
         {
-            Assert.Equal(headerValue, request.Headers[headerName]);
-            return new HttpResponse(HttpResponseStatusCode.OK);
+            options.MapRoute(HttpRequestMethod.GET, "/test", request =>
+            {
+                actual = request;
+                return HttpResponse.Ok();
+            });
         });
         
         // Act
@@ -98,6 +109,7 @@ public class HttpRequestMetadataTests : IAsyncLifetime
         var response = await _httpClient.SendAsync(message);
         
         // Assert
+        Assert.Equal(headerValue, actual?.Headers[headerName]);
         Assert.True(response.IsSuccessStatusCode);
     }
     
@@ -105,11 +117,14 @@ public class HttpRequestMetadataTests : IAsyncLifetime
     public async Task HttpRequestMetadata_RequestWithMultipleHeaders_ShouldParseHeaders()
     {
         // Arrange & Assert
-        _httpServer.AddRoute(HttpRequestMethod.GET, "/test", (request) =>
+        HttpRequest? actual = null;
+        _httpServer.AddEndpointPipeline(options =>
         {
-            Assert.Equal("en-US", request.Headers["Accept-Language"]);
-            Assert.Equal("Bearer 123456", request.Headers["Authorization"]);
-            return new HttpResponse(HttpResponseStatusCode.OK);
+            options.MapRoute(HttpRequestMethod.GET, "/test", request =>
+            {
+                actual = request;
+                return HttpResponse.Ok();
+            });
         });
         
         // Act
@@ -119,6 +134,11 @@ public class HttpRequestMetadataTests : IAsyncLifetime
         var response = await _httpClient.SendAsync(message);
         
         // Assert
-        Assert.True(response.IsSuccessStatusCode);
+        Assert.Multiple(() =>
+        {
+            Assert.Equal("en-US", actual?.Headers["Accept-Language"]);
+            Assert.Equal("Bearer 123456", actual?.Headers["Authorization"]);
+            Assert.True(response.IsSuccessStatusCode);
+        });
     }
 }

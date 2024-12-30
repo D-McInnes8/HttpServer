@@ -1,4 +1,5 @@
 using Application;
+using Application.Pipeline.Endpoints;
 using Application.Request;
 using Application.Response;
 using NSubstitute;
@@ -27,10 +28,13 @@ public class HttpRequestBodyTests : IAsyncLifetime
     {
         // Arrange
         HttpRequest? actual = null;
-        _httpServer.AddRoute(HttpRequestMethod.POST, "/test", request =>
+        _httpServer.AddEndpointPipeline(options =>
         {
-            actual = request;
-            return HttpResponse.Ok();
+            options.MapRoute(HttpRequestMethod.POST, "/test", request =>
+            {
+                actual = request;
+                return HttpResponse.Ok();
+            });
         });
         
         // Act

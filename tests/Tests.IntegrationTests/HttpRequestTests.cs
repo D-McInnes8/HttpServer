@@ -1,5 +1,6 @@
 using System.Net;
 using Application;
+using Application.Pipeline.Endpoints;
 using Application.Request;
 using Application.Response;
 using Tests.IntegrationTests.TestExtensions;
@@ -36,7 +37,10 @@ public class HttpRequestTests : IAsyncLifetime
     public async Task HttpRequestRouting_RequestWithValidRoute_ShouldReturnOk(HttpRequestMethod httpRequestMethod)
     {
         // Arrange
-        _httpServer.AddRoute(httpRequestMethod, "/", (_) => new HttpResponse(HttpResponseStatusCode.OK));
+        _httpServer.AddEndpointPipeline(options =>
+        {
+            options.MapRoute(httpRequestMethod, "/", _ => new HttpResponse(HttpResponseStatusCode.OK));
+        });
         
         // Act
         var message = new HttpRequestMessage(httpRequestMethod.ToHttpMethod(), "/");
@@ -63,7 +67,10 @@ public class HttpRequestTests : IAsyncLifetime
     public async Task HttpRequestRouting_RequestWithInvalidRoute_ShouldReturnOk(HttpRequestMethod httpRequestMethod)
     {
         // Arrange
-        _httpServer.AddRoute(httpRequestMethod, "/test", (_) => new HttpResponse(HttpResponseStatusCode.OK));
+        _httpServer.AddEndpointPipeline(options =>
+        {
+            options.MapRoute(httpRequestMethod, "/test", _ => new HttpResponse(HttpResponseStatusCode.OK));
+        });
         
         // Act
         var message = new HttpRequestMessage(httpRequestMethod.ToHttpMethod(), "/");
@@ -85,7 +92,10 @@ public class HttpRequestTests : IAsyncLifetime
     public async Task HttpRequestRouting_RequestWithQueryParameters_ShouldReturnOk(string route, string queryParameters)
     {
         // Arrange
-        _httpServer.AddRoute(HttpRequestMethod.GET, route, _ => new HttpResponse(HttpResponseStatusCode.OK));
+        _httpServer.AddEndpointPipeline(options =>
+        {
+            options.MapRoute(HttpRequestMethod.GET, route, _ => new HttpResponse(HttpResponseStatusCode.OK));
+        });
         
         // Act
         var message = new HttpRequestMessage(HttpMethod.Get, $"{route}?{queryParameters}");

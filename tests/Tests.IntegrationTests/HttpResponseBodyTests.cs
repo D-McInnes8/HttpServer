@@ -1,4 +1,5 @@
 using Application;
+using Application.Pipeline.Endpoints;
 using Application.Request;
 using Application.Response;
 
@@ -35,8 +36,10 @@ public class HttpResponseBodyTests : IAsyncLifetime
     public async Task HttpResponseBody_ResponseWithPlainTextBody_ShouldReturnBody(string expected)
     {
         // Arrange
-        _httpServer.AddRoute(HttpRequestMethod.GET, "/test", (_) 
-            => new HttpResponse(HttpResponseStatusCode.OK, new HttpBody("text/plain", expected)));
+        _httpServer.AddEndpointPipeline(options =>
+        {
+            options.MapRoute(HttpRequestMethod.GET, "/test", _ => HttpResponse.Ok(expected));
+        });
         
         // Act
         var response = await _httpClient.GetAsync("/test");

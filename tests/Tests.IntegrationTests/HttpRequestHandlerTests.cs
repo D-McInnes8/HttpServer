@@ -1,5 +1,6 @@
 using System.Net;
 using Application;
+using Application.Pipeline.Endpoints;
 using Application.Request;
 using Application.Response;
 
@@ -26,7 +27,10 @@ public class HttpRequestHandlerTests : IAsyncLifetime
     public async Task HttpRequestHandler_ExceptionThrown_ShouldReturn500InternalServerError()
     {
         // Arrange
-        _httpServer.AddRoute(HttpRequestMethod.GET, "/test", (_) => throw new Exception());
+        _httpServer.AddEndpointPipeline(options =>
+        {
+            options.MapRoute(HttpRequestMethod.GET, "/test", _ => throw new Exception());
+        });
         
         // Act
         var response = await _httpClient.GetAsync("/test");
