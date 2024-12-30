@@ -21,20 +21,27 @@ public class RequestPipelineContext
     public required IServiceProvider Services { get; init; }
     
     /// <summary>
+    /// The <see cref="RequestPipelineBuilderOptions"/> options associated with this context.
+    /// </summary>
+    public RequestPipelineBuilderOptions Options { get; internal set; }
+
+    /// <summary>
     /// Construct a new <see cref="RequestPipelineContext"/> for the provided <see cref="HttpRequest"/>.
     /// </summary>
     /// <param name="request">The HTTP request associated with this context.</param>
     /// <param name="serviceProvider">The <see cref="IServiceProvider"/> scoped to this request.</param>
+    /// <param name="options">The <see cref="RequestPipelineBuilderOptions"/> associated with the current pipeline.</param>
     /// <exception cref="ArgumentNullException">
     /// If either the <paramref name="request"/> or <paramref name="serviceProvider"/> is <see langword="null"/>.
     /// </exception>
     [SetsRequiredMembers]
-    public RequestPipelineContext(HttpRequest request, IServiceProvider serviceProvider)
+    public RequestPipelineContext(HttpRequest request, IServiceProvider serviceProvider, RequestPipelineBuilderOptions options)
     {
         ArgumentNullException.ThrowIfNull(request);
         ArgumentNullException.ThrowIfNull(serviceProvider);
         Request = request;
         Services = serviceProvider;
+        Options = options;
     }
     
     /// <summary>
@@ -60,6 +67,11 @@ public class RequestPipelineContext
     public void SetData<TData>(TData data) where TData : IPipelineData
     {
         _data[typeof(TData)] = data;
+    }
+    
+    public TOptions? GetOptions<TOptions>() where TOptions : RequestPipelineBuilderOptions
+    {
+        return Options as TOptions;
     }
 }
 

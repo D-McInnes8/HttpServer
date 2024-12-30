@@ -1,6 +1,7 @@
 ﻿using Application;
 using Application.Pipeline;
 using Application.Pipeline.Endpoints;
+using Application.Pipeline.StaticFiles;
 using Application.Request;
 using Application.Response;
 using Application.Routing;
@@ -138,6 +139,12 @@ httpServer.AddEndpointPipeline(options =>
     options.Priority = 1;
     options.Name = "Test Endpoint Pipeline";
     options.MapRoute(HttpRequestMethod.GET, "/test", (_) => HttpResponse.Ok("Hello World, from a main handler!"));
+});
+
+httpServer.AddStaticFilePipeline(options =>
+{
+    options.Priority = 2;
+    options.ServeFile("/sample.txt", "/Users/dmcinnes/Documents/PieceTableNotes.txt");
 });
 
 await httpServer.StartAsync();

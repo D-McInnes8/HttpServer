@@ -31,8 +31,7 @@ public class RequestHandler
 
     public HttpResponse HandleRequest(HttpRequest httpRequest, IServiceProvider serviceProvider)
     {
-        var ctx = new RequestPipelineContext(httpRequest, serviceProvider);
-        var globalRequestPipeline = _pipelineRegistry.GlobalPipeline;
+        var ctx = new RequestPipelineContext(httpRequest, serviceProvider, _pipelineRegistry.GlobalPipeline.Options);
         
         foreach (var requestPipeline in _pipelineRegistry)
         {
@@ -42,6 +41,7 @@ public class RequestHandler
                 continue;
             }
             
+            ctx.Options = requestPipeline.Options;
             var routingResult = router.RouteAsync(ctx).GetAwaiter().GetResult();
             if (routingResult == RouterResult.Success)
             {
