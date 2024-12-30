@@ -6,11 +6,11 @@ using Application.Routing;
 using Microsoft.Extensions.DependencyInjection;
 
 var builder = HttpServer.CreateBuilder(9999);
-builder.Services.AddScoped<RoutingPlugin>();
-builder.Services.AddSingleton<IRouteRegistry, RouteRegistry>();
+//builder.Services.AddScoped<RoutingPlugin>();
+//builder.Services.AddSingleton<IRouteRegistry, RouteRegistry>();
 var httpServer = builder.Build();
 
-httpServer.AddRoute(HttpRequestMethod.GET, "/", (_) => new HttpResponse(HttpResponseStatusCode.OK, new HttpBody()
+/*httpServer.AddRoute(HttpRequestMethod.GET, "/", (_) => new HttpResponse(HttpResponseStatusCode.OK, new HttpBody()
 {
     Content = "Hello, World!",
     ContentType = "text/plain"
@@ -89,7 +89,7 @@ httpServer.AddStaticFilePipeline("Static File Pipeline", options =>
            {
                options.DefaultFile = "index.html";
            });
-});
+});*/
 
 /*httpServer.AddHttpEndpointPipeline("Response Pipeline", priority: 1)
     .ConfigureRequestPipeline(options =>
@@ -125,6 +125,11 @@ httpServer.AddStaticFilePipeline(priority: 2)
     {
         options.DefaultFile = "index.html";
     });*/
+
+httpServer.AddPipeline(options =>
+{
+    options.Name = "Test Pipeline";
+});
 
 await httpServer.StartAsync();
 

@@ -1,12 +1,13 @@
 using System.Collections;
 using System.Diagnostics.CodeAnalysis;
+using Application.Routing;
 
 namespace Application.Pipeline.Registry;
 
 /// <inheritdoc />
 internal class DefaultPipelineRegistry : IPipelineRegistry
 {
-    private readonly List<IRequestPipeline3> _pipelines = new List<IRequestPipeline3>();
+    private readonly List<IRequestPipeline> _pipelines = new List<IRequestPipeline>();
 
     public DefaultPipelineRegistry()
     {
@@ -14,24 +15,26 @@ internal class DefaultPipelineRegistry : IPipelineRegistry
         {
             Name = "Global",
         };
+        globalPipelineOptions.UseRouter<DefaultRouter>();
+        globalPipelineOptions.UseRequestHandler<GlobalPipelineRequestHandler>();
         GlobalPipeline = new RequestPipeline(globalPipelineOptions);
     }
 
     public int Count => _pipelines.Count;
 
-    public IRequestPipeline3 GlobalPipeline { get; }
+    public IRequestPipeline GlobalPipeline { get; }
     
     public bool ContainsPipeline(string pipelineName)
     {
         return _pipelines.Any(p => p.Name == pipelineName);
     }
 
-    public IRequestPipeline3? GetPipeline(string pipelineName)
+    public IRequestPipeline? GetPipeline(string pipelineName)
     {
         return _pipelines.FirstOrDefault(pipeline => pipeline.Name == pipelineName);
     }
 
-    public bool TryGetPipeline(string pipelineName, [NotNullWhen(true)] out IRequestPipeline3? pipeline)
+    public bool TryGetPipeline(string pipelineName, [NotNullWhen(true)] out IRequestPipeline? pipeline)
     {
         foreach (var registryPipeline in _pipelines)
         {
@@ -48,6 +51,11 @@ internal class DefaultPipelineRegistry : IPipelineRegistry
 
     public void AddPipeline(string pipelineName, RequestPipelineBuilderOptions options)
     {
+        if (_pipelines.Any(p => p.Name == pipelineName))
+        {
+            throw new InvalidOperationException($"A pipeline with the name '{pipelineName}' already exists.");
+        }
+        
         var pipeline = new RequestPipeline(options);
         _pipelines.Add(pipeline);
     }
@@ -62,6 +70,6 @@ internal class DefaultPipelineRegistry : IPipelineRegistry
         _pipelines.Clear();
     }
 
-    public IEnumerator<IRequestPipeline3> GetEnumerator() => _pipelines.GetEnumerator();
+    public IEnumerator<IRequestPipeline> GetEnumerator() => _pipelines.GetEnumerator();
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 }

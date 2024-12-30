@@ -5,7 +5,7 @@ namespace Application.Pipeline.Registry;
 /// <summary>
 /// Represents a read-only collection of request pipeline definitions.
 /// </summary>
-public interface IReadOnlyPipelineRegistry : IEnumerable<IRequestPipeline3>
+public interface IReadOnlyPipelineRegistry : IEnumerable<IRequestPipeline>
 {
     /// <summary>
     /// Gets the total number of pipelines in the registry.
@@ -15,7 +15,7 @@ public interface IReadOnlyPipelineRegistry : IEnumerable<IRequestPipeline3>
     /// <summary>
     /// Gets the global request pipeline.
     /// </summary>
-    public IRequestPipeline3 GlobalPipeline { get; }
+    public IRequestPipeline GlobalPipeline { get; }
     
     /// <summary>
     /// Determines whether the registry contains a pipeline with the specified name.
@@ -30,7 +30,7 @@ public interface IReadOnlyPipelineRegistry : IEnumerable<IRequestPipeline3>
     /// </summary>
     /// <param name="pipelineName">The pipeline name to search for in the registry.</param>
     /// <returns>The pipeline if it exists in the registry, otherwise <see langword="null"/>.</returns>
-    public IRequestPipeline3? GetPipeline(string pipelineName);
+    public IRequestPipeline? GetPipeline(string pipelineName);
     
     /// <summary>
     /// Tries to get the pipeline with the specified name.
@@ -38,11 +38,11 @@ public interface IReadOnlyPipelineRegistry : IEnumerable<IRequestPipeline3>
     /// <param name="pipelineName">The pipeline name to search for in the registry.</param>
     /// <param name="pipeline">The pipeline if it exists in the registry, otherwise <see langword="null"/>.</param>
     /// <returns>True if <paramref name="pipelineName"/> exists otherwise false.</returns>
-    public bool TryGetPipeline(string pipelineName, [NotNullWhen(true)] out IRequestPipeline3? pipeline);
+    public bool TryGetPipeline(string pipelineName, [NotNullWhen(true)] out IRequestPipeline? pipeline);
     
     /// <summary>
     /// Gets the pipeline with the specified name.
     /// </summary>
     /// <param name="pipelineName">The pipeline name to search for in the registry.</param>
-    public IRequestPipeline3? this[string pipelineName] => GetPipeline(pipelineName);
+    public IRequestPipeline? this[string pipelineName] => GetPipeline(pipelineName);
 }

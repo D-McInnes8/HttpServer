@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using Application.Pipeline;
+using Application.Pipeline.Registry;
 using Application.Request;
 using Application.Request.Parser;
 using Application.Response;
@@ -27,6 +28,7 @@ public class HttpServer : IHttpServer
     
     private readonly TcpServer _tcpServer;
     private readonly RequestHandler _requestHandler;
+    private readonly IPipelineRegistry _pipelineRegistry;
 
     /*private readonly Route[] _routes =
     [
@@ -56,7 +58,8 @@ public class HttpServer : IHttpServer
         
         ArgumentOutOfRangeException.ThrowIfNegative(port, nameof(port));
         _tcpServer = new TcpServer(port, HandleRequest);
-        _requestHandler = new RequestHandler();
+        _pipelineRegistry = serviceProvider.GetRequiredService<IPipelineRegistry>();
+        _requestHandler = new RequestHandler(_pipelineRegistry);
     }
 
     public async Task StartAsync()
@@ -87,52 +90,25 @@ public class HttpServer : IHttpServer
     
     public static IHttpServerBuilder CreateBuilder(int port) => new HttpServerBuilder(port);
     
-    public IRequestPipelineBuilder2<T> AddRequestPipeline<T>() where T : IRequestPipeline
+    public IHttpServer AddPipeline(Action<RequestPipelineBuilderOptions> configure)
     {
-        return AddRequestPipeline<T>(pipelineName: typeof(T).Name);
+        var pipelineOptions = new RequestPipelineBuilderOptions()
+        {
+            Name = $"Pipeline {Guid.NewGuid():N}"
+        };
+        configure(pipelineOptions);
+        _pipelineRegistry.AddPipeline(pipelineOptions.Name, pipelineOptions);
+        return this;
     }
 
-    public IRequestPipelineBuilder2<T> AddRequestPipeline<T>(string pipelineName) where T : IRequestPipeline
+    public IHttpServer AddPipeline(string pipelineName, Action<RequestPipelineBuilderOptions> configure)
     {
-        var pipelineRegistry = Services.GetRequiredService<PipelineRegistry>();
-        pipelineRegistry.AddPipeline<T>(name: pipelineName);
-        return new RequestPipelineBuilder2<T>(pipelineName, Services);
-    }
-    
-    public IHttpServer AddPipeline<T>(Action<IRequestPipelineBuilder<T>> configure) where T : RequestPipelineBuilderOptions
-    {
-        var pipelineBuilder = new RequestPipelineBuilder<T>(Services);
-        configure(pipelineBuilder);
-        var pipelineDefinition = pipelineBuilder.Build();
+        var pipelineOptions = new RequestPipelineBuilderOptions
+        {
+            Name = pipelineName
+        };
+        configure(pipelineOptions);
+        _pipelineRegistry.AddPipeline(pipelineOptions.Name, pipelineOptions);
         return this;
     }
-    
-    public IHttpServer AddPipeline<T>(string pipelineName, Action<IRequestPipelineBuilder<T>> configure) where T : RequestPipelineBuilderOptions
-    {
-        var pipelineBuilder = new RequestPipelineBuilder<T>(Services);
-        configure(pipelineBuilder);
-        var pipelineDefinition = pipelineBuilder.Build();
-        return this;
-    }
-    
-    public IHttpServer AddPipeline(string pipelineName, Action<IRequestPipelineBuilder<RequestPipelineBuilderOptions>> configure)
-    {
-        var pipelineBuilder = new RequestPipelineBuilder<RequestPipelineBuilderOptions>(Services);
-        configure(pipelineBuilder);
-        var pipelineDefinition = pipelineBuilder.Build();
-        return this;
-    }
-    
-    public IHttpServer AddPipeline(Action<IRequestPipelineBuilder<RequestPipelineBuilderOptions>> configure)
-    {
-        var pipelineBuilder = new RequestPipelineBuilder<RequestPipelineBuilderOptions>(Services);
-        configure(pipelineBuilder);
-        var pipelineDefinition = pipelineBuilder.Build();
-        return this;
-    }
-}
-
-public class PipelineOptions
-{
-    
 }

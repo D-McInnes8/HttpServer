@@ -1,234 +1,136 @@
-using Application.Request;
-using Application.Response;
-using Microsoft.Extensions.DependencyInjection;
+using Application.Routing;
 
 namespace Application.Pipeline;
-
-public class RequestPipelineBuilderOptions
-{
-    public IReadOnlyCollection<Type> Plugins { get; set; }
-    
-    public Type Router { get; protected set; }
-    
-    public Type RequestHandler { get; protected set; }
-    
-    public string Name { get; set; }
-    
-    public int Priority { get; set; }
-    
-    public string? PathPrefix { get; set; }
-    
-    public RequestPipelineBuilderOptions()
-    {
-        Plugins = new List<Type>();
-    }
-    
-    public void UseRouter<TRouter>() where TRouter : IRequestPipelinePlugin
-    {
-        Router = typeof(TRouter);
-    }
-    
-    public void UseRequestHandler<THandler>() where THandler : IRequestPipelinePlugin
-    {
-        RequestHandler = typeof(THandler);
-    }
-}
 
 /// <summary>
 /// 
 /// </summary>
-/// <typeparam name="T"></typeparam>
-public interface IRequestPipelineBuilder<T> where T : RequestPipelineBuilderOptions
+public class RequestPipelineBuilderOptions
 {
-    /// <summary>
-    /// 
-    /// </summary>
-    public IServiceProvider Services { get; }
+    private readonly List<Type> _plugins = new();
     
     /// <summary>
     /// 
     /// </summary>
-    public T Options { get; }
+    public IReadOnlyCollection<Type> Plugins => _plugins;
+
+    /// <summary>
+    /// 
+    /// </summary>
+    public Type Router { get; private set; } = typeof(DefaultRouter);
+
+    /// <summary>
+    /// 
+    /// </summary>
+    public Type RequestHandler { get; private set; } = typeof(DefaultRequestHandler);
+
+    /// <summary>
+    /// 
+    /// </summary>
+    public string Name { get; set; } = $"{Guid.NewGuid():N}";
+    
+    /// <summary>
+    /// 
+    /// </summary>
+    public int Priority { get; set; }
+    
+    /// <summary>
+    /// 
+    /// </summary>
+    public string? PathPrefix { get; set; }
     
     /// <summary>
     /// 
     /// </summary>
     /// <typeparam name="TRouter"></typeparam>
-    /// <returns></returns>
-    public IRequestPipelineBuilder<T> UseRouter<TRouter>() where TRouter : IRequestPipelinePlugin;
-    
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <param name="configure"></param>
-    /// <returns></returns>
-    public IRequestPipelineBuilder<T> ConfigurePlugins(Action<RequestPipelineOptions> configure);
+    public void UseRouter<TRouter>() where TRouter : IRouter
+    {
+        Router = typeof(TRouter);
+    }
     
     /// <summary>
     /// 
     /// </summary>
     /// <typeparam name="THandler"></typeparam>
-    /// <returns></returns>
-    public IRequestPipelineBuilder<T> UseRequestHandler<THandler>() where THandler : IRequestPipelinePlugin;
-    
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <param name="name"></param>
-    /// <returns></returns>
-    public IRequestPipelineBuilder<T> WithName(string name);
-    
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <param name="priority"></param>
-    /// <returns></returns>
-    public IRequestPipelineBuilder<T> WithPriority(int priority);
-    
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <param name="pathPrefix"></param>
-    /// <returns></returns>
-    public IRequestPipelineBuilder<T> WithPathPrefix(string pathPrefix);
-
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <returns></returns>
-    internal PipelineDefinition Build();
-}
-
-public class RequestPipelineBuilder<T> : IRequestPipelineBuilder<T> where T : RequestPipelineBuilderOptions
-{
-    public RequestPipelineBuilder(IServiceProvider services)
+    public void UseRequestHandler<THandler>() where THandler : IRequestHandler
     {
-        Services = services;
+        RequestHandler = typeof(THandler);
     }
-
-    public IServiceProvider Services { get; }
-    
-    public IRequestPipelineBuilder<T> UseRouter<TRouter>() where TRouter : IRequestPipelinePlugin
-    {
-        throw new NotImplementedException();
-    }
-
-    public IRequestPipelineBuilder<T> ConfigurePlugins(Action<RequestPipelineOptions> configure)
-    {
-        throw new NotImplementedException();
-    }
-
-    public IRequestPipelineBuilder<T> UseRequestHandler<THandler>() where THandler : IRequestPipelinePlugin
-    {
-        throw new NotImplementedException();
-    }
-
-    public IRequestPipelineBuilder<T> WithName(string name)
-    {
-        throw new NotImplementedException();
-    }
-
-    public IRequestPipelineBuilder<T> WithPriority(int priority)
-    {
-        throw new NotImplementedException();
-    }
-
-    public IRequestPipelineBuilder<T> WithPathPrefix(string pathPrefix)
-    {
-        throw new NotImplementedException();
-    }
-
-    public PipelineDefinition Build()
-    {
-        throw new NotImplementedException();
-    }
-}
-
-
-
-
-public interface IRequestPipelineBuilder2<T> where T : IRequestPipeline
-{
-    public IServiceProvider Services { get; }
-    public PipelineRegistry PipelineRegistry { get; }
-    //public IRequestPipelineBuilder<T> UseRouter<TRouter>() where TRouter : IRequestPipelinePlugin;
-    public IRequestPipelineBuilder2<T> ConfigurePipeline(Action<RequestPipelineOptions> configure);
-    //public IRequestPipelineBuilder<T> ConfigurePlugins(Action<RequestPipelineOptions> configure);
-    public IRequestPipelineBuilder2<T> UseDefaultHandler(Func<HttpRequest, Task<HttpResponse>> handler);
-    /*public IRequestPipelineBuilder<T> UseRequestHandler<THandler>() where THandler : IRequestPipelinePlugin;
-    public IRequestPipelineBuilder<T> WithName(string name);
-    public IRequestPipelineBuilder<T> WithPriority(int priority);
-    public IRequestPipelineBuilder<T> WithPathPrefix(string pathPrefix);*/
-}
-
-public class RequestPipelineBuilder2<T> : IRequestPipelineBuilder2<T> where T : IRequestPipeline
-{
-    public string PipelineName { get; }
-    public IServiceProvider Services { get; }
-    public PipelineRegistry PipelineRegistry { get; }
 
     /// <summary>
     /// 
     /// </summary>
     /// <param name="pipelineName"></param>
-    /// <param name="services"></param>
-    public RequestPipelineBuilder2(string pipelineName, IServiceProvider services)
+    public void WithName(string pipelineName)
     {
-        PipelineName = pipelineName;
-        Services = services;
-        PipelineRegistry = services.GetRequiredService<PipelineRegistry>();
+        Name = pipelineName;
     }
     
-    public IRequestPipelineBuilder2<T> ConfigurePipeline(Action<RequestPipelineOptions> configure)
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="priority"></param>
+    public void WithPriority(int priority)
     {
-        var pipelineOptions = new RequestPipelineOptions(T.DefaultPlugins);
-        configure(pipelineOptions);
-
-        PipelineRegistry.UpdatePipeline(PipelineName, (p) =>
+        Priority = priority;
+    }
+    
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="pathPrefix"></param>
+    public void WithPathPrefix(string pathPrefix)
+    {
+        PathPrefix = pathPrefix;
+    }
+    
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <typeparam name="TPlugin"></typeparam>
+    public void AddPlugin<TPlugin>() where TPlugin : IRequestPipelinePlugin
+    {
+        _plugins.Add(typeof(TPlugin));
+    }
+    
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="pluginType"></param>
+    /// <exception cref="ArgumentException"></exception>
+    public void AddPlugin(Type pluginType)
+    {
+        if (!typeof(IRequestPipelinePlugin).IsAssignableFrom(pluginType))
         {
-            p.Plugins = pipelineOptions.Plugins;
-        });
-        //PipelineRegistry.AddPipeline<T>(plugins: pipelineOptions.Plugins);
-        return this;
-    }
-
-    public IRequestPipelineBuilder2<T> UseDefaultHandler(Func<HttpRequest, Task<HttpResponse>> handler)
-    {
-        throw new NotImplementedException();
-    }
-}
-
-public class RequestPipelineOptions
-{
-    public IReadOnlyCollection<Type> Plugins => _plugins;
-
-    private readonly List<Type> _plugins;
-    private readonly IReadOnlyCollection<Type> _defaultPlugins;
-
-    public RequestPipelineOptions(IReadOnlyCollection<Type> defaultPlugins)
-    {
-        _defaultPlugins = defaultPlugins;
-        _plugins = new List<Type>(_defaultPlugins);
+            throw new ArgumentException("The plugin type must implement IRequestPipelinePlugin.", nameof(pluginType));
+        }
+        
+        _plugins.Add(pluginType);
     }
     
-    public void AddPlugin<T>() where T : IRequestPipelinePlugin
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <typeparam name="TPlugin"></typeparam>
+    public void RemovePlugin<TPlugin>() where TPlugin : IRequestPipelinePlugin
     {
-        _plugins.Add(typeof(T));
+        _plugins.Remove(typeof(TPlugin));
     }
     
-    public void RemovePlugin<T>() where T : IRequestPipelinePlugin
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="pluginType"></param>
+    public void RemovePlugin(Type pluginType)
     {
-        _plugins.Remove(typeof(T));
+        _plugins.Remove(pluginType);
     }
     
+    /// <summary>
+    /// 
+    /// </summary>
     public void ClearPlugins()
     {
         _plugins.Clear();
-    }
-
-    public void ResetPlugins()
-    {
-        _plugins.Clear();
-        _plugins.AddRange(_defaultPlugins);
     }
 }

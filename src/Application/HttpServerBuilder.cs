@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using Application.Pipeline.Registry;
 using Application.Routing;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -30,6 +31,9 @@ public class HttpServerBuilder : IHttpServerBuilder
     {
         Services.AddSingleton<IRouteRegistry, RouteRegistry>();
         Services.AddScoped<RoutingPlugin>();
+
+        Services.AddSingleton<IPipelineRegistry, DefaultPipelineRegistry>()
+                .AddSingleton<IReadOnlyPipelineRegistry>(provider => provider.GetRequiredService<IPipelineRegistry>());
     }
 
     public HttpServer Build()
