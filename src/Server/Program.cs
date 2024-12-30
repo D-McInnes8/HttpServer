@@ -127,19 +127,18 @@ httpServer.AddStaticFilePipeline(priority: 2)
         options.DefaultFile = "index.html";
     });*/
 
-httpServer.AddEndpointPipeline(options =>
-{
-    options.Priority = 1;
-    options.Name = "Test Endpoint Pipeline";
-    options.MapRoute(HttpRequestMethod.GET, "/test", (_) => HttpResponse.Ok("Hello World, from a main handler!"));
-});
-
 
 httpServer.AddPipeline(options =>
 {
     options.Name = "Test Pipeline";
 });
 
+httpServer.AddEndpointPipeline(options =>
+{
+    options.Priority = 1;
+    options.Name = "Test Endpoint Pipeline";
+    options.MapRoute(HttpRequestMethod.GET, "/test", (_) => HttpResponse.Ok("Hello World, from a main handler!"));
+});
 
 await httpServer.StartAsync();
 

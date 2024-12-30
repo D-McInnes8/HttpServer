@@ -58,6 +58,11 @@ internal class DefaultPipelineRegistry : IPipelineRegistry
         
         var pipeline = new RequestPipeline(options);
         _pipelines.Add(pipeline);
+        
+        if (options.Priority != int.MaxValue)
+        {
+            _pipelines.Sort((a, b) => a.Options.Priority.CompareTo(b.Options.Priority));
+        }
     }
 
     public void RemovePipeline(string pipelineName)

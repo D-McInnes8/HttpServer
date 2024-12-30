@@ -14,12 +14,12 @@ public class RoutingPlugin : IRequestPipelinePlugin
 
     public Task<HttpResponse> InvokeAsync(RequestPipelineContext context, Func<RequestPipelineContext, Task<HttpResponse>> next)
     {
-        context.Route ??= _routeRegistry.MatchRoute(context.Request);
+        /*context.Route ??= _routeRegistry.MatchRoute(context.Request);
         
         if (context.Route is not null)
         {
             return next(context);
-        }
+        }*/
         
         return Task.FromResult(new HttpResponse(HttpResponseStatusCode.NotFound));
     }

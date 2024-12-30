@@ -20,7 +20,7 @@ public class EndpointRouter : IRouter
             return Task.FromResult(RouterResult.NotFound);
         }
 
-        ctx.Route = route;
+        ctx.SetData(route);
         return Task.FromResult(RouterResult.Success);
     }
 }

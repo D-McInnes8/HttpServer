@@ -1,10 +1,11 @@
 using System.Diagnostics.CodeAnalysis;
+using Application.Pipeline;
 using Application.Request;
 using Application.Response;
 
 namespace Application.Routing;
 
-public class Route
+public class Route : IPipelineData
 {
     public required string Path { get; init; }
     public required HttpRequestMethod Method { get; init; }

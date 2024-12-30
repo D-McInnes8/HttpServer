@@ -39,11 +39,11 @@ public class RequestPipelineBuilderOptions
     /// 
     /// </summary>
     public string Name { get; set; } = $"{Guid.NewGuid():N}";
-    
+
     /// <summary>
     /// 
     /// </summary>
-    public int Priority { get; set; }
+    public int Priority { get; set; } = int.MaxValue;
     
     /// <summary>
     /// 
