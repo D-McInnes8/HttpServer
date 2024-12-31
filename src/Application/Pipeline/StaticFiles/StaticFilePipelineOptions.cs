@@ -3,9 +3,9 @@ using System.Diagnostics.CodeAnalysis;
 namespace Application.Pipeline.StaticFiles;
 
 /// <summary>
-/// 
+/// Options for the static file pipeline.
 /// </summary>
-/// <param name="services"></param>
+/// <param name="services">The <see cref="IServiceProvider"/> associated with the web server.</param>
 public class StaticFilePipelineOptions(IServiceProvider services) : RequestPipelineBuilderOptions(services)
 {
     /// <summary>

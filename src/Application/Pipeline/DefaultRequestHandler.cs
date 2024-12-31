@@ -3,7 +3,7 @@ using Application.Response;
 namespace Application.Pipeline;
 
 /// <summary>
-/// 
+/// A default request handler that will be used if no other request handler is found. This handler will return a 404 Not Found response.
 /// </summary>
 public class DefaultRequestHandler : IRequestHandler
 {

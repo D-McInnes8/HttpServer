@@ -2,8 +2,12 @@ using Application.Routing;
 
 namespace Application.Pipeline.StaticFiles;
 
+/// <summary>
+/// Router for static files
+/// </summary>
 public class StaticFileRouter : IRouter
 {
+    /// <inheritdoc />
     public Task<RouterResult> RouteAsync(RequestPipelineContext ctx)
     {
         var options = ctx.GetOptions<StaticFilePipelineOptions>();

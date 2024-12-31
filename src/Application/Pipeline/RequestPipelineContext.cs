@@ -4,7 +4,16 @@ using Application.Request;
 namespace Application.Pipeline;
 
 /// <summary>
-/// The context for the request pipeline.
+/// Represents a data object that can be stored within a <see cref="RequestPipelineContext"/>.
+/// </summary>
+public interface IPipelineData
+{
+}
+
+/// <summary>
+/// The context for a request pipeline. This context is used to store data objects that are shared between
+/// different plugins in the pipeline. A single context may be used in multiple pipelines, if the server is configured
+/// to use nested request pipelines.
 /// </summary>
 public class RequestPipelineContext
 {
@@ -69,16 +78,13 @@ public class RequestPipelineContext
         _data[typeof(TData)] = data;
     }
     
+    /// <summary>
+    /// Can be used to retrieve the options of the specified type from the context.
+    /// </summary>
+    /// <typeparam name="TOptions">The derived <see cref="RequestPipelineBuilderOptions"/> type to retrieve.</typeparam>
+    /// <returns>The <typeparamref name="TOptions"/> if the pipeline options are of that type, otherwise null.</returns>
     public TOptions? GetOptions<TOptions>() where TOptions : RequestPipelineBuilderOptions
     {
         return Options as TOptions;
     }
-}
-
-/// <summary>
-/// Represents a data object that can be stored within a <see cref="RequestPipelineContext"/>.
-/// </summary>
-public interface IPipelineData
-{
-    
 }

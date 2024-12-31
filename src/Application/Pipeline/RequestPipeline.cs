@@ -4,25 +4,26 @@ using Microsoft.Extensions.DependencyInjection;
 namespace Application.Pipeline;
 
 /// <summary>
-/// 
+/// Represents a request pipeline that can be used to process incoming HTTP requests.
 /// </summary>
 public interface IRequestPipeline
 {
     /// <summary>
-    /// 
+    /// The name of the pipeline. Each pipeline has a unique name.
     /// </summary>
     public string Name { get; }
     
     /// <summary>
-    /// 
+    /// The options used to build the pipeline. This may be the base <see cref="RequestPipelineBuilderOptions"/> class,
+    /// or a derived class that contains additional options.
     /// </summary>
     public RequestPipelineBuilderOptions Options { get; }
     
     /// <summary>
-    /// 
+    /// Executes the request pipeline.
     /// </summary>
-    /// <param name="ctx"></param>
-    /// <returns></returns>
+    /// <param name="ctx">The <see cref="RequestPipelineContext"/> associated with the request.</param>
+    /// <returns>A <see cref="HttpResponse"/> which will be returned to the original sender of the request.</returns>
     Task<HttpResponse> ExecuteAsync(RequestPipelineContext ctx);
 }
 

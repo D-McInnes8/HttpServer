@@ -4,11 +4,16 @@ using Application.Routing;
 
 namespace Application.Pipeline.Registry;
 
-/// <inheritdoc />
+/// <summary>
+/// A default implementation of <see cref="IPipelineRegistry"/>, using a simple list as the data store.
+/// </summary>
 internal class DefaultPipelineRegistry : IPipelineRegistry
 {
     private readonly List<IRequestPipeline> _pipelines = new List<IRequestPipeline>();
 
+    /// <summary>
+    /// Constructs a new <see cref="DefaultPipelineRegistry"/>.
+    /// </summary>
     public DefaultPipelineRegistry()
     {
         var globalPipelineOptions = new RequestPipelineBuilderOptions(null!)
@@ -20,20 +25,25 @@ internal class DefaultPipelineRegistry : IPipelineRegistry
         GlobalPipeline = new RequestPipeline(globalPipelineOptions);
     }
 
+    /// <inheritdoc />
     public int Count => _pipelines.Count;
 
+    /// <inheritdoc />
     public IRequestPipeline GlobalPipeline { get; }
     
+    /// <inheritdoc />
     public bool ContainsPipeline(string pipelineName)
     {
         return _pipelines.Any(p => p.Name == pipelineName);
     }
 
+    /// <inheritdoc />
     public IRequestPipeline? GetPipeline(string pipelineName)
     {
         return _pipelines.FirstOrDefault(pipeline => pipeline.Name == pipelineName);
     }
 
+    /// <inheritdoc />
     public bool TryGetPipeline(string pipelineName, [NotNullWhen(true)] out IRequestPipeline? pipeline)
     {
         foreach (var registryPipeline in _pipelines)
@@ -49,6 +59,7 @@ internal class DefaultPipelineRegistry : IPipelineRegistry
         return false;
     }
 
+    /// <inheritdoc />
     public void AddPipeline(string pipelineName, RequestPipelineBuilderOptions options)
     {
         if (_pipelines.Any(p => p.Name == pipelineName))
@@ -65,16 +76,21 @@ internal class DefaultPipelineRegistry : IPipelineRegistry
         }
     }
 
+    /// <inheritdoc />
     public void RemovePipeline(string pipelineName)
     {
         _pipelines.RemoveAll(p => p.Name == pipelineName);
     }
 
+    /// <inheritdoc />
     public void Clear()
     {
         _pipelines.Clear();
     }
 
+    /// <inheritdoc />
     public IEnumerator<IRequestPipeline> GetEnumerator() => _pipelines.GetEnumerator();
+    
+    /// <inheritdoc />
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 }
