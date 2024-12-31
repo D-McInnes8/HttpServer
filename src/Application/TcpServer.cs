@@ -69,9 +69,18 @@ public class TcpServer
         var buffer = new byte[2048];
         var bytesRead = stream.Read(buffer, 0, buffer.Length);
         var message = Encoding.UTF8.GetString(buffer, 0, bytesRead);
+
+        try
+        {
+            var response = _requestHandler(message);
+            stream.Write(Encoding.UTF8.GetBytes(response));
+            client.Close();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("An uncaught exception occurred in the request worker thread: " + ex.Message);
+        }
         
-        var response = _requestHandler(message);
-                
         /*var body = "Hello World";
         var responseMessage = $"""
                                HTTP/1.1 200 OK
@@ -81,7 +90,5 @@ public class TcpServer
 
                                {body}
                                """;*/
-        stream.Write(Encoding.UTF8.GetBytes(response));
-        client.Close();
     }
 }

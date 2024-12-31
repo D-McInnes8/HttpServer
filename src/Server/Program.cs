@@ -139,12 +139,14 @@ httpServer.AddEndpointPipeline(options =>
     options.Priority = 1;
     options.Name = "Test Endpoint Pipeline";
     options.MapRoute(HttpRequestMethod.GET, "/test", (_) => HttpResponse.Ok("Hello World, from a main handler!"));
+    options.MapRoute(HttpRequestMethod.GET, "/error", (_) => throw new Exception("AN EXCEPTION!!"));
 });
 
 httpServer.AddStaticFilePipeline(options =>
 {
     options.Priority = 2;
     options.ServeFile("/sample.txt", "/Users/dmcinnes/Documents/PieceTableNotes.txt");
+    options.ServeDirectory("/", "/Users/dmcinnes/Documents/Projects/HttpServer/wwwroot");
 });
 
 await httpServer.StartAsync();
