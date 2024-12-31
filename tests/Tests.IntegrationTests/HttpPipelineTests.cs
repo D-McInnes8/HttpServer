@@ -10,7 +10,7 @@ namespace Tests.IntegrationTests;
 
 public class HttpPipelineTests : IAsyncLifetime
 {
-    private readonly HttpServer _httpServer = HttpServer.CreateBuilder(9995).Build();
+    private readonly HttpServer _httpServer = HttpServer.CreateBuilder(9994).Build();
     private readonly HttpClient _httpClient = new HttpClient();
 
     public async Task InitializeAsync()

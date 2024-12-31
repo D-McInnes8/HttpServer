@@ -46,4 +46,5 @@ public class HttpResponse
     public static HttpResponse Unauthorized() => new HttpResponse(HttpResponseStatusCode.Unauthorized);
     public static HttpResponse Forbidden() => new HttpResponse(HttpResponseStatusCode.Forbidden);
     public static HttpResponse InternalServerError() => new HttpResponse(HttpResponseStatusCode.InternalServerError);
+    public static HttpResponse NotImplemented() => new HttpResponse(HttpResponseStatusCode.NotImplemented);
 }
