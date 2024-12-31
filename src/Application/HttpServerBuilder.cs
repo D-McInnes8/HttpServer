@@ -10,7 +10,7 @@ public interface IHttpServerBuilder
     public IServiceCollection Services { get; }
     public int Port { get; }
 
-    public HttpServer Build();
+    public HttpWebWebServer Build();
 }
 
 public class HttpServerBuilder : IHttpServerBuilder
@@ -36,10 +36,10 @@ public class HttpServerBuilder : IHttpServerBuilder
                 .AddSingleton<IReadOnlyPipelineRegistry>(provider => provider.GetRequiredService<IPipelineRegistry>());
     }
 
-    public HttpServer Build()
+    public HttpWebWebServer Build()
     {
         Debug.Assert(Port >= 0);
-        return new HttpServer(
+        return new HttpWebWebServer(
             port: Port,
             serviceProvider: Services.BuildServiceProvider());
     }

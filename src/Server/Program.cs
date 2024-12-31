@@ -7,18 +7,18 @@ using Application.Response;
 using Application.Routing;
 using Microsoft.Extensions.DependencyInjection;
 
-var builder = HttpServer.CreateBuilder(9999);
+var builder = HttpWebWebServer.CreateBuilder(9999);
 //builder.Services.AddScoped<RoutingPlugin>();
 //builder.Services.AddSingleton<IRouteRegistry, RouteRegistry>();
 var httpServer = builder.Build();
 
-/*httpServer.AddRoute(HttpRequestMethod.GET, "/", (_) => new HttpResponse(HttpResponseStatusCode.OK, new HttpBody()
+/*httpWebServer.AddRoute(HttpRequestMethod.GET, "/", (_) => new HttpResponse(HttpResponseStatusCode.OK, new HttpBody()
 {
     Content = "Hello, World!",
     ContentType = "text/plain"
 }));
 
-httpServer.AddRequestPipeline<Testipeline>()
+httpWebServer.AddRequestPipeline<Testipeline>()
     .ConfigurePipeline(options =>
     {
         options.AddPlugin<RoutingPlugin>();
@@ -34,10 +34,10 @@ httpServer.AddRequestPipeline<Testipeline>()
     });
 
 
-httpServer.AddRequestPipeline<Testipeline>(pipelineName: "Simple Pipeline")
+httpWebServer.AddRequestPipeline<Testipeline>(pipelineName: "Simple Pipeline")
           .UseDefaultHandler(request => Task.FromResult(HttpResponse.Ok("Hello, World!")));
 
-httpServer.AddRequestPipeline<Testipeline>(pipelineName: "Generic Request Pipeline")
+httpWebServer.AddRequestPipeline<Testipeline>(pipelineName: "Generic Request Pipeline")
           .ConfigurePlugins(pipeline =>
           {
               pipeline.ClearPlugins();
@@ -48,7 +48,7 @@ httpServer.AddRequestPipeline<Testipeline>(pipelineName: "Generic Request Pipeli
           .UseRouter<RoutingPlugin>()
           .UseDefaultHandler(request => Task.FromResult(HttpResponse.Ok()));
 
-httpServer.AddPipeline()
+httpWebServer.AddPipeline()
           .UseRouter<RoutingPlugin>()
           .UseRequestHandler<RoutingPlugin>()
           .WithName("Simple Pipeline")
@@ -59,7 +59,7 @@ httpServer.AddPipeline()
                 options.AddPlugin<RoutingPlugin>();
           });
 
-httpServer.AddPipeline("Simple Pipeline", pipelineBuilder =>
+httpWebServer.AddPipeline("Simple Pipeline", pipelineBuilder =>
 {
     pipelineBuilder.UseRouter<RoutingPlugin>()
         .UseRequestHandler<RoutingPlugin>()
@@ -71,7 +71,7 @@ httpServer.AddPipeline("Simple Pipeline", pipelineBuilder =>
         });
 });
 
-httpServer.AddStaticFilePipeline("Static File Pipeline", options =>
+httpWebServer.AddStaticFilePipeline("Static File Pipeline", options =>
 {
     options.Priority = 2;
     options.PipelineName = "";
@@ -93,7 +93,7 @@ httpServer.AddStaticFilePipeline("Static File Pipeline", options =>
            });
 });*/
 
-/*httpServer.AddHttpEndpointPipeline("Response Pipeline", priority: 1)
+/*httpWebServer.AddHttpEndpointPipeline("Response Pipeline", priority: 1)
     .ConfigureRequestPipeline(options =>
     {
         options.UsePlugin<RoutingPlugin>();
@@ -113,7 +113,7 @@ httpServer.AddStaticFilePipeline("Static File Pipeline", options =>
         }));
     });
 
-httpServer.AddStaticFilePipeline(priority: 2)
+httpWebServer.AddStaticFilePipeline(priority: 2)
     .ServeDirectory("/", "wwwroot")
     .ServeDirectory("/images", "wwwroot/images")
     .ServeFile("/favicon.ico", "wwwroot/favicon.ico")
@@ -151,10 +151,10 @@ httpServer.AddStaticFilePipeline(options =>
 
 await httpServer.StartAsync();
 
-/*var httpServer = new HttpServer(9999);
-httpServer.AddRoute(HttpRequestMethod.GET, "/", (_) => new HttpResponse(HttpResponseStatusCode.OK, new HttpBody()
+/*var httpWebServer = new HttpWebWebServer(9999);
+httpWebServer.AddRoute(HttpRequestMethod.GET, "/", (_) => new HttpResponse(HttpResponseStatusCode.OK, new HttpBody()
 {
     Content = "Hello, World!",
     ContentType = "text/plain"
 }));
-await httpServer.StartAsync();*/
+await httpWebServer.StartAsync();*/

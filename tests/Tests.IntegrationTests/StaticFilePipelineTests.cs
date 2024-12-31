@@ -7,26 +7,26 @@ namespace Tests.IntegrationTests;
 
 public class StaticFilePipelineTests : IAsyncLifetime
 {
-    private readonly HttpServer _httpServer = HttpServer.CreateBuilder(9993).Build();
+    private readonly HttpWebWebServer _httpWebWebServer = HttpWebWebServer.CreateBuilder(9993).Build();
     private readonly HttpClient _httpClient = new HttpClient();
 
     public async Task InitializeAsync()
     {
-        _httpClient.BaseAddress = new Uri($"http://localhost:{_httpServer.Port}");
-        await _httpServer.StartAsync();
+        _httpClient.BaseAddress = new Uri($"http://localhost:{_httpWebWebServer.Port}");
+        await _httpWebWebServer.StartAsync();
     }
 
     public async Task DisposeAsync()
     {
         _httpClient.Dispose();
-        await _httpServer.StopAsync();
+        await _httpWebWebServer.StopAsync();
     }
     
     [Fact]
     public async Task StaticFilePipeline_ShouldServeIndividualFile()
     {
         // Arrange
-        _httpServer.AddStaticFilePipeline(options =>
+        _httpWebWebServer.AddStaticFilePipeline(options =>
         {
             options.ServeFile("/file.txt", "path/to/file.txt");
         });
@@ -44,7 +44,7 @@ public class StaticFilePipelineTests : IAsyncLifetime
     public async Task StaticFilePipeline_ShouldServeDirectory()
     {
         // Arrange
-        _httpServer.AddStaticFilePipeline(options =>
+        _httpWebWebServer.AddStaticFilePipeline(options =>
         {
             options.ServeDirectory("/files", "path/to/files");
         });
@@ -62,7 +62,7 @@ public class StaticFilePipelineTests : IAsyncLifetime
     public async Task StaticFilePipeline_ShouldServeFileAndDirectory()
     {
         // Arrange
-        _httpServer.AddStaticFilePipeline(options =>
+        _httpWebWebServer.AddStaticFilePipeline(options =>
         {
             options.ServeFile("/file.txt", "path/to/file.txt");
             options.ServeDirectory("/files", "path/to/files");
@@ -86,7 +86,7 @@ public class StaticFilePipelineTests : IAsyncLifetime
     public async Task StaticFilePipeline_ShouldReturnNotFoundForInvalidPath()
     {
         // Arrange
-        _httpServer.AddStaticFilePipeline(options =>
+        _httpWebWebServer.AddStaticFilePipeline(options =>
         {
             options.ServeFile("/file.txt", "path/to/file.txt");
         });
@@ -102,7 +102,7 @@ public class StaticFilePipelineTests : IAsyncLifetime
     public async Task StaticFilePipeline_WithMultipleFiles_ShouldServeCorrectFile()
     {
         // Arrange
-        _httpServer.AddStaticFilePipeline(options =>
+        _httpWebWebServer.AddStaticFilePipeline(options =>
         {
             options.ServeFile("/file1.txt", "path/to/file1.txt");
             options.ServeFile("/file2.txt", "path/to/file2.txt");
@@ -126,7 +126,7 @@ public class StaticFilePipelineTests : IAsyncLifetime
     public async Task StaticFilePipeline_WithCustomPlugins_ShouldExecutePlugins()
     {
         // Arrange
-        _httpServer.AddStaticFilePipeline(options =>
+        _httpWebWebServer.AddStaticFilePipeline(options =>
         {
             options.ServeFile("/file.txt", "path/to/file.txt");
             options.UseRouter<TestRouter>();
@@ -148,7 +148,7 @@ public class StaticFilePipelineTests : IAsyncLifetime
     public async Task StaticFilePipeline_ShouldReturnCorrectContentType(string url, string filePath, string expectedContentType)
     {
         // Arrange
-        _httpServer.AddStaticFilePipeline(options =>
+        _httpWebWebServer.AddStaticFilePipeline(options =>
         {
             options.ServeFile(url, filePath);
         });
@@ -164,7 +164,7 @@ public class StaticFilePipelineTests : IAsyncLifetime
     public async Task StaticFilePipeline_ShouldReturnBadRequestForInvalidFilePath()
     {
         // Arrange
-        _httpServer.AddStaticFilePipeline(options =>
+        _httpWebWebServer.AddStaticFilePipeline(options =>
         {
             options.ServeFile("/file.txt", "invalid/path/to/file.txt");
         });

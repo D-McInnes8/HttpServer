@@ -10,19 +10,19 @@ namespace Tests.IntegrationTests;
 
 public class HttpPipelineTests : IAsyncLifetime
 {
-    private readonly HttpServer _httpServer = HttpServer.CreateBuilder(9994).Build();
+    private readonly HttpWebWebServer _httpWebWebServer = HttpWebWebServer.CreateBuilder(9994).Build();
     private readonly HttpClient _httpClient = new HttpClient();
 
     public async Task InitializeAsync()
     {
-        _httpClient.BaseAddress = new Uri($"http://localhost:{_httpServer.Port}");
-        await _httpServer.StartAsync();
+        _httpClient.BaseAddress = new Uri($"http://localhost:{_httpWebWebServer.Port}");
+        await _httpWebWebServer.StartAsync();
     }
 
     public async Task DisposeAsync()
     {
         _httpClient.Dispose();
-        await _httpServer.StopAsync();
+        await _httpWebWebServer.StopAsync();
     }
     
     [Theory]
@@ -58,7 +58,7 @@ public class HttpPipelineTests : IAsyncLifetime
     public async Task HttpPipeline_CustomPipeline_ShouldReturnOk()
     {
         // Arrange
-        _httpServer.AddPipeline(options =>
+        _httpWebWebServer.AddPipeline(options =>
         {
             options.UseRouter<TestRouter>();
             options.UseRequestHandler<TestRequestHandler>();
@@ -76,7 +76,7 @@ public class HttpPipelineTests : IAsyncLifetime
     public async Task HttpPipeline_CustomPipeline_ShouldReturnNotFound()
     {
         // Arrange
-        _httpServer.AddPipeline(options =>
+        _httpWebWebServer.AddPipeline(options =>
         {
             options.UseRouter<TestRouter>();
             options.UseRequestHandler<TestRequestHandler>();
@@ -96,7 +96,7 @@ public class HttpPipelineTests : IAsyncLifetime
     public async Task HttpPipeline_MultiplePipelines_ShouldUseHighestPriority(int priorityA, int priorityB)
     {
         // Arrange
-        _httpServer
+        _httpWebWebServer
             .AddEndpointPipeline(options =>
             {
                 options.Priority = priorityA;
@@ -130,7 +130,7 @@ public class HttpPipelineTests : IAsyncLifetime
     public async Task HttpPipeline_EndpointPipelineValidEndpoint_ShouldReturnOk(HttpRequestMethod method, string path)
     {
         // Arrange
-        _httpServer.AddEndpointPipeline(options =>
+        _httpWebWebServer.AddEndpointPipeline(options =>
         {
             options.MapRoute(method, path, _ => HttpResponse.Ok());
         });
@@ -155,7 +155,7 @@ public class HttpPipelineTests : IAsyncLifetime
     public async Task HttpPipeline_EndpointPipelineInvalidEndpoint_ShouldReturnNotFound(HttpRequestMethod method)
     {
         // Arrange
-        _httpServer.AddEndpointPipeline(options =>
+        _httpWebWebServer.AddEndpointPipeline(options =>
         {
             options.MapRoute(method, "/test", _ => HttpResponse.Ok());
         });
@@ -179,7 +179,7 @@ public class HttpPipelineTests : IAsyncLifetime
     public async Task HttpPipeline_EndpointPipelineSamePathMultipleMethods_ShouldReturnOk(HttpRequestMethod method)
     {
         // Arrange
-        _httpServer.AddEndpointPipeline(options =>
+        _httpWebWebServer.AddEndpointPipeline(options =>
         {
             options.MapRoute(HttpRequestMethod.GET, "/test", _ => HttpResponse.Ok("GET"));
             options.MapRoute(HttpRequestMethod.POST, "/test", _ => HttpResponse.Ok("POST"));
@@ -212,7 +212,7 @@ public class HttpPipelineTests : IAsyncLifetime
     public async Task HttpPipeline_EndpointPipelineSameMethodDifferentPaths_ShouldReturnOk(HttpRequestMethod method)
     {
         // Arrange
-        _httpServer.AddEndpointPipeline(options =>
+        _httpWebWebServer.AddEndpointPipeline(options =>
         {
             options.MapRoute(method, "/test1", _ => HttpResponse.Ok("TEST1"));
             options.MapRoute(method, "/test2", _ => HttpResponse.Ok("TEST2"));

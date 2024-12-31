@@ -39,14 +39,14 @@ public class EndpointPipelineOptions : RequestPipelineBuilderOptions
 public static class EndpointHttpServerExtensions
 {
     /// <summary>
-    /// Adds an endpoint pipeline to the <see cref="IHttpServer"/>.
+    /// Adds an endpoint pipeline to the <see cref="IHttpWebServer"/>.
     /// </summary>
-    /// <param name="httpServer">The <see cref="IHttpServer"/> to add the pipeline to.</param>
+    /// <param name="httpWebServer">The <see cref="IHttpWebServer"/> to add the pipeline to.</param>
     /// <param name="configure">Configure the request pipeline.</param>
-    /// <returns>The <see cref="IHttpServer"/> instance, for chaining methods.</returns>
-    public static IHttpServer AddEndpointPipeline(this IHttpServer httpServer, Action<EndpointPipelineOptions> configure)
+    /// <returns>The <see cref="IHttpWebServer"/> instance, for chaining methods.</returns>
+    public static IHttpWebServer AddEndpointPipeline(this IHttpWebServer httpWebServer, Action<EndpointPipelineOptions> configure)
     {
-        return httpServer.AddPipeline<EndpointPipelineOptions>(options =>
+        return httpWebServer.AddPipeline<EndpointPipelineOptions>(options =>
         {
             options.UseRouter<EndpointRouter>();
             options.UseRequestHandler<EndpointRequestHandler>();

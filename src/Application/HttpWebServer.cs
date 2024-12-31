@@ -6,7 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Application;
 
-public interface IHttpServer
+public interface IHttpWebServer
 {
     IServiceProvider Services { get; }
     int Port { get; }
@@ -15,12 +15,12 @@ public interface IHttpServer
     Task StartAsync();
     Task StopAsync();
 
-    public IHttpServer AddPipeline<TOptions>(Action<TOptions> configure) where TOptions : RequestPipelineBuilderOptions;
-    IHttpServer AddPipeline<TOptions>(string pipelineName, Action<TOptions> configure)
+    public IHttpWebServer AddPipeline<TOptions>(Action<TOptions> configure) where TOptions : RequestPipelineBuilderOptions;
+    IHttpWebServer AddPipeline<TOptions>(string pipelineName, Action<TOptions> configure)
         where TOptions : RequestPipelineBuilderOptions;
 }
 
-public class HttpServer : IHttpServer
+public class HttpWebWebServer : IHttpWebServer
 {
     public IServiceProvider Services { get; }
     public int Port => _tcpServer.Port;
@@ -30,7 +30,7 @@ public class HttpServer : IHttpServer
     private readonly RequestHandler _requestHandler;
     private readonly IPipelineRegistry _pipelineRegistry;
 
-    internal HttpServer(int port, IServiceProvider serviceProvider)
+    internal HttpWebWebServer(int port, IServiceProvider serviceProvider)
     {
         Services = serviceProvider;
         
@@ -61,7 +61,7 @@ public class HttpServer : IHttpServer
     
     public static IHttpServerBuilder CreateBuilder(int port) => new HttpServerBuilder(port);
     
-    public IHttpServer AddPipeline(Action<RequestPipelineBuilderOptions> configure)
+    public IHttpWebServer AddPipeline(Action<RequestPipelineBuilderOptions> configure)
     {
         var pipelineOptions = new RequestPipelineBuilderOptions(Services)
         {
@@ -72,12 +72,12 @@ public class HttpServer : IHttpServer
         return this;
     }
 
-    public IHttpServer AddPipeline<TOptions>(Action<TOptions> configure) where TOptions : RequestPipelineBuilderOptions
+    public IHttpWebServer AddPipeline<TOptions>(Action<TOptions> configure) where TOptions : RequestPipelineBuilderOptions
     {
         return AddPipeline(Guid.NewGuid().ToString("N"), configure);
     }
 
-    public IHttpServer AddPipeline(string pipelineName, Action<RequestPipelineBuilderOptions> configure)
+    public IHttpWebServer AddPipeline(string pipelineName, Action<RequestPipelineBuilderOptions> configure)
     {
         var pipelineOptions = new RequestPipelineBuilderOptions(Services)
         {
@@ -88,7 +88,7 @@ public class HttpServer : IHttpServer
         return this;
     }
     
-    public IHttpServer AddPipeline<TOptions>(string pipelineName, Action<TOptions> configure) where TOptions : RequestPipelineBuilderOptions
+    public IHttpWebServer AddPipeline<TOptions>(string pipelineName, Action<TOptions> configure) where TOptions : RequestPipelineBuilderOptions
     {
         var pipelineOptions = ActivatorUtilities.CreateInstance<TOptions>(Services);
         pipelineOptions.Name = pipelineName;
