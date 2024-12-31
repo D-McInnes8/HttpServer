@@ -59,7 +59,7 @@ public class HttpWebWebServer : IHttpWebServer
         return response;
     }
     
-    public static IHttpServerBuilder CreateBuilder(int port) => new HttpServerBuilder(port);
+    public static IHttpWebServerBuilder CreateBuilder(int port) => new HttpWebWebServerBuilder(port);
     
     public IHttpWebServer AddPipeline(Action<RequestPipelineBuilderOptions> configure)
     {

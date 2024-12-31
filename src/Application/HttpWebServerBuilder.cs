@@ -5,7 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Application;
 
-public interface IHttpServerBuilder
+public interface IHttpWebServerBuilder
 {
     public IServiceCollection Services { get; }
     public int Port { get; }
@@ -13,12 +13,12 @@ public interface IHttpServerBuilder
     public HttpWebWebServer Build();
 }
 
-public class HttpServerBuilder : IHttpServerBuilder
+public class HttpWebWebServerBuilder : IHttpWebServerBuilder
 {
     public IServiceCollection Services { get; }
     public int Port { get; }
 
-    public HttpServerBuilder(int port)
+    public HttpWebWebServerBuilder(int port)
     {
         ArgumentOutOfRangeException.ThrowIfNegative(port, nameof(port));
         Services = new ServiceCollection();
