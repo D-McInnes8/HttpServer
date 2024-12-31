@@ -1,11 +1,8 @@
 ﻿using Application;
-using Application.Pipeline;
 using Application.Pipeline.Endpoints;
 using Application.Pipeline.StaticFiles;
 using Application.Request;
 using Application.Response;
-using Application.Routing;
-using Microsoft.Extensions.DependencyInjection;
 
 var builder = HttpWebWebServer.CreateBuilder(9999);
 //builder.Services.AddScoped<RoutingPlugin>();
