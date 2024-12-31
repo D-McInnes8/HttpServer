@@ -7,28 +7,28 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Application;
 
+/// <summary>
+/// The request handler for the web server.
+/// </summary>
 public class RequestHandler
 {
-    private readonly List<Route> _routes;
     private readonly IReadOnlyPipelineRegistry _pipelineRegistry;
     
+    /// <summary>
+    /// Creates a new <see cref="RequestHandler"/> with the specified pipeline registry.
+    /// </summary>
+    /// <param name="pipelineRegistry"></param>
     public RequestHandler(IReadOnlyPipelineRegistry pipelineRegistry)
     {
         _pipelineRegistry = pipelineRegistry;
-        _routes = new List<Route>();
     }
 
-    public RequestHandler(ICollection<Route> routes, IReadOnlyPipelineRegistry pipelineRegistry)
-    {
-        _pipelineRegistry = pipelineRegistry;
-        _routes = routes.ToList();
-    }
-
-    public void AddRoute(HttpRequestMethod method, string path, Func<HttpRequest, HttpResponse> handler)
-    {
-        _routes.Add(new Route(method, path, handler));
-    }
-
+    /// <summary>
+    /// Handles the HTTP request.
+    /// </summary>
+    /// <param name="httpRequest"></param>
+    /// <param name="serviceProvider"></param>
+    /// <returns></returns>
     public HttpResponse HandleRequest(HttpRequest httpRequest, IServiceProvider serviceProvider)
     {
         var ctx = new RequestPipelineContext(httpRequest, serviceProvider, _pipelineRegistry.GlobalPipeline.Options);
@@ -50,54 +50,20 @@ public class RequestHandler
         }
         
         return new HttpResponse(HttpResponseStatusCode.NotFound);
-        
-        /*var requestPipeline = new RequestPipeline(serviceProvider);
-        requestPipeline.AddPlugin<RoutingPlugin>();
-        try
-        {
-            return requestPipeline.ExecuteAsync(httpRequest).GetAwaiter().GetResult();
-        }
-        catch (Exception)
-        {
-            return new HttpResponse(HttpResponseStatusCode.InternalServerError);
-        }*/
-
-
-        /*foreach (var route in _routes)
-        {
-            if (route.IsMatch(httpRequest.Method, httpRequest.Route))
-            {
-                try
-                {
-                    //var response = requestPipeline.ExecuteAsync(route.Handler);
-                    return route.Handler(httpRequest);
-                }
-                catch (Exception ex)
-                {
-                    return new HttpResponse(HttpResponseStatusCode.InternalServerError, new HttpBody
-                    {
-                        ContentType = "text/plain",
-                        Content = ex.Message
-                    });
-                }
-            }
-        }
-
-        return new HttpResponse(HttpResponseStatusCode.NotFound);*/
     }
 }
 
 /// <summary>
-/// 
+/// The global pipeline request handler. This handler will execute all pipelines in the pipeline registry.
 /// </summary>
 public class GlobalPipelineRequestHandler : IRequestHandler
 {
     private readonly IReadOnlyPipelineRegistry _pipelineRegistry;
 
     /// <summary>
-    /// 
+    /// Creates a new <see cref="GlobalPipelineRequestHandler"/> with the specified pipeline registry.
     /// </summary>
-    /// <param name="pipelineRegistry"></param>
+    /// <param name="pipelineRegistry">The <see cref="IReadOnlyPipelineRegistry"/>.</param>
     public GlobalPipelineRequestHandler(IReadOnlyPipelineRegistry pipelineRegistry)
     {
         _pipelineRegistry = pipelineRegistry;

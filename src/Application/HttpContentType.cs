@@ -3,14 +3,39 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace Application;
 
+/// <summary>
+/// Represents the content type of an HTTP request or response.
+/// </summary>
 public readonly struct HttpContentType : IEquatable<HttpContentType>, IParsable<HttpContentType>, ISpanParsable<HttpContentType>
 {
+    /// <summary>
+    /// The type of the HTTP content.
+    /// </summary>
     public required string Type { get; init; } = "text";
+    
+    /// <summary>
+    /// The subtype of the HTTP content.
+    /// </summary>
     public required string SubType { get; init; } = "plain";
+    
+    /// <summary>
+    /// The parameters of the HTTP content.
+    /// </summary>
     public required NameValueCollection Parameters { get; init; }
+    
+    /// <summary>
+    /// The charset of the HTTP content, if the charset is not specified, returns null.
+    /// </summary>
     public string? Charset => Parameters["charset"];
+    
+    /// <summary>
+    /// The boundary of the HTTP content, if the boundary is not specified, returns null.
+    /// </summary>
     public string? Boundary => Parameters["boundary"];
 
+    /// <summary>
+    /// The rendered value of the content type.
+    /// </summary>
     public string Value
     {
         get
@@ -26,6 +51,12 @@ public readonly struct HttpContentType : IEquatable<HttpContentType>, IParsable<
         }
     }
     
+    /// <summary>
+    /// Creates a new instance of <see cref="HttpContentType"/>.
+    /// </summary>
+    /// <param name="type">The type of the HTTP content type.</param>
+    /// <param name="subType">The subtype of the HTTP content type.</param>
+    /// <param name="parameters">The parameters of the HTTP content type.</param>
     [SetsRequiredMembers]
     public HttpContentType(string type, string subType, NameValueCollection parameters)
     {
@@ -34,6 +65,12 @@ public readonly struct HttpContentType : IEquatable<HttpContentType>, IParsable<
         Parameters = parameters;
     }
 
+    /// <summary>
+    /// Creates a new instance of <see cref="HttpContentType"/>.
+    /// </summary>
+    /// <param name="type">The type of the HTTP content type.</param>
+    /// <param name="subType">The subtype of the HTTP content type.</param>
+    /// <param name="parameters">The parameters of the HTTP content type.</param>
     [SetsRequiredMembers]
     public HttpContentType(string type, string subType, params IEnumerable<(string, string)> parameters)
     {
@@ -46,6 +83,7 @@ public readonly struct HttpContentType : IEquatable<HttpContentType>, IParsable<
         }
     }
 
+    /// <inheritdoc />
     public static HttpContentType Parse(string s, IFormatProvider? provider)
     {
         if (string.IsNullOrWhiteSpace(s))
@@ -56,11 +94,19 @@ public readonly struct HttpContentType : IEquatable<HttpContentType>, IParsable<
         return Parse(s);
     }
     
+    /// <inheritdoc />
     public static HttpContentType Parse(ReadOnlySpan<char> s, IFormatProvider? provider)
     {
         return Parse(s);
     }
 
+    /// <summary>
+    /// Parses the provided string into an instance of <see cref="HttpContentType"/>.
+    /// </summary>
+    /// <param name="s">The span of characters to parse.</param>
+    /// <returns>The result of parsing s.</returns>
+    /// <exception cref="ArgumentException"></exception>
+    /// <exception cref="FormatException"></exception>
     public static HttpContentType Parse(ReadOnlySpan<char> s)
     {
         if (s.Length == 0)
@@ -81,16 +127,24 @@ public readonly struct HttpContentType : IEquatable<HttpContentType>, IParsable<
         throw new FormatException("The format of the provided content type is invalid.");
     }
 
+    /// <inheritdoc />
     public static bool TryParse([NotNullWhen(true)] string? s, IFormatProvider? provider, out HttpContentType result)
     {
         return TryParse(s, out result);
     }
 
+    /// <inheritdoc />
     public static bool TryParse(ReadOnlySpan<char> s, IFormatProvider? provider, out HttpContentType result)
     {
         return TryParse(s, out result);
     }
     
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="s"></param>
+    /// <param name="result"></param>
+    /// <returns></returns>
     public static bool TryParse(ReadOnlySpan<char> s, out HttpContentType result)
     {
         if (s.Length == 0)

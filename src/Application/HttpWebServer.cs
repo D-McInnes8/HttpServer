@@ -6,20 +6,60 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Application;
 
+/// <summary>
+/// Represents the web server that listens for incoming HTTP requests.
+/// </summary>
 public interface IHttpWebServer
 {
+    /// <summary>
+    /// The services available to the web server.
+    /// </summary>
     IServiceProvider Services { get; }
+    
+    /// <summary>
+    /// The port the web server is listening on.
+    /// </summary>
     int Port { get; }
+    
+    /// <summary>
+    /// The local endpoint the web server is listening on.
+    /// </summary>
     Uri LocalEndpoint { get; }
     
+    /// <summary>
+    /// Starts the web server.
+    /// </summary>
+    /// <returns></returns>
     Task StartAsync();
+    
+    /// <summary>
+    /// Stops the web server.
+    /// </summary>
+    /// <returns></returns>
     Task StopAsync();
 
+    /// <summary>
+    /// Adds a request pipeline to the web server.
+    /// </summary>
+    /// <param name="configure">Used to configure the <see cref="RequestPipelineBuilderOptions"/> for the pipeline.</param>
+    /// <typeparam name="TOptions"></typeparam>
+    /// <returns></returns>
     public IHttpWebServer AddPipeline<TOptions>(Action<TOptions> configure) where TOptions : RequestPipelineBuilderOptions;
+    
+    /// <summary>
+    /// Adds a request pipeline to the web server.
+    /// </summary>
+    /// <param name="pipelineName">The name of the request pipeline. The name must be unique.</param>
+    /// <param name="configure">Used to configure the <see cref="RequestPipelineBuilderOptions"/> for the pipeline.</param>
+    /// <typeparam name="TOptions"></typeparam>
+    /// <returns></returns>
     IHttpWebServer AddPipeline<TOptions>(string pipelineName, Action<TOptions> configure)
         where TOptions : RequestPipelineBuilderOptions;
 }
 
+/// <summary>
+/// The web server that listens for incoming HTTP requests.
+/// </summary>
 public class HttpWebWebServer : IHttpWebServer
 {
     public IServiceProvider Services { get; }
@@ -30,6 +70,12 @@ public class HttpWebWebServer : IHttpWebServer
     private readonly RequestHandler _requestHandler;
     private readonly IPipelineRegistry _pipelineRegistry;
 
+    /// <summary>
+    /// Creates a new instance of <see cref="HttpWebWebServer"/>. Should only
+    /// be invoked internally by the <see cref="IHttpWebServerBuilder"/> object.
+    /// </summary>
+    /// <param name="port">The port the web server will listen on.</param>
+    /// <param name="serviceProvider">The service provider for the web server.</param>
     internal HttpWebWebServer(int port, IServiceProvider serviceProvider)
     {
         Services = serviceProvider;
@@ -59,6 +105,11 @@ public class HttpWebWebServer : IHttpWebServer
         return response;
     }
     
+    /// <summary>
+    /// Creates a new instance of <see cref="IHttpWebServerBuilder"/> with the specified port.
+    /// </summary>
+    /// <param name="port">The port the web server will listen on.</param>
+    /// <returns></returns>
     public static IHttpWebServerBuilder CreateBuilder(int port) => new HttpWebWebServerBuilder(port);
     
     public IHttpWebServer AddPipeline(Action<RequestPipelineBuilderOptions> configure)
