@@ -48,7 +48,9 @@ public class RequestPipeline : IRequestPipeline
             .Aggregate(
                 seed: ExecuteRequestHandler,
                 func: (next, type) => ctx
-                    => ((IRequestPipelinePlugin)ctx.Services.GetRequiredService(type)).InvokeAsync(ctx, next));
+                    => ActivatorUtilities.GetServiceOrCreateInstance(ctx.Services, type) is not IRequestPipelinePlugin plugin
+                        ? next(ctx)
+                        : plugin.InvokeAsync(ctx, next));
         
         return await pipeline(requestPipelineContext);
     }

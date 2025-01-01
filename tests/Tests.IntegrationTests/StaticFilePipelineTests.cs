@@ -129,7 +129,7 @@ public class StaticFilePipelineTests : IAsyncLifetime
         _httpWebWebServer.AddStaticFilePipeline(options =>
         {
             options.ServeFile("/file.txt", "SampleFiles/file.txt");
-            options.UseRouter<TestRouter>();
+            options.AddPlugin<TestPlugin>();
         });
         
         // Act
@@ -161,7 +161,7 @@ public class StaticFilePipelineTests : IAsyncLifetime
     }
     
     [Fact]
-    public async Task StaticFilePipeline_ShouldReturnBadRequestForInvalidFilePath()
+    public async Task StaticFilePipeline_ShouldReturnInternalServerErrorForInvalidFilePath()
     {
         // Arrange
         _httpWebWebServer.AddStaticFilePipeline(options =>
@@ -173,7 +173,7 @@ public class StaticFilePipelineTests : IAsyncLifetime
         var response = await _httpClient.GetAsync("/file.txt");
 
         // Assert
-        Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
+        Assert.Equal(HttpStatusCode.InternalServerError, response.StatusCode);
     }
     
     [Fact]

@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Diagnostics.CodeAnalysis;
+using HttpServer.Pipeline.Plugins;
 using HttpServer.Routing;
 
 namespace HttpServer.Pipeline.Registry;
@@ -22,6 +23,7 @@ internal class DefaultPipelineRegistry : IPipelineRegistry
         };
         globalPipelineOptions.UseRouter<DefaultRouter>();
         globalPipelineOptions.UseRequestHandler<GlobalPipelineRequestHandler>();
+        globalPipelineOptions.AddPlugin<GlobalErrorHandlerPlugin>();
         GlobalPipeline = new RequestPipeline(globalPipelineOptions);
     }
 

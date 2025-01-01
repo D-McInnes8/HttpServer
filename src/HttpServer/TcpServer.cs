@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
@@ -78,6 +79,7 @@ internal class TcpServer
             catch (SocketException ex) when (ex.SocketErrorCode == SocketError.Interrupted)
             {
                 Console.WriteLine("Socket interrupted");
+                //Debug.Fail("Socket interrupted", ex.Message);
             }
         }
         
@@ -110,16 +112,15 @@ internal class TcpServer
         catch (Exception ex)
         {
             Console.WriteLine("An uncaught exception occurred in the request worker thread: " + ex.Message);
+            
+            // Due to the way exceptions are handled in background threads, if a test fails due to an exception
+            // being thrown then it will treat that test and every other test qs being inconclusive.
+            // Only failing if the debugger is attached means that the tests will fail properly, and that
+            // proper error message can be found by debugging a failing test.SSS
+            if (Debugger.IsAttached)
+            {
+                Debug.Fail($"{ex.GetType().Name}: Exception thrown by the TCP request handler.", ex.Message);
+            }
         }
-        
-        /*var body = "Hello World";
-        var responseMessage = $"""
-                               HTTP/1.1 200 OK
-                               Date: {DateTime.UtcNow:R}
-                               Content-Length: {body.Length}
-                               Content-Type: text/plain
-
-                               {body}
-                               """;*/
     }
 }
