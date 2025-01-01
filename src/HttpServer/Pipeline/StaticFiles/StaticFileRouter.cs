@@ -26,9 +26,12 @@ public class StaticFileRouter : IRouter
             }
             
             //if (route.IsDirectory && requestPath.StartsWithSegments(route.VirtualPath))
-            if (route.IsDirectory && requestPath.StartsWith(route.VirtualPath))
+            var path = Path.Combine(Directory.GetCurrentDirectory() + "/" + route.PhysicalPath, requestPath[(route.VirtualPath.Length + 1)..]);
+            if (route.IsDirectory && requestPath.StartsWith(route.VirtualPath)
+                && File.Exists(Path.Combine(route.PhysicalPath, path)))
             {
-                ctx.SetData(route);
+                var newRoute = new StaticFileRoute(route.PhysicalPath, path, false);
+                ctx.SetData(newRoute);
                 return Task.FromResult(RouterResult.Success);
             }
         }

@@ -28,9 +28,9 @@ public class StaticFilePipelineTests : IAsyncLifetime
         // Arrange
         _httpWebWebServer.AddStaticFilePipeline(options =>
         {
-            options.ServeFile("/file.txt", "path/to/file.txt");
+            options.ServeFile("/file.txt", "SampleFiles/file.txt");
         });
-
+        
         // Act
         var response = await _httpClient.GetAsync("/file.txt");
 
@@ -46,7 +46,7 @@ public class StaticFilePipelineTests : IAsyncLifetime
         // Arrange
         _httpWebWebServer.AddStaticFilePipeline(options =>
         {
-            options.ServeDirectory("/files", "path/to/files");
+            options.ServeDirectory("/files", "SampleFiles");
         });
 
         // Act
@@ -64,8 +64,8 @@ public class StaticFilePipelineTests : IAsyncLifetime
         // Arrange
         _httpWebWebServer.AddStaticFilePipeline(options =>
         {
-            options.ServeFile("/file.txt", "path/to/file.txt");
-            options.ServeDirectory("/files", "path/to/files");
+            options.ServeFile("/file.txt", "SampleFiles/file.txt");
+            options.ServeDirectory("/files", "SampleFiles");
         });
 
         // Act
@@ -88,7 +88,7 @@ public class StaticFilePipelineTests : IAsyncLifetime
         // Arrange
         _httpWebWebServer.AddStaticFilePipeline(options =>
         {
-            options.ServeFile("/file.txt", "path/to/file.txt");
+            options.ServeFile("/file.txt", "SampleFiles/file.txt");
         });
 
         // Act
@@ -104,8 +104,8 @@ public class StaticFilePipelineTests : IAsyncLifetime
         // Arrange
         _httpWebWebServer.AddStaticFilePipeline(options =>
         {
-            options.ServeFile("/file1.txt", "path/to/file1.txt");
-            options.ServeFile("/file2.txt", "path/to/file2.txt");
+            options.ServeFile("/file1.txt", "SampleFiles/file1.txt");
+            options.ServeFile("/file2.txt", "SampleFiles/file2.txt");
         });
 
         // Act
@@ -128,7 +128,7 @@ public class StaticFilePipelineTests : IAsyncLifetime
         // Arrange
         _httpWebWebServer.AddStaticFilePipeline(options =>
         {
-            options.ServeFile("/file.txt", "path/to/file.txt");
+            options.ServeFile("/file.txt", "SampleFiles/file.txt");
             options.UseRouter<TestRouter>();
         });
         
@@ -140,11 +140,11 @@ public class StaticFilePipelineTests : IAsyncLifetime
     }
     
     [Theory]
-    [InlineData("/file.txt", "path/to/file.txt", "text/plain")]
-    [InlineData("/file.json", "path/to/file.json", "application/json")]
-    [InlineData("/file.csv", "path/to/file.csv", "text/csv")]
-    [InlineData("/file.html", "path/to/file.html", "text/html")]
-    [InlineData("/file.xml", "path/to/file.xml", "application/xml")]
+    [InlineData("/file.txt", "SampleFiles/file.txt", "text/plain")]
+    [InlineData("/file.json", "SampleFiles/file.json", "application/json")]
+    [InlineData("/file.csv", "SampleFiles/file.csv", "text/csv")]
+    [InlineData("/file.html", "SampleFiles/file.html", "text/html")]
+    [InlineData("/file.xml", "SampleFiles/file.xml", "application/xml")]
     public async Task StaticFilePipeline_ShouldReturnCorrectContentType(string url, string filePath, string expectedContentType)
     {
         // Arrange
@@ -173,7 +173,7 @@ public class StaticFilePipelineTests : IAsyncLifetime
         var response = await _httpClient.GetAsync("/file.txt");
 
         // Assert
-        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
     }
     
     [Fact]
@@ -182,12 +182,12 @@ public class StaticFilePipelineTests : IAsyncLifetime
         // Arrange
         _httpWebWebServer.AddStaticFilePipeline(options =>
         {
-            options.ServeFile("/pipeline1/file1.txt", "path/to/pipeline1/file1.txt");
+            options.ServeFile("/pipeline1/file1.txt", "SampleFiles/file1.txt");
         });
 
         _httpWebWebServer.AddStaticFilePipeline(options =>
         {
-            options.ServeFile("/pipeline2/file2.txt", "path/to/pipeline2/file2.txt");
+            options.ServeFile("/pipeline2/file2.txt", "SampleFiles/file2.txt");
         });
 
         // Act
@@ -210,12 +210,13 @@ public class StaticFilePipelineTests : IAsyncLifetime
         // Arrange
         _httpWebWebServer.AddStaticFilePipeline(options =>
         {
-            options.ServeFile("/file.txt", "path/to/pipeline1/file.txt");
+            options.ServeFile("/file.txt", "SampleFiles/file.txt");
         });
 
         _httpWebWebServer.AddStaticFilePipeline(options =>
         {
-            options.ServeFile("/file.txt", "path/to/pipeline2/file.txt");
+            options.Priority = 1;
+            options.ServeFile("/file.txt", "SampleFiles/file2.txt");
         });
 
         // Act
@@ -224,6 +225,6 @@ public class StaticFilePipelineTests : IAsyncLifetime
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         var content = await response.Content.ReadAsStringAsync();
-        Assert.Equal("File content from pipeline2", content);
+        Assert.Equal("File2 content", content);
     }
 }
