@@ -1,7 +1,7 @@
-/*using Application;
-using Application.Request;
-using Application.Response;
-using Application.Routing;
+/*using HttpServer;
+using HttpServer.Request;
+using HttpServer.Response;
+using HttpServer.Routing;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Tests.UnitTests;

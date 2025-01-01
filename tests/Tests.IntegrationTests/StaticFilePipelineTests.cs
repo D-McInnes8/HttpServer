@@ -1,6 +1,6 @@
 using System.Net;
-using Application;
-using Application.Pipeline.StaticFiles;
+using HttpServer;
+using HttpServer.Pipeline.StaticFiles;
 using Tests.IntegrationTests.TestPipelines;
 
 namespace Tests.IntegrationTests;

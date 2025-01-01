@@ -1,4 +1,4 @@
-using Application.Request.Parser;
+using HttpServer.Request.Parser;
 
 namespace Tests.UnitTests;
 

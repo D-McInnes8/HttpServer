@@ -1,8 +1,8 @@
-﻿using Application;
-using Application.Pipeline.Endpoints;
-using Application.Pipeline.StaticFiles;
-using Application.Request;
-using Application.Response;
+﻿using HttpServer;
+using HttpServer.Pipeline.Endpoints;
+using HttpServer.Pipeline.StaticFiles;
+using HttpServer.Request;
+using HttpServer.Response;
 
 var builder = HttpWebWebServer.CreateBuilder(9999);
 //builder.Services.AddScoped<RoutingPlugin>();

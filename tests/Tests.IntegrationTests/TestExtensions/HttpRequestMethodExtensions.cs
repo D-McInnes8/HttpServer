@@ -1,4 +1,4 @@
-using Application.Request;
+using HttpServer.Request;
 
 namespace Tests.IntegrationTests.TestExtensions;
 

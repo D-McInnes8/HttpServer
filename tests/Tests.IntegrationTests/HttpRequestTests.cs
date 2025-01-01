@@ -1,8 +1,8 @@
 using System.Net;
-using Application;
-using Application.Pipeline.Endpoints;
-using Application.Request;
-using Application.Response;
+using HttpServer;
+using HttpServer.Pipeline.Endpoints;
+using HttpServer.Request;
+using HttpServer.Response;
 using Tests.IntegrationTests.TestExtensions;
 
 namespace Tests.IntegrationTests;

@@ -1,6 +1,6 @@
-using Application;
-using Application.Response;
-using Application.Response.Internal;
+using HttpServer;
+using HttpServer.Response;
+using HttpServer.Response.Internal;
 
 namespace Tests.UnitTests;
 

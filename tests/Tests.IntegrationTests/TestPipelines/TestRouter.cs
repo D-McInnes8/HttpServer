@@ -1,5 +1,5 @@
-using Application.Pipeline;
-using Application.Routing;
+using HttpServer.Pipeline;
+using HttpServer.Routing;
 
 namespace Tests.IntegrationTests.TestPipelines;
 
