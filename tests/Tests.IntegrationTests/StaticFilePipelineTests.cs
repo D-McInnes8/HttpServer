@@ -175,4 +175,55 @@ public class StaticFilePipelineTests : IAsyncLifetime
         // Assert
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
+    
+    [Fact]
+    public async Task StaticFilePipeline_MultiplePipelines_ShouldServeFilesFromBothPipelines()
+    {
+        // Arrange
+        _httpWebWebServer.AddStaticFilePipeline(options =>
+        {
+            options.ServeFile("/pipeline1/file1.txt", "path/to/pipeline1/file1.txt");
+        });
+
+        _httpWebWebServer.AddStaticFilePipeline(options =>
+        {
+            options.ServeFile("/pipeline2/file2.txt", "path/to/pipeline2/file2.txt");
+        });
+
+        // Act
+        var response1 = await _httpClient.GetAsync("/pipeline1/file1.txt");
+        var response2 = await _httpClient.GetAsync("/pipeline2/file2.txt");
+
+        // Assert
+        Assert.Equal(HttpStatusCode.OK, response1.StatusCode);
+        var content1 = await response1.Content.ReadAsStringAsync();
+        Assert.Equal("File1 content", content1);
+
+        Assert.Equal(HttpStatusCode.OK, response2.StatusCode);
+        var content2 = await response2.Content.ReadAsStringAsync();
+        Assert.Equal("File2 content", content2);
+    }
+    
+    [Fact]
+    public async Task StaticFilePipeline_MultiplePipelines_ShouldHandleOverlappingPaths()
+    {
+        // Arrange
+        _httpWebWebServer.AddStaticFilePipeline(options =>
+        {
+            options.ServeFile("/file.txt", "path/to/pipeline1/file.txt");
+        });
+
+        _httpWebWebServer.AddStaticFilePipeline(options =>
+        {
+            options.ServeFile("/file.txt", "path/to/pipeline2/file.txt");
+        });
+
+        // Act
+        var response = await _httpClient.GetAsync("/file.txt");
+
+        // Assert
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var content = await response.Content.ReadAsStringAsync();
+        Assert.Equal("File content from pipeline2", content);
+    }
 }
