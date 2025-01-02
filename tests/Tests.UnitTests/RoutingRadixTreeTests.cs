@@ -79,15 +79,18 @@ public class RoutingRadixTreeTests
     }
 
     [Fact]
-    public void AddRoute_DuplicatePaths_ShouldThrowException()
+    public void AddRoute_DuplicatePaths_ShouldOverwriteExisting()
     {
         // Arrange
         var tree = new RoutingRadixTree<int>();
         var path = new Route("/helloworld", HttpRequestMethod.GET);
         tree.AddRoute(path, 1);
         
-        // Act & Assert
-        Assert.Throws<ArgumentException>(() => tree.AddRoute(path, 2));
+        // Act
+        tree.AddRoute(path, 2);
+        
+        // Assert
+        Assert.Equal(2, tree.Match(path));
     }
     
     [Fact]

@@ -26,6 +26,15 @@ public class RoutingRadixTree<T> : IRoutingTree<T>
     
     public void AddRoute(Route route, T value)
     {
+        var path = route.Path.AsSpan();
+        
+        // If the route contains a wildcard, validate that it is the last segment.
+        var wildcardIndex = path.IndexOf("{*}");
+        if (wildcardIndex != -1 && wildcardIndex != path.Length - 3)
+        {
+            throw new ArgumentException("Wildcard segments must be the last segment in the route.");
+        }
+        
         // If the root node has no children, add the route as a child.
         if (_rootNode.Children.Length == 0)
         {
@@ -42,9 +51,7 @@ public class RoutingRadixTree<T> : IRoutingTree<T>
         }
 
         // Otherwise, iterate through the children of the root node.
-        var path = route.Path.AsSpan();
         ref var currentNode = ref _rootNode;
-        
         for (int i = 0; i < currentNode.Children.Length; i++)
         {
             ref var child = ref currentNode.Children[i];
@@ -98,6 +105,8 @@ public class RoutingRadixTree<T> : IRoutingTree<T>
             }
         }
         
+        // If we reach this point, then the current node has no children that match the path.
+        // Add a new child node with the path and value.
         var newNode = new RadixTreeNode<T>
         {
             Prefix = path.ToString(),
