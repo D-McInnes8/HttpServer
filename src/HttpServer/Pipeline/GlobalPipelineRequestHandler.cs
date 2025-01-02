@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using HttpServer.Pipeline.Registry;
 using HttpServer.Response;
 using HttpServer.Routing;
@@ -29,6 +30,7 @@ public class GlobalPipelineRequestHandler : IRequestHandler
             if (ActivatorUtilities.GetServiceOrCreateInstance(ctx.Services, requestPipeline.Options.Router)
                 is not IRouter router)
             {
+                Debug.Fail("Pipeline router is not an IRouter.");
                 continue;
             }
             

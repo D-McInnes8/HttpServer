@@ -14,9 +14,9 @@ public class RoutingPlugin : IRequestPipelinePlugin
 
     public Task<HttpResponse> InvokeAsync(RequestPipelineContext context, Func<RequestPipelineContext, Task<HttpResponse>> next)
     {
-        /*context.Route ??= _routeRegistry.MatchRoute(context.Request);
+        /*context.RouteOld ??= _routeRegistry.MatchRoute(context.Request);
         
-        if (context.Route is not null)
+        if (context.RouteOld is not null)
         {
             return next(context);
         }*/
