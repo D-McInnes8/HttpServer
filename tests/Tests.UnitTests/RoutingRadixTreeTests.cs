@@ -121,15 +121,20 @@ public class RoutingRadixTreeTests
         Assert.True(tree.Contains(path));
     }
 
-    [Fact]
-    public void AddRoute_WithWildcardFollowedByPath_ShouldThrowException()
+    [Theory]
+    [InlineData("/hello/{*}/world")]
+    [InlineData("/hello/{*}/world/{*}")]
+    [InlineData("/hello/{*}/world/{name}")]
+    [InlineData("/hello/{*}/{name}")]
+    [InlineData("/hello/{*}/{name}/{*}")]
+    public void AddRoute_WithWildcardFollowedByPath_ShouldThrowException(string path)
     {
         // Arrange
         var tree = new RoutingRadixTree<int>();
-        var path = new Route("/hello/{*}/world", HttpRequestMethod.GET);
+        var route = new Route(path, HttpRequestMethod.GET);
         
         // Act & Assert
-        Assert.Throws<ArgumentException>(() => tree.AddRoute(path, 1));
+        Assert.Throws<ArgumentException>(() => tree.AddRoute(route, 1));
     }
 
     [Fact]
