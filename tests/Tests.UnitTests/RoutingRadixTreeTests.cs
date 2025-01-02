@@ -1,10 +1,18 @@
 using HttpServer.Request;
 using HttpServer.Routing;
+using Xunit.Abstractions;
 
 namespace Tests.UnitTests;
 
 public class RoutingRadixTreeTests
 {
+    private readonly ITestOutputHelper _testOutputHelper;
+
+    public RoutingRadixTreeTests(ITestOutputHelper testOutputHelper)
+    {
+        _testOutputHelper = testOutputHelper;
+    }
+
     [Fact]
     public void AddRoute_Single_ShouldContainRoute()
     {
@@ -43,6 +51,23 @@ public class RoutingRadixTreeTests
         var tree = new RoutingRadixTree<int>();
         var path1 = new Route("/v1", HttpRequestMethod.GET);
         var path2 = new Route("/v2", HttpRequestMethod.GET);
+        
+        // Act
+        tree.AddRoute(path1, 1);
+        tree.AddRoute(path2, 2);
+        
+        // Assert
+        Assert.True(tree.Contains(path1));
+        Assert.True(tree.Contains(path2));
+    }
+
+    [Fact]
+    public void AddRoute_MultipleWithNoOverlap_ShouldContainBothRoutes()
+    {
+        // Arrange
+        var tree = new RoutingRadixTree<int>();
+        var path1 = new Route("hello", HttpRequestMethod.GET);
+        var path2 = new Route("world", HttpRequestMethod.GET);
         
         // Act
         tree.AddRoute(path1, 1);
