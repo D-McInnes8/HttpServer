@@ -17,43 +17,33 @@ public class RoutingRadixTree<T> : IRoutingTree<T>
     private int FindCommonPrefix(ReadOnlySpan<char> a, ReadOnlySpan<char> b)
     {
         var i = 0;
-        //var max = Math.Min(a.Length, b.Length);
-        
         while (i < a.Length && i < b.Length && a[i] == b[i])
         {
             i++;
         }
-
         return i;
     }
     
     public void AddRoute(Route route, T value)
     {
-        if (_rootNode.Children.Length == 0 && route.Path == string.Empty && _rootNode.Value is null)
+        // If the root node has no children, add the route as a child.
+        if (_rootNode.Children.Length == 0)
         {
-            _rootNode = new RadixTreeNode<T>
-            {
-                Prefix = route.Path,
-                Children = [],
-                Value = value
-            };
-            return;
-        }
-        
-        if (_rootNode.Children.Length == 0 && route.Path != string.Empty)
-        {
-            var child = new RadixTreeNode<T>
-            {
-                Prefix = route.Path,
-                Children = [],
-                Value = value
-            };
-            _rootNode.Children = [child];
+            _rootNode.Children = 
+            [
+                new RadixTreeNode<T>
+                {
+                    Prefix = route.Path,
+                    Children = [],
+                    Value = value
+                }
+            ];
             return;
         }
 
-        var currentNode = _rootNode;
+        // Otherwise, iterate through the children of the root node.
         var path = route.Path.AsSpan();
+        ref var currentNode = ref _rootNode;
         
         for (int i = 0; i < currentNode.Children.Length; i++)
         {
@@ -79,8 +69,9 @@ public class RoutingRadixTree<T> : IRoutingTree<T>
                 && commonPrefix < path.Length)
             {
                 path = path[commonPrefix..];
-                currentNode = child;
-                i = 0;
+                currentNode = ref child;
+                i = -1;
+                continue;
             }
             
             // Case 3: The node prefix is a partial prefix of the path.
@@ -88,12 +79,6 @@ public class RoutingRadixTree<T> : IRoutingTree<T>
             if (commonPrefix < child.Prefix.Length
                 && commonPrefix < path.Length)
             {
-                var parent = new RadixTreeNode<T>
-                {
-                    Prefix = child.Prefix[..commonPrefix].ToString(),
-                    Children = [],
-                    Value = default
-                };
                 var existingChild = new RadixTreeNode<T>
                 {
                     Prefix = child.Prefix[commonPrefix..],
@@ -124,17 +109,12 @@ public class RoutingRadixTree<T> : IRoutingTree<T>
 
     public T? Match(Route route)
     {
-        if (_rootNode.Children.Length == 0)
-        {
-            return default;
-        }
-        
-        var currentNode = _rootNode;
+        ref var currentNode = ref _rootNode;
         var path = route.Path.AsSpan();
         
         for (int i = 0; i < currentNode.Children.Length; i++)
         {
-            var child = currentNode.Children[i];
+            ref var child = ref currentNode.Children[i];
             var commonPrefix = FindCommonPrefix(child.Prefix.AsSpan(), path);
             if (commonPrefix == 0)
             {
@@ -151,7 +131,7 @@ public class RoutingRadixTree<T> : IRoutingTree<T>
                 && commonPrefix < path.Length)
             {
                 path = path[commonPrefix..];
-                currentNode = child;
+                currentNode = ref child;
                 i = -1;
             }
             
@@ -167,12 +147,12 @@ public class RoutingRadixTree<T> : IRoutingTree<T>
 
     public bool Contains(Route route)
     {
-        var currentNode = _rootNode;
+        ref var currentNode = ref _rootNode;
         var path = route.Path.AsSpan();
         
         for (int i = 0; i < currentNode.Children.Length; i++)
         {
-            var child = currentNode.Children[i];
+            ref var child = ref currentNode.Children[i];
             var commonPrefix = FindCommonPrefix(child.Prefix.AsSpan(), path);
             if (commonPrefix == 0)
             {
@@ -189,8 +169,8 @@ public class RoutingRadixTree<T> : IRoutingTree<T>
                 && commonPrefix < path.Length)
             {
                 path = path[commonPrefix..];
-                currentNode = child;
-                i = 0;
+                currentNode = ref child;
+                i = -1;
             }
             
             if (commonPrefix < child.Prefix.Length
