@@ -31,11 +31,11 @@ public class RoutingRadixTree<T> : IRoutingTree<T>
     
     public void AddRoute(Route route, T value)
     {
-        var path = route.Path.AsSpan();
+        var path = route.Path.EndsWith('/') ? route.Path.AsSpan() : $"{route.Path}/".AsSpan();
         
         // If the route contains a wildcard, validate that it is the last segment.
-        var wildcardIndex = path.IndexOf("{*}");
-        if (wildcardIndex != -1 && wildcardIndex != path.Length - 3)
+        var wildcardIndex = path.IndexOf("{*}/");
+        if (wildcardIndex != -1 && wildcardIndex != path.Length - 4)
         {
             throw new ArgumentException("Wildcard segments must be the last segment in the route.");
         }
@@ -162,6 +162,12 @@ public class RoutingRadixTree<T> : IRoutingTree<T>
             parameterNode.Value = default;
             parameterNode.Children = [SplitPathIntoNodes(suffix, value)];
         }
+        
+        if (prefix.Length == 0)
+        {
+            return parameterNode;
+        }
+        
         var pathNode = new RadixTreeNode<T>()
         {
             Prefix = prefix.ToString(),
@@ -175,7 +181,8 @@ public class RoutingRadixTree<T> : IRoutingTree<T>
     public RouteMatch<T> Match(Route route)
     {
         ref var currentNode = ref _rootNode;
-        var path = route.Path.AsSpan();
+        //var path = route.Path.AsSpan();
+        var path = route.Path.EndsWith('/') ? route.Path.AsSpan() : $"{route.Path}/".AsSpan();
         var parameters = new Dictionary<string, string>();
         
         for (int i = 0; i < currentNode.Children.Length; i++)
@@ -184,8 +191,8 @@ public class RoutingRadixTree<T> : IRoutingTree<T>
 
             if (child.Type == NodeType.Wildcard)
             {
-                parameters.Add(child.Prefix, path.ToString());
-                 return RouteMatch<T>.Match(child.Value, parameters);
+                parameters.Add(child.Prefix, path[..^1].ToString()); 
+                return RouteMatch<T>.Match(child.Children[0].Value, parameters);
             }
             if (child.Type == NodeType.Parameter)
             {

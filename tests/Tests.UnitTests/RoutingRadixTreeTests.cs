@@ -27,7 +27,7 @@ public class RoutingRadixTreeTests
         var actual = Assert.Single(tree.RootNode.Children);
         Assert.Multiple(() =>
         {
-            Assert.Equal(path.Path, actual.Prefix);
+            Assert.Equal("/helloworld/", actual.Prefix);
             Assert.Equal(1, actual.Value);
             Assert.Equal(NodeType.Path, actual.Type);
         });
@@ -74,11 +74,11 @@ public class RoutingRadixTreeTests
         var actual2 = actualA.Children[1];
         Assert.Multiple(() =>
         {
-            Assert.Equal("1", actual1.Prefix);
+            Assert.Equal("1/", actual1.Prefix);
             Assert.Equal(1, actual1.Value);
             Assert.Equal(NodeType.Path, actual1.Type);
             
-            Assert.Equal("2", actual2.Prefix);
+            Assert.Equal("2/", actual2.Prefix);
             Assert.Equal(2, actual2.Value);
             Assert.Equal(NodeType.Path, actual2.Type);
         });
@@ -103,11 +103,11 @@ public class RoutingRadixTreeTests
         var actual2 = tree.RootNode.Children[1];
         Assert.Multiple(() =>
         {
-            Assert.Equal("hello", actual1.Prefix);
+            Assert.Equal("hello/", actual1.Prefix);
             Assert.Equal(1, actual1.Value);
             Assert.Equal(NodeType.Path, actual1.Type);
             
-            Assert.Equal("world", actual2.Prefix);
+            Assert.Equal("world/", actual2.Prefix);
             Assert.Equal(2, actual2.Value);
             Assert.Equal(NodeType.Path, actual2.Type);
         });
@@ -128,7 +128,7 @@ public class RoutingRadixTreeTests
         var actual = Assert.Single(tree.RootNode.Children);
         Assert.Multiple(() =>
         {
-            Assert.Equal(path.Path, actual.Prefix);
+            Assert.Equal("/helloworld/", actual.Prefix);
             Assert.Equal(2, actual.Value);
             Assert.Equal(NodeType.Path, actual.Type);
         });
@@ -155,8 +155,14 @@ public class RoutingRadixTreeTests
             Assert.Multiple(() =>
             {
                 Assert.Equal("name", actualParameter.Prefix);
-                Assert.Equal(1, actualParameter.Value);
                 Assert.Equal(NodeType.Parameter, actualParameter.Type);
+                
+                var actualValue = Assert.Single(actualParameter.Children);
+                Assert.Multiple(() =>
+                {
+                    Assert.Equal(1, actualValue.Value);
+                    Assert.Equal(NodeType.Path, actualValue.Type);
+                });
             });
         });
     }
@@ -182,8 +188,14 @@ public class RoutingRadixTreeTests
             Assert.Multiple(() =>
             {
                 Assert.Equal("*", actualWildcard.Prefix);
-                Assert.Equal(1, actualWildcard.Value);
                 Assert.Equal(NodeType.Wildcard, actualWildcard.Type);
+                
+                var actualValue = Assert.Single(actualWildcard.Children);
+                Assert.Multiple(() =>
+                {
+                    Assert.Equal(1, actualValue.Value);
+                    Assert.Equal(NodeType.Path, actualValue.Type);
+                });
             });
         });
     }
@@ -235,7 +247,7 @@ public class RoutingRadixTreeTests
         var actualChild = Assert.Single(actualParameter.Children);
         Assert.Multiple(() =>
         {
-            Assert.Equal("/world", actualChild.Prefix);
+            Assert.Equal("/world/", actualChild.Prefix);
             Assert.Equal(2, actualChild.Value);
             Assert.Equal(NodeType.Path, actualChild.Type);
         });
