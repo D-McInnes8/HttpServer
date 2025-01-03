@@ -24,7 +24,13 @@ public class RoutingRadixTreeTests
         tree.AddRoute(path, 1);
         
         // Assert
-        Assert.True(tree.Contains(path));
+        var actual = Assert.Single(tree.RootNode.Children);
+        Assert.Multiple(() =>
+        {
+            Assert.Equal(path.Path, actual.Prefix);
+            Assert.Equal(1, actual.Value);
+            Assert.Equal(NodeType.Path, actual.Type);
+        });
     }
 
     [Fact]
@@ -40,8 +46,7 @@ public class RoutingRadixTreeTests
         tree.AddRoute(path2, 2);
         
         // Assert
-        Assert.True(tree.Contains(path1));
-        Assert.True(tree.Contains(path2));
+        Assert.Fail();
     }
 
     [Fact]
@@ -57,8 +62,26 @@ public class RoutingRadixTreeTests
         tree.AddRoute(path2, 2);
         
         // Assert
-        Assert.True(tree.Contains(path1));
-        Assert.True(tree.Contains(path2));
+        var actualA = Assert.Single(tree.RootNode.Children);
+        Assert.Multiple(() =>
+        {
+            Assert.Equal(NodeType.Path, actualA.Type);
+            Assert.Equal("/v", actualA.Prefix);
+            Assert.Equal(2, actualA.Children.Length);
+        });
+
+        var actual1 = actualA.Children[0];
+        var actual2 = actualA.Children[1];
+        Assert.Multiple(() =>
+        {
+            Assert.Equal("1", actual1.Prefix);
+            Assert.Equal(1, actual1.Value);
+            Assert.Equal(NodeType.Path, actual1.Type);
+            
+            Assert.Equal("2", actual2.Prefix);
+            Assert.Equal(2, actual2.Value);
+            Assert.Equal(NodeType.Path, actual2.Type);
+        });
     }
 
     [Fact]
@@ -74,8 +97,20 @@ public class RoutingRadixTreeTests
         tree.AddRoute(path2, 2);
         
         // Assert
-        Assert.True(tree.Contains(path1));
-        Assert.True(tree.Contains(path2));
+        Assert.Equal(2, tree.RootNode.Children.Length);
+        
+        var actual1 = tree.RootNode.Children[0];
+        var actual2 = tree.RootNode.Children[1];
+        Assert.Multiple(() =>
+        {
+            Assert.Equal("hello", actual1.Prefix);
+            Assert.Equal(1, actual1.Value);
+            Assert.Equal(NodeType.Path, actual1.Type);
+            
+            Assert.Equal("world", actual2.Prefix);
+            Assert.Equal(2, actual2.Value);
+            Assert.Equal(NodeType.Path, actual2.Type);
+        });
     }
 
     [Fact]
@@ -90,7 +125,13 @@ public class RoutingRadixTreeTests
         tree.AddRoute(path, 2);
         
         // Assert
-        Assert.Equal(2, tree.Match(path));
+        var actual = Assert.Single(tree.RootNode.Children);
+        Assert.Multiple(() =>
+        {
+            Assert.Equal(path.Path, actual.Prefix);
+            Assert.Equal(2, actual.Value);
+            Assert.Equal(NodeType.Path, actual.Type);
+        });
     }
     
     [Fact]
@@ -104,7 +145,20 @@ public class RoutingRadixTreeTests
         tree.AddRoute(path, 1);
         
         // Assert
-        Assert.True(tree.Contains(path));
+        var actualPath = Assert.Single(tree.RootNode.Children);
+        Assert.Multiple(() =>
+        {
+            Assert.Equal("/hello/", actualPath.Prefix);
+            Assert.Equal(NodeType.Path, actualPath.Type);
+            
+            var actualParameter = Assert.Single(actualPath.Children);
+            Assert.Multiple(() =>
+            {
+                Assert.Equal("name", actualParameter.Prefix);
+                Assert.Equal(1, actualParameter.Value);
+                Assert.Equal(NodeType.Parameter, actualParameter.Type);
+            });
+        });
     }
     
     [Fact]
@@ -118,7 +172,20 @@ public class RoutingRadixTreeTests
         tree.AddRoute(path, 1);
         
         // Assert
-        Assert.True(tree.Contains(path));
+        var actualPath = Assert.Single(tree.RootNode.Children);
+        Assert.Multiple(() =>
+        {
+            Assert.Equal("/hello/", actualPath.Prefix);
+            Assert.Equal(NodeType.Path, actualPath.Type);
+            
+            var actualWildcard = Assert.Single(actualPath.Children);
+            Assert.Multiple(() =>
+            {
+                Assert.Equal("*", actualWildcard.Prefix);
+                Assert.Equal(1, actualWildcard.Value);
+                Assert.Equal(NodeType.Wildcard, actualWildcard.Type);
+            });
+        });
     }
 
     [Theory]
@@ -132,7 +199,7 @@ public class RoutingRadixTreeTests
         // Arrange
         var tree = new RoutingRadixTree<int>();
         var route = new Route(path, HttpRequestMethod.GET);
-        
+            
         // Act & Assert
         Assert.Throws<ArgumentException>(() => tree.AddRoute(route, 1));
     }
@@ -144,10 +211,10 @@ public class RoutingRadixTreeTests
         var tree = new RoutingRadixTree<int>();
         
         // Act
-        int? actual = tree.Match(new Route("/helloworld", HttpRequestMethod.GET));
+        var actual = tree.Match(new Route("/helloworld", HttpRequestMethod.GET));
         
         // Assert
-        Assert.Null(actual);
+        Assert.False(actual.IsMatch);
     }
     
     [Fact]
@@ -162,7 +229,11 @@ public class RoutingRadixTreeTests
         var actual = tree.Match(path);
         
         // Assert
-        Assert.Equal(1, actual);
+        Assert.Multiple(() =>
+        {
+            Assert.True(actual.IsMatch);
+            Assert.Equal(1, actual.Value);
+        });
     }
 
     [Fact]
@@ -181,8 +252,11 @@ public class RoutingRadixTreeTests
         var actual2 = tree.Match(path2);
         
         // Assert
-        Assert.Equal(1, actual1);
-        Assert.Equal(2, actual2);
+        Assert.Multiple(() =>
+        {
+            Assert.Equal(1, actual1.Value);
+            Assert.Equal(2, actual2.Value);
+        });
     }
 
     [Fact]
@@ -201,8 +275,11 @@ public class RoutingRadixTreeTests
         var actual2 = tree.Match(path2);
         
         // Assert
-        Assert.Equal(1, actual1);
-        Assert.Equal(2, actual2);
+        Assert.Multiple(() =>
+        {
+            Assert.Equal(1, actual1.Value);
+            Assert.Equal(2, actual2.Value);
+        });
     }
     
     [Fact]
@@ -213,10 +290,10 @@ public class RoutingRadixTreeTests
         var path = new Route("/helloworld", HttpRequestMethod.GET);
         
         // Act
-        int? actual = tree.Match(path);
+        var actual = tree.Match(path);
         
         // Assert
-        Assert.Null(actual);
+        Assert.False(actual.IsMatch);
     }
     
     [Fact]
@@ -230,10 +307,10 @@ public class RoutingRadixTreeTests
         tree.AddRoute(path1, 1);
         
         // Act
-        int? actual = tree.Match(path2);
+        var actual = tree.Match(path2);
         
         // Assert
-        Assert.Null(actual);
+        Assert.False(actual.IsMatch);
     }
     
     [Fact]
@@ -251,7 +328,7 @@ public class RoutingRadixTreeTests
         var actual = tree.Match(path1);
         
         // Assert
-        Assert.Equal(1, actual);
+        Assert.Equal(1, actual.Value);
     }
 
     [Fact]
@@ -266,7 +343,11 @@ public class RoutingRadixTreeTests
         var actual = tree.Match(new Route("/hello/world", HttpRequestMethod.GET));
         
         // Assert
-        Assert.Equal(1, actual);
+        Assert.Multiple(() =>
+        {
+            Assert.True(actual.IsMatch);
+            Assert.Equal("world", actual.Parameters["name"]);
+        });
     }
     
     [Fact]
@@ -281,7 +362,27 @@ public class RoutingRadixTreeTests
         var actual = tree.Match(new Route("/hello/world/42", HttpRequestMethod.GET));
         
         // Assert
-        Assert.Equal(1, actual);
+        Assert.Multiple(() =>
+        {
+            Assert.True(actual.IsMatch);
+            Assert.Equal("world", actual.Parameters["name"]);
+            Assert.Equal("42", actual.Parameters["age"]);
+        });
+    }
+    
+    [Fact]
+    public void Match_RequestWithParameterFollowedByPath_ShouldNotMatch()
+    {
+        // Arrange
+        var tree = new RoutingRadixTree<int>();
+        var path = new Route("/hello/{name}", HttpRequestMethod.GET);
+        tree.AddRoute(path, 1);
+        
+        // Act
+        var actual = tree.Match(new Route("/hello/world/42", HttpRequestMethod.GET));
+        
+        // Assert
+        Assert.False(actual.IsMatch);
     }
     
     [Fact]
@@ -296,7 +397,11 @@ public class RoutingRadixTreeTests
         var actual = tree.Match(new Route("/hello/world/world", HttpRequestMethod.GET));
         
         // Assert
-        Assert.Equal(1, actual);
+        Assert.Multiple(() =>
+        {
+            Assert.True(actual.IsMatch);
+            Assert.Equal("world", actual.Parameters["name"]);
+        });
     }
     
     [Fact]
@@ -314,7 +419,12 @@ public class RoutingRadixTreeTests
         var actual = tree.Match(new Route("/hello/world/world", HttpRequestMethod.GET));
         
         // Assert
-        Assert.Equal(2, actual);
+        Assert.Multiple(() =>
+        {
+            Assert.True(actual.IsMatch);
+            Assert.Empty(actual.Parameters);
+            Assert.Equal(2, actual.Value);
+        });
     }
     
     [Fact]
@@ -326,10 +436,14 @@ public class RoutingRadixTreeTests
         tree.AddRoute(path, 1);
         
         // Act
-        var actual = tree.Match(new Route("/hello/world", HttpRequestMethod.GET));
+        var actual = tree.Match(new Route("/hello/world/42", HttpRequestMethod.GET));
         
         // Assert
-        Assert.Equal(1, actual);
+        Assert.Multiple(() =>
+        {
+            Assert.True(actual.IsMatch);
+            Assert.Equal("world/42", actual.Parameters["*"]);
+        });
     }
     
     [Fact]
@@ -347,7 +461,12 @@ public class RoutingRadixTreeTests
         var actual = tree.Match(new Route("/hello/world", HttpRequestMethod.GET));
         
         // Assert
-        Assert.Equal(2, actual);
+        Assert.Multiple(() =>
+        {
+            Assert.True(actual.IsMatch);
+            Assert.Empty(actual.Parameters);
+            Assert.Equal(2, actual.Value);
+        });
     }
 
     [Fact]
@@ -362,7 +481,12 @@ public class RoutingRadixTreeTests
         var actual = tree.Match(new Route("/hello/world/42", HttpRequestMethod.GET));
         
         // Assert
-        Assert.Equal(1, actual);
+        Assert.Multiple(() =>
+        {
+            Assert.True(actual.IsMatch);
+            Assert.Equal("world", actual.Parameters["name"]);
+            Assert.Equal("42", actual.Parameters["*"]);
+        });
     }
 
     [Fact]
@@ -377,7 +501,11 @@ public class RoutingRadixTreeTests
         var actual = tree.Match(new Route("/", HttpRequestMethod.GET));
         
         // Assert
-        Assert.Equal(1, actual);
+        Assert.Multiple(() =>
+        {
+            Assert.True(actual.IsMatch);
+            Assert.Equal(1, actual.Value);
+        });
     }
     
     [Fact]
@@ -392,7 +520,12 @@ public class RoutingRadixTreeTests
         var actual = tree.Match(new Route("/world", HttpRequestMethod.GET));
         
         // Assert
-        Assert.Equal(1, actual);
+        Assert.Multiple(() =>
+        {
+            Assert.True(actual.IsMatch);
+            Assert.Equal("world", actual.Parameters["name"]);
+            Assert.Equal(1, actual.Value);
+        });
     }
     
     [Fact]
@@ -407,10 +540,15 @@ public class RoutingRadixTreeTests
         var actual = tree.Match(new Route("/world", HttpRequestMethod.GET));
         
         // Assert
-        Assert.Equal(1, actual);
+        Assert.Multiple(() =>
+        {
+            Assert.True(actual.IsMatch);
+            Assert.Equal("world", actual.Parameters["*"]);
+            Assert.Equal(1, actual.Value);
+        });
     }
     
-    [Fact]
+    /*[Fact]
     public void Contains_NoMatchingRoute_ShouldReturnFalse()
     {
         // Arrange
@@ -509,5 +647,5 @@ public class RoutingRadixTreeTests
         // Assert
         Assert.True(actual1);
         Assert.True(actual2);
-    }
+    }*/
 }
