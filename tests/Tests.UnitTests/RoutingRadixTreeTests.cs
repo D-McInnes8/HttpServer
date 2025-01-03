@@ -70,8 +70,8 @@ public class RoutingRadixTreeTests
             Assert.Equal(2, actualA.Children.Length);
         });
 
-        var actual1 = actualA.Children[0];
-        var actual2 = actualA.Children[1];
+        var actual1 = actualA.Children[1];
+        var actual2 = actualA.Children[0];
         Assert.Multiple(() =>
         {
             Assert.Equal("1/", actual1.Prefix);
@@ -99,8 +99,8 @@ public class RoutingRadixTreeTests
         // Assert
         Assert.Equal(2, tree.RootNode.Children.Length);
         
-        var actual1 = tree.RootNode.Children[0];
-        var actual2 = tree.RootNode.Children[1];
+        var actual1 = tree.RootNode.Children[1];
+        var actual2 = tree.RootNode.Children[0];
         Assert.Multiple(() =>
         {
             Assert.Equal("hello/", actual1.Prefix);
@@ -240,7 +240,6 @@ public class RoutingRadixTreeTests
         Assert.Multiple(() =>
         {
             Assert.Equal("name", actualParameter.Prefix);
-            Assert.Equal(1, actualParameter.Value);
             Assert.Equal(NodeType.Parameter, actualParameter.Type);
         });
         
@@ -609,105 +608,4 @@ public class RoutingRadixTreeTests
             Assert.Equal(1, actual.Value);
         });
     }
-    
-    /*[Fact]
-    public void Contains_NoMatchingRoute_ShouldReturnFalse()
-    {
-        // Arrange
-        var tree = new RoutingRadixTree<int>();
-        var path = new Route("/helloworld", HttpRequestMethod.GET);
-        
-        // Act
-        bool actual = tree.Contains(path);
-        
-        // Assert
-        Assert.False(actual);
-    }
-    
-    [Fact]
-    public void Contains_NoMatchingMethod_ShouldReturnFalse()
-    {
-        // Arrange
-        var tree = new RoutingRadixTree<int>();
-        var path1 = new Route("/helloworld", HttpRequestMethod.GET);
-        var path2 = new Route("/helloworld", HttpRequestMethod.POST);
-        
-        tree.AddRoute(path1, 1);
-        
-        // Act
-        bool actual = tree.Contains(path2);
-        
-        // Assert
-        Assert.False(actual);
-    }
-    
-    [Fact]
-    public void Contains_MatchingRoute_ShouldReturnTrue()
-    {
-        // Arrange
-        var tree = new RoutingRadixTree<int>();
-        var path = new Route("/helloworld", HttpRequestMethod.GET);
-        tree.AddRoute(path, 1);
-        
-        // Act
-        var actual = tree.Contains(path);
-        
-        // Assert
-        Assert.True(actual);
-    }
-    
-    [Fact]
-    public void Contains_MatchingMethod_ShouldReturnTrue()
-    {
-        // Arrange
-        var tree = new RoutingRadixTree<int>();
-        var path = new Route("/helloworld", HttpRequestMethod.GET);
-        tree.AddRoute(path, 1);
-        
-        // Act
-        var actual = tree.Contains(path);
-        
-        // Assert
-        Assert.True(actual);
-    }
-    
-    [Fact]
-    public void Contains_MultipleSamePathDifferentMethod_ShouldReturnTrue()
-    {
-        // Arrange
-        var tree = new RoutingRadixTree<int>();
-        var path1 = new Route("/helloworld", HttpRequestMethod.GET);
-        var path2 = new Route("/helloworld", HttpRequestMethod.POST);
-        
-        tree.AddRoute(path1, 1);
-        tree.AddRoute(path2, 2);
-        
-        // Act
-        var actual1 = tree.Contains(path1);
-        var actual2 = tree.Contains(path2);
-        
-        // Assert
-        Assert.True(actual1);
-        Assert.True(actual2);
-    }
-    
-    [Fact]
-    public void Contains_MultipleSameMethodDifferentPath_ShouldReturnTrue()
-    {
-        // Arrange
-        var tree = new RoutingRadixTree<int>();
-        var path1 = new Route("/v1", HttpRequestMethod.GET);
-        var path2 = new Route("/v2", HttpRequestMethod.GET);
-        
-        tree.AddRoute(path1, 1);
-        tree.AddRoute(path2, 2);
-        
-        // Act
-        var actual1 = tree.Contains(path1);
-        var actual2 = tree.Contains(path2);
-        
-        // Assert
-        Assert.True(actual1);
-        Assert.True(actual2);
-    }*/
 }

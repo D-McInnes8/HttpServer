@@ -120,7 +120,15 @@ public class RoutingRadixTree<T> : IRoutingTree<T>
     private void InsertChild(ref RadixTreeNode<T> parent, ReadOnlySpan<char> path, T value)
     {
         var nodes = SplitPathIntoNodes(path, value);
-        parent.Children = [..parent.Children, nodes];
+        
+        // If the node is a parameter or wildcard, add it to the end of the children list.
+        // Otherwise, if it's a path, add it to the beginning of the children list.
+        // This will ensure that wildcard and parameter nodes are matched last.
+        parent.Children = nodes.Type switch
+        {
+            NodeType.Parameter or NodeType.Wildcard => parent.Children = [..parent.Children, nodes],
+            _ => parent.Children = [nodes, ..parent.Children],
+        };
     }
 
     private RadixTreeNode<T> SplitPathIntoNodes(ReadOnlySpan<char> path, T value)
@@ -189,31 +197,33 @@ public class RoutingRadixTree<T> : IRoutingTree<T>
         {
             ref var child = ref currentNode.Children[i];
 
-            if (child.Type == NodeType.Wildcard)
+            switch (child.Type)
             {
-                parameters.Add(child.Prefix, path[..^1].ToString()); 
-                return RouteMatch<T>.Match(child.Children[0].Value, parameters);
-            }
-            if (child.Type == NodeType.Parameter)
-            {
-                var nextSegmentIndex = path.IndexOf('/');
-                if (nextSegmentIndex == -1)
+                case NodeType.Wildcard:
+                    parameters.Add(child.Prefix, path[..^1].ToString()); 
+                    return RouteMatch<T>.Match(child.Children[0].Value, parameters);
+                case NodeType.Parameter:
                 {
-                    nextSegmentIndex = path.Length;
-                }
-                var segment = path[..nextSegmentIndex];
-                parameters.Add(child.Prefix, segment.ToString());
-                if (child.Children.Length == 0
-                    && nextSegmentIndex == path.Length)
-                {
-                    return RouteMatch<T>.Match(child.Value, parameters);
-                }
+                    var nextSegmentIndex = path.IndexOf('/');
+                    if (nextSegmentIndex == -1)
+                    {
+                        nextSegmentIndex = path.Length;
+                    }
+                    var segment = path[..nextSegmentIndex];
+                    parameters.Add(child.Prefix, segment.ToString());
+                    if (child.Children.Length == 0
+                        && nextSegmentIndex == path.Length)
+                    {
+                        return RouteMatch<T>.Match(child.Value, parameters);
+                    }
                 
-                path = path[nextSegmentIndex..];
-                currentNode = ref child;
-                i = -1;
+                    path = path[nextSegmentIndex..];
+                    currentNode = ref child;
+                    i = -1;
+                    break;
+                }
             }
-            
+
             var commonPrefix = FindCommonPrefix(child.Prefix.AsSpan(), path);
             if (commonPrefix == 0)
             {
