@@ -205,6 +205,56 @@ public class RoutingRadixTreeTests
     }
 
     [Fact]
+    public void AddRoute_ParameterNodeWithChildRoutes_ShouldContainSingleParameterNode()
+    {
+        // Arrange
+        var tree = new RoutingRadixTree<int>();
+        var path1 = new Route("/hello/{name}", HttpRequestMethod.GET);
+        var path2 = new Route("/hello/{name}/world", HttpRequestMethod.GET);
+        
+        // Act
+        tree.AddRoute(path1, 1);
+        tree.AddRoute(path2, 2);
+        
+        // Assert
+        var actualPath = Assert.Single(tree.RootNode.Children);
+        Assert.Multiple(() =>
+        {
+            Assert.Equal("/hello/", actualPath.Prefix);
+            Assert.Equal(NodeType.Path, actualPath.Type);
+        });
+        
+        var actualParameter = Assert.Single(actualPath.Children);
+        Assert.Multiple(() =>
+        {
+            Assert.Equal("name", actualParameter.Prefix);
+            Assert.Equal(1, actualParameter.Value);
+            Assert.Equal(NodeType.Parameter, actualParameter.Type);
+        });
+        
+        var actualChild = Assert.Single(actualParameter.Children);
+        Assert.Multiple(() =>
+        {
+            Assert.Equal("/world", actualChild.Prefix);
+            Assert.Equal(2, actualChild.Value);
+            Assert.Equal(NodeType.Path, actualChild.Type);
+        });
+    }
+
+    [Fact]
+    public void AddRoute_MultipleParameterChildNodes_ShouldThrowException()
+    {
+        // Arrange
+        var tree = new RoutingRadixTree<int>();
+        var path1 = new Route("/hello/{name}", HttpRequestMethod.GET);
+        var path2 = new Route("/hello/{age}", HttpRequestMethod.GET);
+        tree.AddRoute(path1, 1);
+        
+        // Act & Assert
+        Assert.Throws<ArgumentException>(() => tree.AddRoute(path2, 2));
+    }
+
+    [Fact]
     public void Match_EmptyTree_ShouldReturnNull()
     {
         // Arrange
