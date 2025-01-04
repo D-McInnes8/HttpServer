@@ -1,5 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 using HttpServer.Request;
+using HttpServer.Routing;
 
 namespace HttpServer.Pipeline;
 
@@ -33,6 +34,12 @@ public class RequestPipelineContext
     /// The <see cref="RequestPipelineBuilderOptions"/> options associated with this context.
     /// </summary>
     public RequestPipelineBuilderOptions Options { get; internal set; }
+    
+    /// <summary>
+    /// The route metadata associated with this context. This property will only be populated after the
+    /// global request pipeline has executed the router and matched a route.
+    /// </summary>
+    public RouteMetadata? Route { get; internal set; }
 
     /// <summary>
     /// Construct a new <see cref="RequestPipelineContext"/> for the provided <see cref="HttpRequest"/>.

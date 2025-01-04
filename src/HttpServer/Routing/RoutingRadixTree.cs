@@ -4,11 +4,11 @@ using HttpServer.Response;
 
 namespace HttpServer.Routing;
 
-public interface IHttpRouter : IRoutingTree<Func<HttpRequest, Task<HttpResponse>>>
+public interface IHttpRouter : IRoutingTree<RouteMetadata>
 {
 }
 
-public class HttpRouter : RoutingRadixTree<Func<HttpRequest, Task<HttpResponse>>>, IHttpRouter
+public class HttpRouter : RoutingRadixTree<RouteMetadata>, IHttpRouter
 {
 }
 

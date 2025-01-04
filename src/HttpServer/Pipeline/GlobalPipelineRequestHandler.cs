@@ -12,39 +12,57 @@ namespace HttpServer.Pipeline;
 public class GlobalPipelineRequestHandler : IRequestHandler
 {
     private readonly IReadOnlyPipelineRegistry _pipelineRegistry;
+    private readonly IHttpRouter _router;
 
     /// <summary>
     /// Creates a new <see cref="GlobalPipelineRequestHandler"/> with the specified pipeline registry.
     /// </summary>
     /// <param name="pipelineRegistry">The <see cref="IReadOnlyPipelineRegistry"/>.</param>
-    public GlobalPipelineRequestHandler(IReadOnlyPipelineRegistry pipelineRegistry)
+    /// <param name="router">The <see cref="IHttpRouter"/> used to route requests to a specific endpoint.</param>
+    public GlobalPipelineRequestHandler(IReadOnlyPipelineRegistry pipelineRegistry, IHttpRouter router)
     {
         _pipelineRegistry = pipelineRegistry;
+        _router = router;
     }
 
     /// <inheritdoc />
     public async Task<HttpResponse> HandleAsync(RequestPipelineContext ctx)
     {
-        foreach (var requestPipeline in _pipelineRegistry)
+        var routingResult = _router.Match(new Route(ctx.Request.Route, ctx.Request.Method));
+        if (routingResult.IsMatch)
         {
-            if (ActivatorUtilities.GetServiceOrCreateInstance(ctx.Services, requestPipeline.Options.Router)
-                is not IRouter router)
+            ctx.Route = routingResult.Value;
+            
+            // Route is configured to use a request pipeline.
+            if (routingResult.Value?.Pipeline is not null
+                && _pipelineRegistry.TryGetPipeline(routingResult.Value.Pipeline, out var pipeline))
             {
-                Debug.Fail("Pipeline router is not an IRouter.");
-                continue;
+                ctx.Options = pipeline.Options;
+                try
+                {
+                    var result = await pipeline.ExecuteAsync(ctx);
+                    return result;
+                }
+                finally
+                {
+                    ctx.Options = _pipelineRegistry.GlobalPipeline.Options;
+                }
+            }
+
+            if (ctx.Route?.Pipeline is not null)
+            {
+                throw new InvalidOperationException($"The pipeline '{routingResult.Value?.Pipeline}' was not found.");
             }
             
-            ctx.Options = requestPipeline.Options;
-            var routingResult = await router.RouteAsync(ctx);
-            if (routingResult == RouterResult.Success)
+            // Route has no pipeline, execute the handler directly.
+            if (ctx.Route?.Handler is not null)
             {
-                var result = await requestPipeline.ExecuteAsync(ctx);
-                ctx.Options = _pipelineRegistry.GlobalPipeline.Options;
-                return result;
+                return ctx.Route.Handler(ctx.Request);
             }
+            
+            Debug.Fail("Route matched but has no handler or pipeline.");
         }
-        
-        ctx.Options = _pipelineRegistry.GlobalPipeline.Options;
+
         return new HttpResponse(HttpResponseStatusCode.NotFound);
     }
 }

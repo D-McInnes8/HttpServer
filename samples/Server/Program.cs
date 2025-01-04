@@ -4,6 +4,7 @@ using HttpServer.Pipeline.StaticFiles;
 using HttpServer.Request;
 using HttpServer.Response;
 using HttpServer.Routing;
+using Server;
 
 /*var router = new RoutingRadixTree<int?>();
 //router.AddRoute(new Route("/api/v1/users/{userId}/posts", HttpRequestMethod.GET), 1);
@@ -151,7 +152,7 @@ httpWebServer.AddStaticFilePipeline(priority: 2)
     });*/
 
 
-httpServer.AddPipeline(options =>
+/*httpServer.AddPipeline(options =>
 {
     options.Name = "Test Pipeline";
 });
@@ -169,7 +170,15 @@ httpServer.AddStaticFilePipeline(options =>
     options.Priority = 2;
     options.ServeFile("/sample.txt", "/Users/dmcinnes/Documents/PieceTableNotes.txt");
     options.ServeDirectory("/", "/Users/dmcinnes/Documents/Projects/HttpServer/wwwroot");
+});*/
+
+httpServer.AddPipeline("TestPipeline", options =>
+{
+    options.AddPlugin<TestPlugin>();
 });
+
+httpServer.MapGet("/api/helloworld/", "TestPipeline", _ => HttpResponse.Ok("Hello, World!"));
+httpServer.MapGet("/{*}", _ => HttpResponse.Ok("File not found!"));
 
 await httpServer.StartAsync();
 
