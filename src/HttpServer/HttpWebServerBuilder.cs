@@ -53,9 +53,6 @@ public class HttpWebWebServerBuilder : IHttpWebServerBuilder
 
     private void AddRequiredServices()
     {
-        Services.AddSingleton<IRouteRegistry, RouteRegistry>();
-        Services.AddScoped<RoutingPlugin>();
-
         Services.AddSingleton<IPipelineRegistry, DefaultPipelineRegistry>()
                 .AddSingleton<IReadOnlyPipelineRegistry>(provider => provider.GetRequiredService<IPipelineRegistry>())
                 .AddSingleton<IHttpRouter, HttpRouter>();

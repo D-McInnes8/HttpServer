@@ -1,9 +1,5 @@
 ﻿using HttpServer;
-using HttpServer.Pipeline.Endpoints;
-using HttpServer.Pipeline.StaticFiles;
-using HttpServer.Request;
 using HttpServer.Response;
-using HttpServer.Routing;
 using Server;
 
 /*var router = new RoutingRadixTree<int?>();

@@ -1,26 +1,24 @@
 using HttpServer;
-using HttpServer.Pipeline.Endpoints;
 using HttpServer.Request;
 using HttpServer.Response;
-using NSubstitute;
 
 namespace Tests.IntegrationTests;
 
 public class HttpRequestBodyTests : IAsyncLifetime
 {
-    private readonly IHttpWebServer _httpWebWebServer = HttpWebServer.CreateBuilder(9997).Build();
+    private readonly IHttpWebServer _server = HttpWebServer.CreateBuilder(9997).Build();
     private readonly HttpClient _httpClient = new HttpClient();
 
     public async Task InitializeAsync()
     {
-        _httpClient.BaseAddress = new Uri($"http://localhost:{_httpWebWebServer.Port}");
-        await _httpWebWebServer.StartAsync();
+        _httpClient.BaseAddress = new Uri($"http://localhost:{_server.Port}");
+        await _server.StartAsync();
     }
 
     public async Task DisposeAsync()
     {
         _httpClient.Dispose();
-        await _httpWebWebServer.StopAsync();
+        await _server.StopAsync();
     }
     
     [Fact]
@@ -28,13 +26,10 @@ public class HttpRequestBodyTests : IAsyncLifetime
     {
         // Arrange
         HttpRequest? actual = null;
-        _httpWebWebServer.AddEndpointPipeline(options =>
+        _server.MapRoute(HttpRequestMethod.POST, "/test", request =>
         {
-            options.MapRoute(HttpRequestMethod.POST, "/test", request =>
-            {
-                actual = request;
-                return HttpResponse.Ok();
-            });
+            actual = request;
+            return HttpResponse.Ok();
         });
         
         // Act

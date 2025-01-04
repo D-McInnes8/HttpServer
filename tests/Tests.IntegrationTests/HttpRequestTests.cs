@@ -1,6 +1,5 @@
 using System.Net;
 using HttpServer;
-using HttpServer.Pipeline.Endpoints;
 using HttpServer.Request;
 using HttpServer.Response;
 using Tests.IntegrationTests.TestExtensions;
@@ -9,19 +8,19 @@ namespace Tests.IntegrationTests;
 
 public class HttpRequestTests : IAsyncLifetime
 {
-    private readonly IHttpWebServer _httpWebWebServer = HttpWebServer.CreateBuilder(9999).Build();
+    private readonly IHttpWebServer _server = HttpWebServer.CreateBuilder(9999).Build();
     private readonly HttpClient _httpClient = new HttpClient();
 
     public async Task InitializeAsync()
     {
-        _httpClient.BaseAddress = new Uri($"http://localhost:{_httpWebWebServer.Port}");
-        await _httpWebWebServer.StartAsync();
+        _httpClient.BaseAddress = new Uri($"http://localhost:{_server.Port}");
+        await _server.StartAsync();
     }
 
     public async Task DisposeAsync()
     {
         _httpClient.Dispose();
-        await _httpWebWebServer.StopAsync();
+        await _server.StopAsync();
     }
 
     [Theory]
@@ -37,10 +36,7 @@ public class HttpRequestTests : IAsyncLifetime
     public async Task HttpRequestRouting_RequestWithValidRoute_ShouldReturnOk(HttpRequestMethod httpRequestMethod)
     {
         // Arrange
-        _httpWebWebServer.AddEndpointPipeline(options =>
-        {
-            options.MapRoute(httpRequestMethod, "/", _ => new HttpResponse(HttpResponseStatusCode.OK));
-        });
+        _server.MapGet("/", _ => HttpResponse.Ok());
         
         // Act
         var message = new HttpRequestMessage(httpRequestMethod.ToHttpMethod(), "/");
@@ -67,10 +63,7 @@ public class HttpRequestTests : IAsyncLifetime
     public async Task HttpRequestRouting_RequestWithInvalidRoute_ShouldReturnOk(HttpRequestMethod httpRequestMethod)
     {
         // Arrange
-        _httpWebWebServer.AddEndpointPipeline(options =>
-        {
-            options.MapRoute(httpRequestMethod, "/test", _ => new HttpResponse(HttpResponseStatusCode.OK));
-        });
+        _server.MapGet("/test", _ => HttpResponse.Ok());
         
         // Act
         var message = new HttpRequestMessage(httpRequestMethod.ToHttpMethod(), "/");
@@ -92,10 +85,7 @@ public class HttpRequestTests : IAsyncLifetime
     public async Task HttpRequestRouting_RequestWithQueryParameters_ShouldReturnOk(string route, string queryParameters)
     {
         // Arrange
-        _httpWebWebServer.AddEndpointPipeline(options =>
-        {
-            options.MapRoute(HttpRequestMethod.GET, route, _ => new HttpResponse(HttpResponseStatusCode.OK));
-        });
+        _server.MapGet(route, _ => HttpResponse.Ok());
         
         // Act
         var message = new HttpRequestMessage(HttpMethod.Get, $"{route}?{queryParameters}");

@@ -1,25 +1,23 @@
 using HttpServer;
-using HttpServer.Pipeline.Endpoints;
-using HttpServer.Request;
 using HttpServer.Response;
 
 namespace Tests.IntegrationTests;
 
 public class HttpResponseBodyTests : IAsyncLifetime
 {
-    private readonly IHttpWebServer _httpWebWebServer = HttpWebServer.CreateBuilder(9996).Build();
+    private readonly IHttpWebServer _server = HttpWebServer.CreateBuilder(9996).Build();
     private readonly HttpClient _httpClient = new HttpClient();
 
     public async Task InitializeAsync()
     {
-        _httpClient.BaseAddress = new Uri($"http://localhost:{_httpWebWebServer.Port}");
-        await _httpWebWebServer.StartAsync();
+        _httpClient.BaseAddress = new Uri($"http://localhost:{_server.Port}");
+        await _server.StartAsync();
     }
 
     public async Task DisposeAsync()
     {
         _httpClient.Dispose();
-        await _httpWebWebServer.StopAsync();
+        await _server.StopAsync();
     }
     
     [Theory]
@@ -36,10 +34,7 @@ public class HttpResponseBodyTests : IAsyncLifetime
     public async Task HttpResponseBody_ResponseWithPlainTextBody_ShouldReturnBody(string expected)
     {
         // Arrange
-        _httpWebWebServer.AddEndpointPipeline(options =>
-        {
-            options.MapRoute(HttpRequestMethod.GET, "/test", _ => HttpResponse.Ok(expected));
-        });
+        _server.MapGet("/test", _ => HttpResponse.Ok(expected));
         
         // Act
         var response = await _httpClient.GetAsync("/test");
