@@ -39,76 +39,86 @@ public class RoutingRadixTree<T> : IRoutingTree<T>
         {
             throw new ArgumentException("Wildcard segments must be the last segment in the route.");
         }
-        
-        // If the root node has no children, add the route as a child.
-        /*if (_rootNode.Children.Length == 0)
-        {
-            _rootNode.Children = 
-            [
-                new RadixTreeNode<T>
-                {
-                    Prefix = route.Path,
-                    Children = [],
-                    Value = value,
-                    Type = NodeType.Path
-                }
-            ];
-            return;
-        }*/
 
         // Otherwise, iterate through the children of the root node.
         ref var currentNode = ref _rootNode;
         for (int i = 0; i < currentNode.Children.Length; i++)
         {
             ref var child = ref currentNode.Children[i];
-            var prefix = child.Type == NodeType.Parameter || child.Type == NodeType.Wildcard
-                ? $"{{{child.Prefix}}}".AsSpan()
-                : child.Prefix.AsSpan();
-            
-            // Find the common prefix between the child node and the path.
-            var commonPrefix = FindCommonPrefix(prefix, path);
-            if (commonPrefix == 0)
-            {
-                continue;
-            }
+            var prefix = child.Prefix.AsSpan();
 
-            // Case 1: The node prefix and the path are equal, so the routes match.
-            // Overwrite the value of the node with the new value.
-            if (commonPrefix == prefix.Length
-                && commonPrefix == path.Length)
+            switch (child.Type)
             {
-                child.Value = value;
-                return;
-            }
+                case NodeType.Wildcard:
+                    // Once a wildcard route has been added it will never be modified or have child nodes,
+                    // so we can skip to the next child node.
+                    break;
+                case NodeType.Parameter:
+                    // For parameter nodes, we need to match on the entire segment, not just the common prefix.
+                    var nextSegmentIndex = path.IndexOf('/');
+                    
+                    // If the path does not contain a segment separator, set the next segment index to the end of the path.
+                    if (nextSegmentIndex == -1)
+                    {
+                        nextSegmentIndex = path.Length;
+                    }
+                    
+                    // If the child node prefix matches the segment, remove the segment from the path and recurse into the child node.
+                    var segment = path[..nextSegmentIndex];
+                    if (MemoryExtensions.Equals(child.Prefix, segment, StringComparison.InvariantCulture))
+                    {
+                        path = path[nextSegmentIndex..];
+                        currentNode = ref child;
+                        i = -1;
+                    }
+                    break;
+                case NodeType.Path:
+                    // Find the common prefix between the child node and the path.
+                    var commonPrefix = FindCommonPrefix(prefix, path);
+                    if (commonPrefix == 0)
+                    {
+                        continue;
+                    }
+
+                    // Case 1: The node prefix and the path are equal, so the routes match.
+                    // Overwrite the value of the node with the new value.
+                    if (commonPrefix == prefix.Length
+                        && commonPrefix == path.Length)
+                    {
+                        child.Value = value;
+                        return;
+                    }
             
-            // Case 2: The node prefix is a prefix of the path.
-            // Recurse into the child node.
-            if (commonPrefix == prefix.Length
-                && commonPrefix < path.Length)
-            {
-                path = path[commonPrefix..];
-                currentNode = ref child;
-                i = -1;
-                continue;
-            }
+                    // Case 2: The node prefix is a prefix of the path.
+                    // Recurse into the child node.
+                    if (commonPrefix == prefix.Length
+                        && commonPrefix < path.Length)
+                    {
+                        path = path[commonPrefix..];
+                        currentNode = ref child;
+                        i = -1;
+                        continue;
+                    }
             
-            // Case 3: The node prefix is a partial prefix of the path.
-            // Split the node into two nodes.
-            if (commonPrefix < prefix.Length
-                && commonPrefix < path.Length)
-            {
-                var existingChild = new RadixTreeNode<T>
-                {
-                    Prefix = child.Prefix[commonPrefix..],
-                    Children = child.Children,
-                    Value = child.Value,
-                    Type = NodeType.Path
-                };
-                child.Prefix = child.Prefix[..commonPrefix];
-                child.Children = [existingChild];
-                child.Value = default;
-                InsertChild(ref child, path[commonPrefix..], value);
-                return;
+                    // Case 3: The node prefix is a partial prefix of the path.
+                    // Split the node into two nodes.
+                    if (commonPrefix < prefix.Length
+                        && commonPrefix < path.Length)
+                    {
+                        var existingChild = new RadixTreeNode<T>
+                        {
+                            Prefix = child.Prefix[commonPrefix..],
+                            Children = child.Children,
+                            Value = child.Value,
+                            Type = NodeType.Path
+                        };
+                        child.Prefix = child.Prefix[..commonPrefix];
+                        child.Children = [existingChild];
+                        child.Value = default;
+                        InsertChild(ref child, path[commonPrefix..], value);
+                        return;
+                    }
+                    break;
             }
         }
         
@@ -119,15 +129,24 @@ public class RoutingRadixTree<T> : IRoutingTree<T>
 
     private void InsertChild(ref RadixTreeNode<T> parent, ReadOnlySpan<char> path, T value)
     {
-        var nodes = SplitPathIntoNodes(path, value);
+        var newNode = SplitPathIntoNodes(path, value);
+        
+        // If the parent node already contains a parameter or wildcard segment,
+        // and the new node is a parameter or wildcard, throw an exception.
+        // Otherwise, we would have no way of determining which segment to match first.
+        if (newNode.Type is NodeType.Parameter or NodeType.Wildcard
+            && parent.Children.Any(child => child.Type is NodeType.Parameter or NodeType.Wildcard))
+        {
+            throw new ArgumentException("A parameter or wildcard segment already exists in the route.", nameof(parent));
+        }
         
         // If the node is a parameter or wildcard, add it to the end of the children list.
         // Otherwise, if it's a path, add it to the beginning of the children list.
         // This will ensure that wildcard and parameter nodes are matched last.
-        parent.Children = nodes.Type switch
+        parent.Children = newNode.Type switch
         {
-            NodeType.Parameter or NodeType.Wildcard => parent.Children = [..parent.Children, nodes],
-            _ => parent.Children = [nodes, ..parent.Children],
+            NodeType.Parameter or NodeType.Wildcard => parent.Children = [..parent.Children, newNode],
+            _ => parent.Children = [newNode, ..parent.Children],
         };
     }
 
@@ -154,7 +173,7 @@ public class RoutingRadixTree<T> : IRoutingTree<T>
             throw new InvalidOperationException("");
         }
         
-        var parameter = path[(startIndex + 1)..endIndex];
+        var parameter = path[startIndex..(endIndex + 1)];
         var prefix = path[..startIndex];
         var suffix = path[(endIndex + 1)..];
         
@@ -163,7 +182,7 @@ public class RoutingRadixTree<T> : IRoutingTree<T>
             Prefix = parameter.ToString(),
             Children = [],
             Value = value,
-            Type = parameter is "*" ? NodeType.Wildcard : NodeType.Parameter
+            Type = parameter is "{*}" ? NodeType.Wildcard : NodeType.Parameter
         };
         if (suffix.Length != 0)
         {
@@ -200,7 +219,7 @@ public class RoutingRadixTree<T> : IRoutingTree<T>
             switch (child.Type)
             {
                 case NodeType.Wildcard:
-                    parameters.Add(child.Prefix, path[..^1].ToString()); 
+                    parameters.Add(child.Prefix[1..^1], path[..^1].ToString()); 
                     return RouteMatch<T>.Match(child.Children[0].Value, parameters);
                 case NodeType.Parameter:
                 {
@@ -210,7 +229,7 @@ public class RoutingRadixTree<T> : IRoutingTree<T>
                         nextSegmentIndex = path.Length;
                     }
                     var segment = path[..nextSegmentIndex];
-                    parameters.Add(child.Prefix, segment.ToString());
+                    parameters.Add(child.Prefix[1..^1], segment.ToString());
                     if (child.Children.Length == 0
                         && nextSegmentIndex == path.Length)
                     {
@@ -220,7 +239,7 @@ public class RoutingRadixTree<T> : IRoutingTree<T>
                     path = path[nextSegmentIndex..];
                     currentNode = ref child;
                     i = -1;
-                    break;
+                    continue;
                 }
             }
 
@@ -261,14 +280,7 @@ public class RoutingRadixTree<T> : IRoutingTree<T>
         
         void PrintNode(RadixTreeNode<T> node, int depth)
         {
-            if (node.Type == NodeType.Parameter)
-            {
-                builder.Append($"{new string(' ', depth * 2)}{{{node.Prefix}}} - {node.Value}\n");
-            }
-            else
-            {
-                builder.Append($"{new string(' ', depth * 2)}{node.Prefix} - {node.Value}\n");
-            }
+            builder.Append($"{new string(' ', depth * 2)}{node.Prefix} - {node.Value}\n");
             foreach (var child in node.Children)
             {
                 PrintNode(child, depth + 1);

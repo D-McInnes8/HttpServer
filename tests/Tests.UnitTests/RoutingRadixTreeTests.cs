@@ -154,7 +154,7 @@ public class RoutingRadixTreeTests
             var actualParameter = Assert.Single(actualPath.Children);
             Assert.Multiple(() =>
             {
-                Assert.Equal("name", actualParameter.Prefix);
+                Assert.Equal("{name}", actualParameter.Prefix);
                 Assert.Equal(NodeType.Parameter, actualParameter.Type);
                 
                 var actualValue = Assert.Single(actualParameter.Children);
@@ -187,7 +187,7 @@ public class RoutingRadixTreeTests
             var actualWildcard = Assert.Single(actualPath.Children);
             Assert.Multiple(() =>
             {
-                Assert.Equal("*", actualWildcard.Prefix);
+                Assert.Equal("{*}", actualWildcard.Prefix);
                 Assert.Equal(NodeType.Wildcard, actualWildcard.Type);
                 
                 var actualValue = Assert.Single(actualWildcard.Children);
@@ -239,7 +239,7 @@ public class RoutingRadixTreeTests
         var actualParameter = Assert.Single(actualPath.Children);
         Assert.Multiple(() =>
         {
-            Assert.Equal("name", actualParameter.Prefix);
+            Assert.Equal("{name}", actualParameter.Prefix);
             Assert.Equal(NodeType.Parameter, actualParameter.Type);
         });
         
