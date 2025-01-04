@@ -8,7 +8,7 @@ namespace Tests.IntegrationTests;
 
 public class HttpRequestMetadataTests : IAsyncLifetime
 {
-    private readonly HttpWebWebServer _httpWebWebServer = HttpWebWebServer.CreateBuilder(9998).Build();
+    private readonly IHttpWebServer _httpWebWebServer = HttpWebServer.CreateBuilder(9998).Build();
     private readonly HttpClient _httpClient = new HttpClient();
 
     public async Task InitializeAsync()

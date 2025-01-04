@@ -3,8 +3,33 @@ using HttpServer.Pipeline.Endpoints;
 using HttpServer.Pipeline.StaticFiles;
 using HttpServer.Request;
 using HttpServer.Response;
+using HttpServer.Routing;
 
-var builder = HttpWebWebServer.CreateBuilder(9999);
+/*var router = new RoutingRadixTree<int?>();
+//router.AddRoute(new Route("/api/v1/users/{userId}/posts", HttpRequestMethod.GET), 1);
+//router.AddRoute(new Route("/api/v1/users/{userId}/posts/{postId}/comments/{commentId}", HttpRequestMethod.GET), 1);
+router.AddRoute(new Route("/api", HttpRequestMethod.GET), 1);
+router.AddRoute(new Route("/api/v1/users", HttpRequestMethod.GET), 1);
+router.AddRoute(new Route("/api/v1/users/{userId}", HttpRequestMethod.GET), 1);
+router.AddRoute(new Route("/api/v1/users/{userId}/posts", HttpRequestMethod.GET), 1);
+router.AddRoute(new Route("/api/v1/users/{userId}/posts/{postId}", HttpRequestMethod.GET), 1);
+router.AddRoute(new Route("/api/v1/users/{userId}/posts/{postId}/comments", HttpRequestMethod.GET), 1);
+router.AddRoute(new Route("/api/v1/users/{userId}/posts/{postId}/comments/{commentId}", HttpRequestMethod.GET), 1);
+router.AddRoute(new Route("/api/v1/comments", HttpRequestMethod.GET), 1);
+router.AddRoute(new Route("/api/v1/comments/{commentId}", HttpRequestMethod.GET), 1);
+router.AddRoute(new Route("/api/v1/posts", HttpRequestMethod.GET), 1);
+router.AddRoute(new Route("/api/v1/posts/{postId}", HttpRequestMethod.GET), 1);
+router.AddRoute(new Route("/api/v2/users", HttpRequestMethod.GET), 1);
+router.AddRoute(new Route("/api/v2/users/{userId}", HttpRequestMethod.GET), 1);
+
+//router.AddRoute(new Route("/api/v1/users", HttpRequestMethod.GET), 1);
+//router.AddRoute(new Route("/api/v1/users/{userId}", HttpRequestMethod.GET), 1);
+
+Console.WriteLine(router.Print());
+
+return;*/
+
+var builder = HttpWebServer.CreateBuilder(9999);
 //builder.Services.AddScoped<RoutingPlugin>();
 //builder.Services.AddSingleton<IRouteRegistry, RouteRegistry>();
 var httpServer = builder.Build();

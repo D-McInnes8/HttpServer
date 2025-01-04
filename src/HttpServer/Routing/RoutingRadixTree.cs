@@ -1,6 +1,16 @@
 using System.Text;
+using HttpServer.Request;
+using HttpServer.Response;
 
 namespace HttpServer.Routing;
+
+public interface IHttpRouter : IRoutingTree<Func<HttpRequest, Task<HttpResponse>>>
+{
+}
+
+public class HttpRouter : RoutingRadixTree<Func<HttpRequest, Task<HttpResponse>>>, IHttpRouter
+{
+}
 
 public interface IRoutingTree<T>
 {

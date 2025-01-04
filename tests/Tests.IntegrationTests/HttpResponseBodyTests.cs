@@ -7,7 +7,7 @@ namespace Tests.IntegrationTests;
 
 public class HttpResponseBodyTests : IAsyncLifetime
 {
-    private readonly HttpWebWebServer _httpWebWebServer = HttpWebWebServer.CreateBuilder(9996).Build();
+    private readonly IHttpWebServer _httpWebWebServer = HttpWebServer.CreateBuilder(9996).Build();
     private readonly HttpClient _httpClient = new HttpClient();
 
     public async Task InitializeAsync()

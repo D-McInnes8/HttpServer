@@ -24,7 +24,7 @@ public interface IHttpWebServerBuilder
     /// Builds the <see cref="HttpWebWebServer"/>.
     /// </summary>
     /// <returns>The constructed <see cref="IHttpWebServer"/>.</returns>
-    public HttpWebWebServer Build();
+    public IHttpWebServer Build();
 }
 
 /// <summary>
@@ -45,9 +45,9 @@ public class HttpWebWebServerBuilder : IHttpWebServerBuilder
     public HttpWebWebServerBuilder(int port)
     {
         ArgumentOutOfRangeException.ThrowIfNegative(port, nameof(port));
-        Services = new ServiceCollection();
         Port = port;
         
+        Services = new ServiceCollection();
         AddRequiredServices();
     }
 
@@ -57,14 +57,15 @@ public class HttpWebWebServerBuilder : IHttpWebServerBuilder
         Services.AddScoped<RoutingPlugin>();
 
         Services.AddSingleton<IPipelineRegistry, DefaultPipelineRegistry>()
-                .AddSingleton<IReadOnlyPipelineRegistry>(provider => provider.GetRequiredService<IPipelineRegistry>());
+                .AddSingleton<IReadOnlyPipelineRegistry>(provider => provider.GetRequiredService<IPipelineRegistry>())
+                .AddSingleton<IHttpRouter, HttpRouter>();
     }
     
     /// <inheritdoc />
-    public HttpWebWebServer Build()
+    public IHttpWebServer Build()
     {
         Debug.Assert(Port >= 0);
-        return new HttpWebWebServer(
+        return new HttpWebServer(
             port: Port,
             serviceProvider: Services.BuildServiceProvider());
     }

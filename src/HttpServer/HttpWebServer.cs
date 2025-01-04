@@ -2,6 +2,7 @@ using HttpServer.Pipeline;
 using HttpServer.Pipeline.Registry;
 using HttpServer.Request.Parser;
 using HttpServer.Response.Internal;
+using HttpServer.Routing;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace HttpServer;
@@ -55,12 +56,15 @@ public interface IHttpWebServer
     /// <returns></returns>
     IHttpWebServer AddPipeline<TOptions>(string pipelineName, Action<TOptions> configure)
         where TOptions : RequestPipelineBuilderOptions;
+
+    public IHttpWebServer AddPipeline(Action<RequestPipelineBuilderOptions> configure);
+    public IHttpWebServer AddPipeline(string pipelineName, Action<RequestPipelineBuilderOptions> configure);
 }
 
 /// <summary>
 /// The web server that listens for incoming HTTP requests.
 /// </summary>
-public class HttpWebWebServer : IHttpWebServer
+public class HttpWebServer : IHttpWebServer
 {
     public IServiceProvider Services { get; }
     public int Port => _tcpServer.Port;
@@ -69,6 +73,7 @@ public class HttpWebWebServer : IHttpWebServer
     private readonly TcpServer _tcpServer;
     private readonly RequestHandler _requestHandler;
     private readonly IPipelineRegistry _pipelineRegistry;
+    private readonly IHttpRouter _router;
 
     /// <summary>
     /// Creates a new instance of <see cref="HttpWebWebServer"/>. Should only
@@ -76,7 +81,7 @@ public class HttpWebWebServer : IHttpWebServer
     /// </summary>
     /// <param name="port">The port the web server will listen on.</param>
     /// <param name="serviceProvider">The service provider for the web server.</param>
-    internal HttpWebWebServer(int port, IServiceProvider serviceProvider)
+    internal HttpWebServer(int port, IServiceProvider serviceProvider)
     {
         Services = serviceProvider;
         
@@ -84,6 +89,7 @@ public class HttpWebWebServer : IHttpWebServer
         _tcpServer = new TcpServer(port, HandleRequest);
         _pipelineRegistry = serviceProvider.GetRequiredService<IPipelineRegistry>();
         _requestHandler = new RequestHandler(_pipelineRegistry);
+        _router = serviceProvider.GetRequiredService<IHttpRouter>();
     }
 
     public async Task StartAsync()
