@@ -116,10 +116,10 @@ public class HttpWebServer : IHttpWebServer
         await _tcpServer.StopAsync();
     }
 
-    private string HandleRequest(string request)
+    private string HandleRequest(Stream stream)
     {
         using var scope = Services.CreateScope();
-        var httpRequest = HttpRequestParser.Parse(request);
+        var httpRequest = HttpRequestParser.Parse(stream).GetAwaiter().GetResult();
         
         _logger.LogInformation("Received request: {Method} {Path}", httpRequest.Method, httpRequest.Path);
         var httpResponse = _requestHandler.HandleRequest(httpRequest, scope.ServiceProvider);

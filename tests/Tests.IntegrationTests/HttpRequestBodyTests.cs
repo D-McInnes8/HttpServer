@@ -47,4 +47,32 @@ public class HttpRequestBodyTests : IAsyncLifetime
             Assert.Equal("text/plain; charset=utf-8", actual.ContentType);
         });
     }
+
+    [Fact]
+    public void HttpRequestBody_RequestWithLargeBody_ShouldProcessRequest()
+    {
+        // Arrange
+        HttpRequest? actual = null;
+        var expected = new string('A', 500_000);
+        _server.MapRoute(HttpRequestMethod.POST, "/test", request =>
+        {
+            actual = request;
+            return HttpResponse.Ok();
+        });
+        
+        // Act
+        var message = new HttpRequestMessage(HttpMethod.Post, "/test")
+        {
+            Content = new StringContent(expected)
+        };
+        var response = _httpClient.Send(message);
+
+        // Assert
+        Assert.Multiple(() =>
+        {
+            Assert.True(response.IsSuccessStatusCode);
+            Assert.NotNull(actual);
+            Assert.Equal(expected, actual.Body);
+        });
+    }
 }

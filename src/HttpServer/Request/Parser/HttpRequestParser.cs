@@ -47,6 +47,34 @@ public ref struct SpanReader
 
 public static class HttpRequestParser
 {
+    public static async Task<HttpRequest> Parse(Stream stream)
+    {
+        using var reader = new HttpRequestStreamReader(stream);
+        var requestLine = await reader.ReadLineAsync();
+        var tokenizer = new StringTokenizer(requestLine, [' ']);
+        var method = ParseMethod(tokenizer[0]);
+        var path = tokenizer[1].ToString();
+        var httpVersion = tokenizer[2].ToString();
+        
+        var headers = new Dictionary<string, string>();
+        string? line;
+        while (!string.IsNullOrWhiteSpace(line = await reader.ReadLineAsync()))
+        {
+            _ = TryGetParsedHeader(line, out var httpHeader);
+            headers.Add(httpHeader.Key, httpHeader.Value);
+        }
+        
+        var contentLength = headers.GetValueOrDefault("Content-Length");
+        var body = await reader.ReadToEndAsync(contentLength is not null ? int.Parse(contentLength) : 0);
+        return new HttpRequest(method, path)
+        {
+            Headers = headers,
+            Body = string.IsNullOrWhiteSpace(body) ? null : body,
+            HttpVersion = httpVersion,
+            ContentType = headers.GetValueOrDefault("Content-Type"),
+        };
+    }
+    
     public static HttpRequest Parse(ReadOnlySpan<char> request)
     {
         var spanReader = new SpanReader(request);

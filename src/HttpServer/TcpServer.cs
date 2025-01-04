@@ -25,7 +25,7 @@ internal class TcpServer
     private bool _isRunning;
     private readonly ILogger<TcpServer> _logger;
     
-    private readonly Func<string, string> _requestHandler;
+    private readonly Func<Stream, string> _requestHandler;
 
     /// <summary>
     /// Creates a new <see cref="TcpServer"/> with the specified port and request handler.
@@ -33,7 +33,7 @@ internal class TcpServer
     /// <param name="port">The port the TCP server will listen on.</param>
     /// <param name="requestHandler">The request handler to execute when receiving a TCP request.</param>
     /// <param name="logger">The <see cref="ILogger"/> object to be logged to.</param>
-    public TcpServer(int port, Func<string, string> requestHandler, ILogger<TcpServer> logger)
+    public TcpServer(int port, Func<Stream, string> requestHandler, ILogger<TcpServer> logger)
     {
         Port = port;
         _requestHandler = requestHandler;
@@ -102,13 +102,13 @@ internal class TcpServer
         
         using var stream = client.GetStream();
         
-        var buffer = new byte[2048];
+        /*var buffer = new byte[2048];
         var bytesRead = stream.Read(buffer, 0, buffer.Length);
-        var message = Encoding.UTF8.GetString(buffer, 0, bytesRead);
+        var message = Encoding.UTF8.GetString(buffer, 0, bytesRead);*/
 
         try
         {
-            var response = _requestHandler(message);
+            var response = _requestHandler(stream);
             stream.Write(Encoding.UTF8.GetBytes(response));
             client.Close();
         }
@@ -122,7 +122,8 @@ internal class TcpServer
             // proper error message can be found by debugging a failing test.SSS
             if (Debugger.IsAttached)
             {
-                Debug.Fail($"{ex.GetType().Name}: Exception thrown by the TCP request handler.", ex.Message);
+                //Debug.Fail($"{ex.GetType().Name}: Exception thrown by the TCP request handler.", ex.Message);
+                throw;
             }
         }
     }
