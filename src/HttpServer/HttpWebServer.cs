@@ -6,6 +6,7 @@ using HttpServer.Response;
 using HttpServer.Response.Internal;
 using HttpServer.Routing;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
 namespace HttpServer;
 
@@ -82,9 +83,10 @@ public class HttpWebServer : IHttpWebServer
     private readonly RequestHandler _requestHandler;
     private readonly IPipelineRegistry _pipelineRegistry;
     private readonly IHttpRouter _router;
+    private readonly ILogger<HttpWebServer> _logger;
 
     /// <summary>
-    /// Creates a new instance of <see cref="HttpWebWebServer"/>. Should only
+    /// Creates a new instance of <see cref="HttpWebServer"/>. Should only
     /// be invoked internally by the <see cref="IHttpWebServerBuilder"/> object.
     /// </summary>
     /// <param name="port">The port the web server will listen on.</param>
@@ -92,21 +94,25 @@ public class HttpWebServer : IHttpWebServer
     internal HttpWebServer(int port, IServiceProvider serviceProvider)
     {
         Services = serviceProvider;
+        var loggerFactory = serviceProvider.GetRequiredService<ILoggerFactory>();
         
         ArgumentOutOfRangeException.ThrowIfNegative(port, nameof(port));
-        _tcpServer = new TcpServer(port, HandleRequest);
+        _tcpServer = new TcpServer(port, HandleRequest, loggerFactory.CreateLogger<TcpServer>());
         _pipelineRegistry = serviceProvider.GetRequiredService<IPipelineRegistry>();
         _requestHandler = new RequestHandler(_pipelineRegistry);
         _router = serviceProvider.GetRequiredService<IHttpRouter>();
+        _logger = loggerFactory.CreateLogger<HttpWebServer>();
     }
 
     public async Task StartAsync()
     {
+        _logger.LogInformation("Starting web server");
         await _tcpServer.StartAsync();
     }
 
     public async Task StopAsync()
     {
+        _logger.LogInformation("Stopping web server");
         await _tcpServer.StopAsync();
     }
 
@@ -114,9 +120,12 @@ public class HttpWebServer : IHttpWebServer
     {
         using var scope = Services.CreateScope();
         var httpRequest = HttpRequestParser.Parse(request);
+        
+        _logger.LogInformation("Received request: {Method} {Path}", httpRequest.Method, httpRequest.Path);
         var httpResponse = _requestHandler.HandleRequest(httpRequest, scope.ServiceProvider);
-        var response = HttpResponseWriter.WriteResponse(httpResponse);
-        return response;
+        
+        _logger.LogInformation("Sending response: {StatusCode}", httpResponse.StatusCode);
+        return HttpResponseWriter.WriteResponse(httpResponse);
     }
     
     /// <summary>

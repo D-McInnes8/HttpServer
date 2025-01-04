@@ -2,6 +2,7 @@ using System.Diagnostics;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
+using Microsoft.Extensions.Logging;
 
 namespace HttpServer;
 
@@ -22,6 +23,7 @@ internal class TcpServer
     
     private readonly TcpListener _tcpListener;
     private bool _isRunning;
+    private readonly ILogger<TcpServer> _logger;
     
     private readonly Func<string, string> _requestHandler;
 
@@ -30,10 +32,12 @@ internal class TcpServer
     /// </summary>
     /// <param name="port">The port the TCP server will listen on.</param>
     /// <param name="requestHandler">The request handler to execute when receiving a TCP request.</param>
-    public TcpServer(int port, Func<string, string> requestHandler)
+    /// <param name="logger">The <see cref="ILogger"/> object to be logged to.</param>
+    public TcpServer(int port, Func<string, string> requestHandler, ILogger<TcpServer> logger)
     {
         Port = port;
         _requestHandler = requestHandler;
+        _logger = logger;
         _tcpListener = new TcpListener(IPAddress.Any, Port);
     }
     
@@ -45,7 +49,7 @@ internal class TcpServer
     {
         _isRunning = true;
         _tcpListener.Start();
-        Console.WriteLine($"Listening on port {_tcpListener.LocalEndpoint}");
+        _logger.LogInformation("Listening on {LocalEndpoint}", _tcpListener.LocalEndpoint);
 
         var thread = new Thread(ListenAsync);
         thread.Start();
@@ -78,12 +82,11 @@ internal class TcpServer
             }
             catch (SocketException ex) when (ex.SocketErrorCode == SocketError.Interrupted)
             {
-                Console.WriteLine("Socket interrupted");
-                //Debug.Fail("Socket interrupted", ex.Message);
+                _logger.LogWarning("Socket interrupted");
             }
         }
         
-        Console.WriteLine("Server stopped");
+        _logger.LogInformation("Server stopped");
     }
 
     /// <summary>
@@ -111,7 +114,7 @@ internal class TcpServer
         }
         catch (Exception ex)
         {
-            Console.WriteLine("An uncaught exception occurred in the request worker thread: " + ex.Message);
+            _logger.LogError(ex, "An uncaught exception occurred in the request worker thread: {Message}", ex.Message);
             
             // Due to the way exceptions are handled in background threads, if a test fails due to an exception
             // being thrown then it will treat that test and every other test qs being inconclusive.
