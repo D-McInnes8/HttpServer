@@ -44,7 +44,8 @@ public class HttpRequestBodyTests : IAsyncLifetime
         Assert.Multiple(() =>
         {
             Assert.Equal("Hello, World!", actual.Body);
-            Assert.Equal("text/plain; charset=utf-8", actual.ContentType);
+            Assert.Equal("text/plain; charset=utf-8", actual.ContentType?.Value);
+            //Assert.Equal("text/plain; charset=utf-8", actual.ContentType);
         });
     }
 

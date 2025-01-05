@@ -1,3 +1,5 @@
+using System.Text;
+using HttpServer;
 using HttpServer.Request;
 using HttpServer.Request.Parser;
 
@@ -15,14 +17,15 @@ public class HttpRequestParserTests
     [InlineData("OPTIONS", "/options", false)]
     [InlineData("CONNECT", "/connect", false)]
     [InlineData("TRACE", "/trace", false)]
-    public void RequestHttpMethods_ParsesCorrectly(string method, string path, bool hasBody)
+    public async Task RequestHttpMethods_ParsesCorrectly(string method, string path, bool hasBody)
     {
         // Arrange
         var body = hasBody ? "Body content" : string.Empty;
         var request = $"{method} {path} HTTP/1.1\r\nHost: localhost\r\nContent-Length: {body.Length}\r\n\r\n{body}";
+        using var stream = new MemoryStream(Encoding.UTF8.GetBytes(request));
         
         // Act
-        var httpRequest = HttpRequestParser.Parse(request);
+        var httpRequest = await HttpRequestParser.Parse(stream);
 
         // Assert
         Assert.Multiple(() =>
@@ -37,13 +40,14 @@ public class HttpRequestParserTests
     [InlineData("GET", "/", "HTTP/1.0")]
     [InlineData("POST", "/submit", "HTTP/1.1")]
     [InlineData("PUT", "/update", "HTTP/2.0")]
-    public void RequestHttpVersion_ParsesCorrectly(string method, string path, string httpVersion)
+    public async Task RequestHttpVersion_ParsesCorrectly(string method, string path, string httpVersion)
     {
         // Arrange
         var request = $"{method} {path} {httpVersion}\r\nHost: localhost\r\n\r\n";
+        using var stream = new MemoryStream(Encoding.UTF8.GetBytes(request));
 
         // Act
-        var httpRequest = HttpRequestParser.Parse(request);
+        var httpRequest = await HttpRequestParser.Parse(stream);
 
         // Assert
         Assert.Equal(httpVersion, httpRequest.HttpVersion);
@@ -56,26 +60,28 @@ public class HttpRequestParserTests
     [InlineData("GET", "/api/v1/resource/123", "HTTP/1.1")]
     [InlineData("GET", "/api/v1/resource?query=param", "HTTP/1.1")]
     [InlineData("GET", "/api/v1/resource#fragment", "HTTP/1.1")]
-    public void RequestPaths_ParsesCorrectly(string method, string path, string httpVersion)
+    public async Task RequestPaths_ParsesCorrectly(string method, string path, string httpVersion)
     {
         // Arrange
         var request = $"{method} {path} {httpVersion}\r\nHost: localhost\r\n\r\n";
+        using var stream = new MemoryStream(Encoding.UTF8.GetBytes(request));
 
         // Act
-        var httpRequest = HttpRequestParser.Parse(request);
+        var httpRequest = await HttpRequestParser.Parse(stream);
 
         // Assert
         Assert.Equal(path, httpRequest.Path);
     }
 
     [Fact]
-    public void RequestWithCommonHeaders_ParsesCorrectly()
+    public async Task RequestWithCommonHeaders_ParsesCorrectly()
     {
         // Arrange
-        const string request = "GET / HTTP/1.1\r\nHost: localhost\r\nUser-Agent: xUnit\r\nAccept: */*\r\n\r\n";
+        const string request = "GET / HTTP/1.1\r\nHost: localhost\r\nUser-Agent: xUnit\r\nAccept: #1#*\r\n\r\n";
+        using var stream = new MemoryStream(Encoding.UTF8.GetBytes(request));
         
         // Act
-        var httpRequest = HttpRequestParser.Parse(request);
+        var httpRequest = await HttpRequestParser.Parse(stream);
 
         // Assert
         Assert.Multiple(() =>
@@ -85,18 +91,19 @@ public class HttpRequestParserTests
             Assert.False(httpRequest.HasBody);
             Assert.Equal("localhost", httpRequest.Headers["Host"]);
             Assert.Equal("xUnit", httpRequest.Headers["User-Agent"]);
-            Assert.Equal("*/*", httpRequest.Headers["Accept"]);
+            Assert.Equal("#1#*", httpRequest.Headers["Accept"]);
         });
     }
     
     [Fact]
-    public void RequestWithBody_ParsesCorrectly()
+    public async Task RequestWithBody_ParsesCorrectly()
     {
         // Arrange
         const string request = "POST /submit HTTP/1.1\r\nHost: localhost\r\nContent-Length: 11\r\n\r\nHello World";
+        using var stream = new MemoryStream(Encoding.UTF8.GetBytes(request));
         
         // Act
-        var httpRequest = HttpRequestParser.Parse(request);
+        var httpRequest = await HttpRequestParser.Parse(stream);
 
         // Assert
         Assert.Multiple(() =>
@@ -109,13 +116,14 @@ public class HttpRequestParserTests
     }
     
     [Fact]
-    public void RequestWithEmptyBody_ParsesCorrectly()
+    public async Task RequestWithEmptyBody_ParsesCorrectly()
     {
         // Arrange
         const string request = "POST /submit HTTP/1.1\r\nHost: localhost\r\nContent-Length: 0\r\n\r\n";
+        using var stream = new MemoryStream(Encoding.UTF8.GetBytes(request));
 
         // Act
-        var httpRequest = HttpRequestParser.Parse(request);
+        var httpRequest = await HttpRequestParser.Parse(stream);
 
         // Assert
         Assert.False(httpRequest.HasBody);
@@ -125,10 +133,13 @@ public class HttpRequestParserTests
     [InlineData("GET / HTTP/1.1\r\nHost: localhost\r\n\r\n", "localhost")]
     [InlineData("GET / HTTP/1.1\nHost: localhost\n\n", "localhost")]
     [InlineData("GET / HTTP/1.1\rHost: localhost\r\r", "localhost")]
-    public void RequestWithDifferentNewLineCharacters_ParsesCorrectly(string request, string expectedHost)
+    public async Task RequestWithDifferentNewLineCharacters_ParsesCorrectly(string request, string expectedHost)
     {
+        // Arrange
+        using var stream = new MemoryStream(Encoding.UTF8.GetBytes(request));
+        
         // Act
-        var httpRequest = HttpRequestParser.Parse(request);
+        var httpRequest = await HttpRequestParser.Parse(stream);
 
         // Assert
         Assert.Multiple(() =>
@@ -141,26 +152,30 @@ public class HttpRequestParserTests
     }
 
     [Fact]
-    public void RequestWithContentTypeHeader_ShouldSetContentTypeProperty()
+    public async Task RequestWithContentTypeHeader_ShouldSetContentTypeProperty()
     {
         // Arrange
         const string request = "POST /submit HTTP/1.1\r\nHost: localhost\r\nContent-Type: application/json\r\n\r\n";
+        using var stream = new MemoryStream(Encoding.UTF8.GetBytes(request));
+        var expected = new HttpContentType("application", "json");
         
         // Act
-        var httpRequest = HttpRequestParser.Parse(request);
+        var httpRequest = await HttpRequestParser.Parse(stream);
         
         // Assert
-        Assert.Equal("application/json", httpRequest.ContentType);
+        Assert.Equal(expected, httpRequest.ContentType);
+        //Assert.Equal("application/json", httpRequest.ContentType);
     }
 
     [Fact]
-    public void RequestWithQueryParameters_SetQueryParametersCorrectly()
+    public async Task RequestWithQueryParameters_SetQueryParametersCorrectly()
     {
         // Arrange
         const string request = "GET /api/v1/resource?query=param HTTP/1.1\r\nHost: localhost\r\n\r\n";
+        using var stream = new MemoryStream(Encoding.UTF8.GetBytes(request));
         
         // Act
-        var httpRequest = HttpRequestParser.Parse(request);
+        var httpRequest = await HttpRequestParser.Parse(stream);
         
         // Assert
         Assert.Single(httpRequest.QueryParameters);
@@ -168,13 +183,14 @@ public class HttpRequestParserTests
     }
     
     [Fact]
-    public void RequestWithMultipleQueryParameters_SetQueryParametersCorrectly()
+    public async Task RequestWithMultipleQueryParameters_SetQueryParametersCorrectly()
     {
         // Arrange
         const string request = "GET /api/v1/resource?query=param&filter=123 HTTP/1.1\r\nHost: localhost\r\n\r\n";
+        using var stream = new MemoryStream(Encoding.UTF8.GetBytes(request));
         
         // Act
-        var httpRequest = HttpRequestParser.Parse(request);
+        var httpRequest = await HttpRequestParser.Parse(stream);
         
         // Assert
         Assert.Equal(2, httpRequest.QueryParameters.Count);
@@ -185,10 +201,13 @@ public class HttpRequestParserTests
     [Theory]
     [InlineData("GET /api/v1/resource?query=param&query=123 HTTP/1.1\r\nHost: localhost\r\n\r\n")]
     [InlineData("GET /api/v1/resource?query=param,123 HTTP/1.1\r\nHost: localhost\r\n\r\n")]
-    public void RequestWithDuplicateQueryParameters_ShouldParseBothParameters(string request)
+    public async Task RequestWithDuplicateQueryParameters_ShouldParseBothParameters(string request)
     {
+        // Arrange
+        using var stream = new MemoryStream(Encoding.UTF8.GetBytes(request));
+        
         // Act
-        var httpRequest = HttpRequestParser.Parse(request);
+        var httpRequest = await HttpRequestParser.Parse(stream);
         
         // Assert
         Assert.Multiple(() =>
