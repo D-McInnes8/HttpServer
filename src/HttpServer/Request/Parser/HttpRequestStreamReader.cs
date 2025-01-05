@@ -19,7 +19,8 @@ public class HttpRequestStreamReader : IDisposable
     private string LineBuffer => _encoding.GetString(_buffer.AsSpan(0, _bufferLength));
 
     private static readonly ArrayPool<byte> BufferPool = ArrayPool<byte>.Create();
-    private const int BufferSize = 4096;
+    //private const int BufferSize = 4096;
+    private const int BufferSize = 2048;
 
     /// <summary>
     /// Creates a new <see cref="HttpRequestStreamReader"/> with the specified stream.
@@ -68,7 +69,9 @@ public class HttpRequestStreamReader : IDisposable
                 {
                     _bufferPosition++;
                 }
-                return segment;
+                
+                stringBuilder.Append(segment);
+                return stringBuilder.ToString();
             }
             
             stringBuilder.Append(_encoding.GetString(bufferSpan));

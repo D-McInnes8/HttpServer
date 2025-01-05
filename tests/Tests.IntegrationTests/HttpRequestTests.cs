@@ -98,4 +98,40 @@ public class HttpRequestTests : IAsyncLifetime
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         });
     }
+    
+    [Fact]
+    public async Task HttpRequest_MetadataExceedsBufferSize_ShouldStillParseRequest()
+    {
+        // Arrange
+        HttpRequest? actual = null;
+        const int numberOfHeaders = 100;
+        _server.MapRoute(HttpRequestMethod.POST, "/test", request =>
+        {
+            actual = request;
+            return HttpResponse.Ok();
+        });
+        
+        // Act
+        var message = new HttpRequestMessage(HttpMethod.Post, "/test")
+        {
+            Content = new StringContent(new string('A', 1000))
+        };
+        for (int i = 0; i < numberOfHeaders; i++)
+        {
+            message.Headers.Add($"X-Custom-Header-{i}", new string('A', i));
+        }
+        var response = await _httpClient.SendAsync(message);
+        
+        // Assert
+        Assert.True(response.IsSuccessStatusCode);
+        Assert.NotNull(actual);
+
+        for (int i = 0; i < numberOfHeaders; i++)
+        {
+            var headerName = $"X-Custom-Header-{i}";
+            var hasHeader = actual.Headers.TryGetValue(headerName, out var headerValue);
+            Assert.True(hasHeader);
+            Assert.Equal(new string('A', i), headerValue);
+        }
+    }
 }
