@@ -21,7 +21,7 @@ public class HttpRequestStreamReader : IDisposable
     private static readonly ArrayPool<byte> BufferPool = ArrayPool<byte>.Create();
     //private const int BufferSize = 4096;
     private const int BufferSize = 2048;
-
+    
     /// <summary>
     /// Creates a new <see cref="HttpRequestStreamReader"/> with the specified stream.
     /// </summary>
@@ -45,11 +45,17 @@ public class HttpRequestStreamReader : IDisposable
     /// Reads a line from the stream.
     /// </summary>
     /// <returns>The read line as a string.</returns>
-    public async Task<string> ReadLineAsync()
+    public async Task<string?> ReadLineAsync()
     {
         if (_streamPosition == 0)
         {
             await FillBufferAsync();
+        }
+        
+        // If the buffer is empty, we have reached the end of the stream.
+        if (_bufferLength == 0)
+        {
+            return null;
         }
         
         var stringBuilder = new StringBuilder();
@@ -85,8 +91,13 @@ public class HttpRequestStreamReader : IDisposable
     /// </summary>
     /// <param name="contentLength">The content length of the body as specified by the content length header.</param>
     /// <returns>The remaining request content as a string.</returns>
-    public Task<string> ReadToEndAsync(int contentLength)
+    public Task<string?> ReadToEndAsync(int contentLength)
     {
+        if (_bufferLength == 0)
+        {
+            return Task.FromResult<string?>(null);
+        }
+        
         var buffer = ArrayPool<char>.Shared.Rent(contentLength);
         var bufferSpan = buffer.AsSpan().Slice(0, contentLength);
         var bufferPos = 0;
@@ -104,7 +115,7 @@ public class HttpRequestStreamReader : IDisposable
                 bufferPos += actualBytesRead;
             } while (FillBuffer() > 0);
 
-            return Task.FromResult(new string(bufferSpan));
+            return Task.FromResult<string?>(new string(bufferSpan));
         }
         finally
         {

@@ -25,14 +25,15 @@ public class HttpRequestParserTests
         using var stream = new MemoryStream(Encoding.UTF8.GetBytes(request));
         
         // Act
-        var httpRequest = await HttpRequestParser.Parse(stream);
+        var result = await HttpRequestParser.Parse(stream);
 
         // Assert
+        var actual = result.Value;
         Assert.Multiple(() =>
         {
-            Assert.Equal(Enum.Parse<HttpRequestMethod>(method), httpRequest.Method);
-            Assert.Equal(path, httpRequest.Path);
-            Assert.Equal(hasBody, httpRequest.HasBody);
+            Assert.Equal(Enum.Parse<HttpRequestMethod>(method), actual.Method);
+            Assert.Equal(path, actual.Path);
+            Assert.Equal(hasBody, actual.HasBody);
         });
     }
 
@@ -47,10 +48,11 @@ public class HttpRequestParserTests
         using var stream = new MemoryStream(Encoding.UTF8.GetBytes(request));
 
         // Act
-        var httpRequest = await HttpRequestParser.Parse(stream);
+        var result = await HttpRequestParser.Parse(stream);
 
         // Assert
-        Assert.Equal(httpVersion, httpRequest.HttpVersion);
+        var actual = result.Value;
+        Assert.Equal(httpVersion, actual.HttpVersion);
     }
     
     [Theory]
@@ -67,10 +69,11 @@ public class HttpRequestParserTests
         using var stream = new MemoryStream(Encoding.UTF8.GetBytes(request));
 
         // Act
-        var httpRequest = await HttpRequestParser.Parse(stream);
+        var result = await HttpRequestParser.Parse(stream);
 
         // Assert
-        Assert.Equal(path, httpRequest.Path);
+        var actual = result.Value;
+        Assert.Equal(path, actual.Path);
     }
 
     [Fact]
@@ -81,17 +84,18 @@ public class HttpRequestParserTests
         using var stream = new MemoryStream(Encoding.UTF8.GetBytes(request));
         
         // Act
-        var httpRequest = await HttpRequestParser.Parse(stream);
+        var result = await HttpRequestParser.Parse(stream);
 
         // Assert
+        var actual = result.Value;
         Assert.Multiple(() =>
         {
-            Assert.Equal(HttpRequestMethod.GET, httpRequest.Method);
-            Assert.Equal("/", httpRequest.Path);
-            Assert.False(httpRequest.HasBody);
-            Assert.Equal("localhost", httpRequest.Headers["Host"]);
-            Assert.Equal("xUnit", httpRequest.Headers["User-Agent"]);
-            Assert.Equal("#1#*", httpRequest.Headers["Accept"]);
+            Assert.Equal(HttpRequestMethod.GET, actual.Method);
+            Assert.Equal("/", actual.Path);
+            Assert.False(actual.HasBody);
+            Assert.Equal("localhost", actual.Headers["Host"]);
+            Assert.Equal("xUnit", actual.Headers["User-Agent"]);
+            Assert.Equal("#1#*", actual.Headers["Accept"]);
         });
     }
     
@@ -103,15 +107,16 @@ public class HttpRequestParserTests
         using var stream = new MemoryStream(Encoding.UTF8.GetBytes(request));
         
         // Act
-        var httpRequest = await HttpRequestParser.Parse(stream);
+        var result = await HttpRequestParser.Parse(stream);
 
         // Assert
+        var actual = result.Value;
         Assert.Multiple(() =>
         {
-            Assert.Equal(HttpRequestMethod.POST, httpRequest.Method);
-            Assert.Equal("/submit", httpRequest.Path);
-            Assert.True(httpRequest.HasBody);
-            Assert.Equal("Hello World", httpRequest.Body);
+            Assert.Equal(HttpRequestMethod.POST, actual.Method);
+            Assert.Equal("/submit", actual.Path);
+            Assert.True(actual.HasBody);
+            Assert.Equal("Hello World", actual.Body);
         });
     }
     
@@ -123,10 +128,11 @@ public class HttpRequestParserTests
         using var stream = new MemoryStream(Encoding.UTF8.GetBytes(request));
 
         // Act
-        var httpRequest = await HttpRequestParser.Parse(stream);
+        var result = await HttpRequestParser.Parse(stream);
 
         // Assert
-        Assert.False(httpRequest.HasBody);
+        var actual = result.Value;
+        Assert.False(actual.HasBody);
     }
     
     [Theory]
@@ -139,15 +145,16 @@ public class HttpRequestParserTests
         using var stream = new MemoryStream(Encoding.UTF8.GetBytes(request));
         
         // Act
-        var httpRequest = await HttpRequestParser.Parse(stream);
+        var result = await HttpRequestParser.Parse(stream);
 
         // Assert
+        var actual = result.Value;
         Assert.Multiple(() =>
         {
-            Assert.Equal(HttpRequestMethod.GET, httpRequest.Method);
-            Assert.Equal("/", httpRequest.Path);
-            Assert.Equal("HTTP/1.1", httpRequest.HttpVersion);
-            Assert.Equal(expectedHost, httpRequest.Headers["Host"]);
+            Assert.Equal(HttpRequestMethod.GET, actual.Method);
+            Assert.Equal("/", actual.Path);
+            Assert.Equal("HTTP/1.1", actual.HttpVersion);
+            Assert.Equal(expectedHost, actual.Headers["Host"]);
         });
     }
 
@@ -160,10 +167,11 @@ public class HttpRequestParserTests
         var expected = new HttpContentType("application", "json");
         
         // Act
-        var httpRequest = await HttpRequestParser.Parse(stream);
+        var result = await HttpRequestParser.Parse(stream);
         
         // Assert
-        Assert.Equal(expected, httpRequest.ContentType);
+        var actual = result.Value;
+        Assert.Equal(expected, actual.ContentType);
         //Assert.Equal("application/json", httpRequest.ContentType);
     }
 
@@ -175,11 +183,12 @@ public class HttpRequestParserTests
         using var stream = new MemoryStream(Encoding.UTF8.GetBytes(request));
         
         // Act
-        var httpRequest = await HttpRequestParser.Parse(stream);
+        var result = await HttpRequestParser.Parse(stream);
         
         // Assert
-        Assert.Single(httpRequest.QueryParameters);
-        Assert.Equal("param", httpRequest.QueryParameters["query"]);
+        var actual = result.Value;
+        Assert.Single(actual.QueryParameters);
+        Assert.Equal("param", actual.QueryParameters["query"]);
     }
     
     [Fact]
@@ -190,12 +199,13 @@ public class HttpRequestParserTests
         using var stream = new MemoryStream(Encoding.UTF8.GetBytes(request));
         
         // Act
-        var httpRequest = await HttpRequestParser.Parse(stream);
+        var result = await HttpRequestParser.Parse(stream);
         
         // Assert
-        Assert.Equal(2, httpRequest.QueryParameters.Count);
-        Assert.Equal("param", httpRequest.QueryParameters["query"]);
-        Assert.Equal("123", httpRequest.QueryParameters["filter"]);
+        var actual = result.Value;
+        Assert.Equal(2, actual.QueryParameters.Count);
+        Assert.Equal("param", actual.QueryParameters["query"]);
+        Assert.Equal("123", actual.QueryParameters["filter"]);
     }
     
     [Theory]
@@ -207,13 +217,14 @@ public class HttpRequestParserTests
         using var stream = new MemoryStream(Encoding.UTF8.GetBytes(request));
         
         // Act
-        var httpRequest = await HttpRequestParser.Parse(stream);
+        var result = await HttpRequestParser.Parse(stream);
         
         // Assert
+        var actual = result.Value;
         Assert.Multiple(() =>
         {
-            Assert.Single(httpRequest.QueryParameters);
-            Assert.Equal("param,123", httpRequest.QueryParameters["query"]);
+            Assert.Single(actual.QueryParameters);
+            Assert.Equal("param,123", actual.QueryParameters["query"]);
         });
     }
 }

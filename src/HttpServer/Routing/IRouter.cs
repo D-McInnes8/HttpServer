@@ -61,6 +61,12 @@ public readonly record struct Option<TValue>
     public static implicit operator Option<TValue>(TValue value) => new(value);
 }
 
+public static class Result
+{
+    public static Result<TValue, TError> Success<TValue, TError>(TValue value) => new(value);
+    public static Result<TValue, TError> Error<TValue, TError>(TError error) => new(error);
+}
+
 /// <summary>
 /// 
 /// </summary>

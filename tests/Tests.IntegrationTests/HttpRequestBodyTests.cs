@@ -76,4 +76,45 @@ public class HttpRequestBodyTests : IAsyncLifetime
             Assert.Equal(expected, actual.Body);
         });
     }
+
+    [Theory]
+    [InlineData(1, 10)]
+    [InlineData(5, 100)]
+    [InlineData(10, 1000)]
+    [InlineData(100, 2000)]
+    public async Task HttpRequestBody_ConcurrentRequests_ShouldProcessAll(int numberOfRequests, int bodySize)
+    {
+        // Arrange
+        var chars = Enumerable.Range(0, 26).Select(i => Convert.ToChar(i + 65)).ToArray();
+        _server.MapRoute(HttpRequestMethod.POST, "/test", request => HttpResponse.Ok(request.Body ?? string.Empty));
+        
+        // Act
+        var tasks = new List<Task<HttpResponseMessage>>();
+        for (int i = 0; i < numberOfRequests; i++)
+        {
+            var client = new HttpClient();
+            client.BaseAddress =  new Uri($"http://localhost:{_server.Port}");
+            var message = new HttpRequestMessage(HttpMethod.Post, "/test")
+            {
+                Content = new StringContent(new string(chars[i % chars.Length], bodySize))
+            };
+            tasks.Add(client.SendAsync(message));
+        }
+        var actual = await Task.WhenAll(tasks);
+        
+        // Assert
+        Assert.Multiple(() =>
+        {
+            Assert.All(actual, r => Assert.True(r.IsSuccessStatusCode));
+            Assert.Equal(numberOfRequests, actual.Length);
+        });
+        
+        for (int i = 0; i < numberOfRequests; i++)
+        {
+            var response = actual[i];
+            var expectedBody = new string(chars[i % chars.Length], bodySize);
+            var actualBody = await response.Content.ReadAsStringAsync();
+            Assert.Equal(expectedBody, actualBody);
+        }
+    }
 }

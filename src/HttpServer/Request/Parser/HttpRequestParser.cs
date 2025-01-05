@@ -1,17 +1,39 @@
 using System.Collections.Specialized;
+using HttpServer.Routing;
 
 namespace HttpServer.Request.Parser;
 
 public static class HttpRequestParser
 {
-    public static async Task<HttpRequest> Parse(Stream stream)
+    public static async Task<Result<HttpRequest, string>> Parse(Stream stream)
     {
         using var reader = new HttpRequestStreamReader(stream);
         var requestLine = await reader.ReadLineAsync();
+        
+        if (string.IsNullOrWhiteSpace(requestLine))
+        {
+            return Result.Error<HttpRequest, string>("Unable to parse request line.");
+        }
+        
         var tokenizer = new StringTokenizer(requestLine, [' ']);
         var method = ParseMethod(tokenizer[0]);
         var path = tokenizer[1].ToString();
         var httpVersion = tokenizer[2].ToString();
+        
+        if (method == HttpRequestMethod.UNKNOWN)
+        {
+            return Result.Error<HttpRequest, string>("Unknown HTTP method.");
+        }
+
+        if (string.IsNullOrWhiteSpace(path))
+        {
+            return Result.Error<HttpRequest, string>("Invalid path.");
+        }
+
+        if (string.IsNullOrWhiteSpace(httpVersion))
+        {
+            return Result.Error<HttpRequest, string>("Invalid HTTP version.");
+        }
         
         var headers = new Dictionary<string, string>();
         string? line;
@@ -39,6 +61,7 @@ public static class HttpRequestParser
         };
     }
     
+    
     public static (string Path, NameValueCollection Parameters) ParsePath(ReadOnlySpan<char> path)
     {
         var parameters = new NameValueCollection();
@@ -51,6 +74,10 @@ public static class HttpRequestParser
         var pathString = path[..queryIndex].ToString();
         var query = path[(queryIndex + 1)..];
         
+        if (query.Length == 0 || query[0] == '\0')
+        {
+            Console.WriteLine("Error!");
+        }
         var queryTokenizer = new StringTokenizer(query, ['&']);
         foreach (var range in queryTokenizer.Tokens)
         {

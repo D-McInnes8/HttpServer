@@ -119,8 +119,13 @@ public class HttpWebServer : IHttpWebServer
     private string HandleRequest(Stream stream)
     {
         using var scope = Services.CreateScope();
-        var httpRequest = HttpRequestParser.Parse(stream).GetAwaiter().GetResult();
-        
+        var result = HttpRequestParser.Parse(stream).GetAwaiter().GetResult();
+        if (result.IsError)
+        {
+            return HttpResponseWriter.WriteResponse(HttpResponse.BadRequest(result.Error));
+        }
+
+        var httpRequest = result.Value;
         _logger.LogInformation("Received request: {Method} {Path}", httpRequest.Method, httpRequest.Path);
         var httpResponse = _requestHandler.HandleRequest(httpRequest, scope.ServiceProvider);
         

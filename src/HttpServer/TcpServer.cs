@@ -100,14 +100,9 @@ internal class TcpServer
             return;
         }
         
-        using var stream = client.GetStream();
-        
-        /*var buffer = new byte[2048];
-        var bytesRead = stream.Read(buffer, 0, buffer.Length);
-        var message = Encoding.UTF8.GetString(buffer, 0, bytesRead);*/
-
         try
         {
+            using var stream = client.GetStream();
             var response = _requestHandler(stream);
             stream.Write(Encoding.UTF8.GetBytes(response));
             client.Close();

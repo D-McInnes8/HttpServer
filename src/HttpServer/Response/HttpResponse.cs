@@ -43,6 +43,7 @@ public class HttpResponse
     
     public static HttpResponse NotFound() => new HttpResponse(HttpResponseStatusCode.NotFound);
     public static HttpResponse BadRequest() => new HttpResponse(HttpResponseStatusCode.BadRequest);
+    public static HttpResponse BadRequest(string body) => new HttpResponse(HttpResponseStatusCode.BadRequest, new HttpBody("text/plain", body));
     public static HttpResponse Unauthorized() => new HttpResponse(HttpResponseStatusCode.Unauthorized);
     public static HttpResponse Forbidden() => new HttpResponse(HttpResponseStatusCode.Forbidden);
     public static HttpResponse InternalServerError() => new HttpResponse(HttpResponseStatusCode.InternalServerError);
