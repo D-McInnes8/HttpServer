@@ -70,6 +70,7 @@ public class HttpRequestStreamReader : IDisposable
                 var segment = _encoding.GetString(bufferSpan[..newLineIndex]);
                 _bufferPosition += newLineIndex + 1;
                 
+                // TODO: Handle CRLF line endings if the character spans multiple buffers.
                 if (newLineIndex + 1 < bufferSpan.Length
                     && bufferSpan[newLineIndex] == '\r' && bufferSpan[newLineIndex + 1] == '\n')
                 {

@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using HttpServer.Logging;
 using HttpServer.Pipeline.Registry;
 using HttpServer.Routing;
 using Microsoft.Extensions.DependencyInjection;
@@ -58,6 +59,12 @@ public class HttpWebWebServerBuilder : IHttpWebServerBuilder
         {
             builder.AddConsole();
             builder.SetMinimumLevel(LogLevel.Debug);
+            builder.AddFileLogger(options =>
+            {
+                options.FilePath = "http-server.log";
+                options.FlushImmediately = true;
+                options.AppendToExistingFile = false;
+            });
         });
         Services.AddSingleton<IPipelineRegistry, DefaultPipelineRegistry>()
                 .AddSingleton<IReadOnlyPipelineRegistry>(provider => provider.GetRequiredService<IPipelineRegistry>())

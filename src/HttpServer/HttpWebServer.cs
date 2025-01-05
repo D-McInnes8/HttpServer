@@ -122,7 +122,8 @@ public class HttpWebServer : IHttpWebServer
         var result = HttpRequestParser.Parse(stream).GetAwaiter().GetResult();
         if (result.IsError)
         {
-            return HttpResponseWriter.WriteResponse(HttpResponse.BadRequest(result.Error));
+            _logger.LogWarning("Failed to parse request: {Error}", result.Error);
+            return HttpResponseWriter.WriteResponse(HttpResponse.BadRequest());
         }
 
         var httpRequest = result.Value;

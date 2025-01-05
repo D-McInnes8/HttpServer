@@ -104,7 +104,13 @@ internal class TcpServer
         {
             using var stream = client.GetStream();
             var response = _requestHandler(stream);
-            stream.Write(Encoding.UTF8.GetBytes(response));
+            
+            var responseBytes = Encoding.UTF8.GetBytes(response);
+            Debug.Assert(!string.IsNullOrWhiteSpace(response));
+            Debug.Assert(responseBytes.Length > 0);
+
+            _logger.LogInformation("Sending response: Writing {ResponseBytes} bytes to buffer", responseBytes.Length);
+            stream.Write(responseBytes);
             client.Close();
         }
         catch (Exception ex)
