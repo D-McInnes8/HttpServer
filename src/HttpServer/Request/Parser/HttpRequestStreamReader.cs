@@ -87,20 +87,29 @@ public class HttpRequestStreamReader : IDisposable
     /// <returns>The remaining request content as a string.</returns>
     public Task<string> ReadToEndAsync(int contentLength)
     {
-        Span<char> buffer = stackalloc char[contentLength];
-        int charBufferPosition = 0;
+        var buffer = ArrayPool<char>.Shared.Rent(contentLength);
+        var bufferSpan = buffer.AsSpan().Slice(0, contentLength);
+        var bufferPos = 0;
 
-        do
+        try
         {
-            var charBuffer = buffer.Slice(charBufferPosition, _bufferLength - _bufferPosition);
-            var bufferBuffer = _buffer.AsSpan(_bufferPosition, (_bufferLength - _bufferPosition));
-            var charBufferLength = _encoding.GetChars(bufferBuffer, charBuffer);
-            
-            Debug.Assert(charBufferLength == _bufferLength - _bufferPosition);
-            charBufferPosition += charBufferLength;
-        } while (FillBuffer() > 0);
-        
-        return Task.FromResult(new string(buffer));
+            do
+            {
+                var numBytesToRead = _bufferLength - _bufferPosition;
+                var writeBuffer = bufferSpan.Slice(bufferPos, numBytesToRead);
+                var readBuffer = _buffer.AsSpan(_bufferPosition, numBytesToRead);
+                var actualBytesRead = _encoding.GetChars(readBuffer, writeBuffer);
+
+                Debug.Assert(actualBytesRead == numBytesToRead);
+                bufferPos += actualBytesRead;
+            } while (FillBuffer() > 0);
+
+            return Task.FromResult(new string(bufferSpan));
+        }
+        finally
+        {
+            ArrayPool<char>.Shared.Return(buffer);
+        }
     }
 
     /// <summary>
