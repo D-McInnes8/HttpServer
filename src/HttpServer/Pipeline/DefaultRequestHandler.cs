@@ -12,7 +12,7 @@ public class DefaultRequestHandler : IRequestHandler
     {
         if (ctx.Route is not null)
         {
-            return Task.FromResult(ctx.Route.Handler(ctx.Request));
+            return Task.FromResult(ctx.Route.Handler(ctx));
         }
         
         return Task.FromResult(HttpResponse.NotFound());

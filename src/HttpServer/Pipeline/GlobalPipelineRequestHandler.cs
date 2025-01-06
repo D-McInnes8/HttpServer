@@ -57,7 +57,7 @@ public class GlobalPipelineRequestHandler : IRequestHandler
             // Route has no pipeline, execute the handler directly.
             if (ctx.Route?.Handler is not null)
             {
-                return ctx.Route.Handler(ctx.Request);
+                return ctx.Route.Handler(ctx);
             }
             
             Debug.Fail("Route matched but has no handler or pipeline.");

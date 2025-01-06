@@ -63,11 +63,12 @@ public interface IHttpWebServer
     public IHttpWebServer AddPipeline(Action<RequestPipelineBuilderOptions> configure);
     public IHttpWebServer AddPipeline(string pipelineName, Action<RequestPipelineBuilderOptions> configure);
     
-    public IHttpWebServer MapRoute(HttpRequestMethod method, string path, Func<HttpRequest, HttpResponse> handler);
-    public IHttpWebServer MapRoute(HttpRequestMethod method, string path, string pipelineName, Func<HttpRequest, HttpResponse> handler);
-    public IHttpWebServer MapRoute(HttpRequestMethod method, string path, string pipelineName, string endpointName, Func<HttpRequest, HttpResponse> handler);
-    public IHttpWebServer MapGet(string path, Func<HttpRequest, HttpResponse> handler);
-    public IHttpWebServer MapGet(string path, string pipelineName, Func<HttpRequest, HttpResponse> handler);
+    public IHttpWebServer MapRoute(HttpRequestMethod method, string path, RouteMetadata metadata);
+    public IHttpWebServer MapRoute(HttpRequestMethod method, string path, Func<RequestPipelineContext, HttpResponse> handler);
+    public IHttpWebServer MapRoute(HttpRequestMethod method, string path, string pipelineName, Func<RequestPipelineContext, HttpResponse> handler);
+    public IHttpWebServer MapRoute(HttpRequestMethod method, string path, string pipelineName, string endpointName, Func<RequestPipelineContext, HttpResponse> handler);
+    public IHttpWebServer MapGet(string path, Func<RequestPipelineContext, HttpResponse> handler);
+    public IHttpWebServer MapGet(string path, string pipelineName, Func<RequestPipelineContext, HttpResponse> handler);
 }
 
 /// <summary>
@@ -175,8 +176,14 @@ public class HttpWebServer : IHttpWebServer
         _pipelineRegistry.AddPipeline(pipelineOptions.Name, pipelineOptions);
         return this;
     }
+    
+    public IHttpWebServer MapRoute(HttpRequestMethod method, string path, RouteMetadata metadata)
+    {
+        _router.AddRoute(new Route(path, method), metadata);
+        return this;
+    }
 
-    public IHttpWebServer MapRoute(HttpRequestMethod method, string path, Func<HttpRequest, HttpResponse> handler)
+    public IHttpWebServer MapRoute(HttpRequestMethod method, string path, Func<RequestPipelineContext, HttpResponse> handler)
     {
         var metadata = new RouteMetadata
         {
@@ -186,7 +193,7 @@ public class HttpWebServer : IHttpWebServer
         return this;
     }
 
-    public IHttpWebServer MapRoute(HttpRequestMethod method, string path, string pipelineName, Func<HttpRequest, HttpResponse> handler)
+    public IHttpWebServer MapRoute(HttpRequestMethod method, string path, string pipelineName, Func<RequestPipelineContext, HttpResponse> handler)
     {
         var metadata = new RouteMetadata
         {
@@ -197,17 +204,17 @@ public class HttpWebServer : IHttpWebServer
         return this;
     }
 
-    public IHttpWebServer MapRoute(HttpRequestMethod method, string path, string pipelineName, string endpointName, Func<HttpRequest, HttpResponse> handler)
+    public IHttpWebServer MapRoute(HttpRequestMethod method, string path, string pipelineName, string endpointName, Func<RequestPipelineContext, HttpResponse> handler)
     {
         throw new NotImplementedException();
     }
 
-    public IHttpWebServer MapGet(string path, Func<HttpRequest, HttpResponse> handler)
+    public IHttpWebServer MapGet(string path, Func<RequestPipelineContext, HttpResponse> handler)
     {
         return MapRoute(HttpRequestMethod.GET, path, handler);
     }
 
-    public IHttpWebServer MapGet(string path, string pipelineName, Func<HttpRequest, HttpResponse> handler)
+    public IHttpWebServer MapGet(string path, string pipelineName, Func<RequestPipelineContext, HttpResponse> handler)
     {
         return MapRoute(HttpRequestMethod.GET, path, pipelineName, handler);
     }

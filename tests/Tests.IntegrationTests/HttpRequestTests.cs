@@ -105,9 +105,9 @@ public class HttpRequestTests : IAsyncLifetime
         // Arrange
         HttpRequest? actual = null;
         const int numberOfHeaders = 100;
-        _server.MapRoute(HttpRequestMethod.POST, "/test", request =>
+        _server.MapRoute(HttpRequestMethod.POST, "/test", ctx =>
         {
-            actual = request;
+            actual = ctx.Request;
             return HttpResponse.Ok();
         });
         

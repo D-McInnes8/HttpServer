@@ -30,9 +30,9 @@ public class HttpRequestMetadataTests : IAsyncLifetime
     {
         // Arrange
         HttpRequest? actual = null;
-        _server.MapGet("/test", request =>
+        _server.MapGet("/test", ctx =>
         {
-            actual = request;
+            actual = ctx.Request;
             return HttpResponse.Ok();
         });
         
@@ -50,9 +50,9 @@ public class HttpRequestMetadataTests : IAsyncLifetime
     {
         // Arrange
         HttpRequest? actual = null;
-        _server.MapGet("/test", request =>
+        _server.MapGet("/test", ctx =>
         {
-            actual = request;
+            actual = ctx.Request;
             return HttpResponse.Ok();
         });
         
@@ -86,9 +86,9 @@ public class HttpRequestMetadataTests : IAsyncLifetime
     {
         // Arrange & Assert
         HttpRequest? actual = null;
-        _server.MapGet("/test", request =>
+        _server.MapGet("/test", ctx =>
         {
-            actual = request;
+            actual = ctx.Request;
             return HttpResponse.Ok();
         });
         
@@ -107,9 +107,9 @@ public class HttpRequestMetadataTests : IAsyncLifetime
     {
         // Arrange & Assert
         HttpRequest? actual = null;
-        _server.MapGet("/test", request =>
+        _server.MapGet("/test", ctx =>
         {
-            actual = request;
+            actual = ctx.Request;
             return HttpResponse.Ok();
         });
         
