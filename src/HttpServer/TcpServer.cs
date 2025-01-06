@@ -109,7 +109,7 @@ internal class TcpServer
             Debug.Assert(!string.IsNullOrWhiteSpace(response));
             Debug.Assert(responseBytes.Length > 0);
 
-            _logger.LogInformation("Sending response: Writing {ResponseBytes} bytes to buffer", responseBytes.Length);
+            _logger.LogDebug("Sending response: Writing {ResponseBytes} bytes to buffer", responseBytes.Length);
             stream.Write(responseBytes);
             client.Close();
         }

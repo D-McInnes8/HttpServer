@@ -6,10 +6,11 @@ namespace HttpServer.Logging;
 /// <summary>
 /// Represents a provider for creating <see cref="FileLogger"/> instances.
 /// </summary>
-internal class FileLoggerProvider : ILoggerProvider
+internal class FileLoggerProvider : ILoggerProvider, ISupportExternalScope
 {
     private readonly IOptionsMonitor<FileLoggerOptions> _options;
     private readonly FileLoggerWriter _logBuffer;
+    private IExternalScopeProvider? _scopeProvider = null;
 
     /// <summary>
     /// Creates a new <see cref="FileLoggerProvider"/> with the specified options.
@@ -31,6 +32,11 @@ internal class FileLoggerProvider : ILoggerProvider
     /// <inheritdoc />
     public ILogger CreateLogger(string categoryName)
     {
-        return new FileLogger(categoryName, _logBuffer);
+        return new FileLogger(categoryName, _logBuffer, _scopeProvider);
+    }
+
+    public void SetScopeProvider(IExternalScopeProvider scopeProvider)
+    {
+        _scopeProvider = scopeProvider;
     }
 }

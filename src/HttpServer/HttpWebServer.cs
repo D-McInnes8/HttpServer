@@ -127,11 +127,19 @@ public class HttpWebServer : IHttpWebServer
         }
 
         var httpRequest = result.Value;
-        _logger.LogInformation("Received request: {Method} {Path}", httpRequest.Method, httpRequest.Path);
-        var httpResponse = _requestHandler.HandleRequest(httpRequest, scope.ServiceProvider);
-        
-        _logger.LogInformation("Sending response: {StatusCode}", httpResponse.StatusCode);
-        return HttpResponseWriter.WriteResponse(httpResponse);
+        var ctx = new RequestPipelineContext(httpRequest, scope.ServiceProvider, _pipelineRegistry.GlobalPipeline.Options);
+        var logState = new List<KeyValuePair<string, object?>>
+        {
+            new("RequestId", ctx.RequestId),
+        };
+        using (_logger.BeginScope(logState))
+        {
+            _logger.LogInformation("Received request: {Method} {Path}", httpRequest.Method, httpRequest.Path);
+            var httpResponse = _pipelineRegistry.GlobalPipeline.ExecuteAsync(ctx).GetAwaiter().GetResult();
+            
+            _logger.LogInformation("Sending response: {StatusCode}", httpResponse.StatusCode);
+            return HttpResponseWriter.WriteResponse(httpResponse);
+        }
     }
     
     /// <summary>

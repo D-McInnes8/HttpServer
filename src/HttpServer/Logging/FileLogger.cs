@@ -9,16 +9,19 @@ internal class FileLogger : ILogger
 {
     private readonly string _categoryName;
     private readonly FileLoggerWriter _logBuffer;
+    private readonly IExternalScopeProvider? _scopeProvider;
 
     /// <summary>
     /// Creates a new <see cref="FileLogger"/> with the specified category name and log buffer.
     /// </summary>
     /// <param name="categoryName"></param>
     /// <param name="logBuffer"></param>
-    public FileLogger(string categoryName, FileLoggerWriter logBuffer)
+    /// <param name="scopeProvider"></param>
+    public FileLogger(string categoryName, FileLoggerWriter logBuffer, IExternalScopeProvider? scopeProvider)
     {
         _categoryName = categoryName;
         _logBuffer = logBuffer;
+        _scopeProvider = scopeProvider;
     }
 
     /// <inheritdoc />
@@ -28,9 +31,26 @@ internal class FileLogger : ILogger
         {
             return;
         }
+
+        string? requestId = null;
+        _scopeProvider?.ForEachScope((scope, scopeState) =>
+        {
+            if (scope is IEnumerable<KeyValuePair<string, object>> stateDictionary)
+            {
+                foreach (var (key, value) in stateDictionary)
+                {
+                    if (key == "RequestId")
+                    {
+                        requestId = value as string;
+                    }
+                }
+            }
+        }, state);
         
         var message = formatter(state, exception);
-        _logBuffer.Enqueue($"[{logLevel}] [{_categoryName}] {message}");
+        _logBuffer.Enqueue(requestId is not null
+            ? $"[{logLevel}] [{_categoryName}] [{requestId}] {message}"
+            : $"[{logLevel}] [{_categoryName}] {message}");
     }
 
     /// <inheritdoc />
@@ -40,8 +60,5 @@ internal class FileLogger : ILogger
     }
 
     /// <inheritdoc />
-    public IDisposable? BeginScope<TState>(TState state) where TState : notnull
-    {
-        return null;
-    }
+    public IDisposable? BeginScope<TState>(TState state) where TState : notnull => _scopeProvider?.Push(state);
 }

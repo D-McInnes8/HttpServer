@@ -1,4 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
+using System.Security.Cryptography;
+using System.Text;
 using HttpServer.Request;
 using HttpServer.Routing;
 
@@ -40,6 +42,11 @@ public class RequestPipelineContext
     /// global request pipeline has executed the router and matched a route.
     /// </summary>
     public RouteMetadata? Route { get; internal set; }
+    
+    /// <summary>
+    /// The unique identifier for this request.
+    /// </summary>
+    public string RequestId { get; init; }
 
     /// <summary>
     /// Construct a new <see cref="RequestPipelineContext"/> for the provided <see cref="HttpRequest"/>.
@@ -58,6 +65,7 @@ public class RequestPipelineContext
         Request = request;
         Services = serviceProvider;
         Options = options;
+        RequestId = Guid.CreateVersion7().ToString("N");
     }
     
     /// <summary>
