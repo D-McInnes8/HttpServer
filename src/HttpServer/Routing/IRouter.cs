@@ -1,19 +1,4 @@
-using HttpServer.Pipeline;
-
 namespace HttpServer.Routing;
-
-/// <summary>
-/// Used to determine the route based on the request.
-/// </summary>
-public interface IRouter
-{
-    /// <summary>
-    /// Determines the route based on the request.
-    /// </summary>
-    /// <param name="ctx"></param>
-    /// <returns>Returns a <see cref="RouterResult"/> based on the request.</returns>
-    Task<RouterResult> RouteAsync(RequestPipelineContext ctx);
-}
 
 /// <summary>
 /// A result indicating the outcome of a router.

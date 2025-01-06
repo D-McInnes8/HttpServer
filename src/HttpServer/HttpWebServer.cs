@@ -67,8 +67,8 @@ public interface IHttpWebServer
     public IHttpWebServer MapRoute(HttpRequestMethod method, string path, Func<RequestPipelineContext, HttpResponse> handler);
     public IHttpWebServer MapRoute(HttpRequestMethod method, string path, string pipelineName, Func<RequestPipelineContext, HttpResponse> handler);
     public IHttpWebServer MapRoute(HttpRequestMethod method, string path, string pipelineName, string endpointName, Func<RequestPipelineContext, HttpResponse> handler);
-    public IHttpWebServer MapGet(string path, Func<RequestPipelineContext, HttpResponse> handler);
-    public IHttpWebServer MapGet(string path, string pipelineName, Func<RequestPipelineContext, HttpResponse> handler);
+    //public IHttpWebServer MapGet(string path, Func<RequestPipelineContext, HttpResponse> handler);
+    //public IHttpWebServer MapGet(string path, string pipelineName, Func<RequestPipelineContext, HttpResponse> handler);
 }
 
 /// <summary>
@@ -209,7 +209,7 @@ public class HttpWebServer : IHttpWebServer
         throw new NotImplementedException();
     }
 
-    public IHttpWebServer MapGet(string path, Func<RequestPipelineContext, HttpResponse> handler)
+    /*public IHttpWebServer MapGet(string path, Func<RequestPipelineContext, HttpResponse> handler)
     {
         return MapRoute(HttpRequestMethod.GET, path, handler);
     }
@@ -217,7 +217,7 @@ public class HttpWebServer : IHttpWebServer
     public IHttpWebServer MapGet(string path, string pipelineName, Func<RequestPipelineContext, HttpResponse> handler)
     {
         return MapRoute(HttpRequestMethod.GET, path, pipelineName, handler);
-    }
+    }*/
 
     public IHttpWebServer AddPipeline<TOptions>(string pipelineName, Action<TOptions> configure) where TOptions : RequestPipelineBuilderOptions
     {

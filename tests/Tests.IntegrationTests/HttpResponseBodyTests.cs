@@ -1,5 +1,6 @@
 using HttpServer;
 using HttpServer.Response;
+using HttpServer.Routing;
 
 namespace Tests.IntegrationTests;
 

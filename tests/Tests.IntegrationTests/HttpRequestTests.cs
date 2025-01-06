@@ -2,6 +2,7 @@ using System.Net;
 using HttpServer;
 using HttpServer.Request;
 using HttpServer.Response;
+using HttpServer.Routing;
 using Tests.IntegrationTests.TestExtensions;
 
 namespace Tests.IntegrationTests;

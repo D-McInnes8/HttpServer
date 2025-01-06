@@ -52,40 +52,4 @@ public class HttpPipelineTests : IAsyncLifetime
         // Assert
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
     }
-    
-    [Fact]
-    public async Task HttpPipeline_CustomPipeline_ShouldReturnOk()
-    {
-        // Arrange
-        _server.AddPipeline(options =>
-        {
-            options.UseRouter<TestRouter>();
-            options.UseRequestHandler<TestRequestHandler>();
-        });
-        
-        // Act
-        var message = new HttpRequestMessage(HttpMethod.Get, "/test");
-        using var response = await _httpClient.SendAsync(message);
-        
-        // Assert
-        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-    }
-    
-    [Fact]
-    public async Task HttpPipeline_CustomPipeline_ShouldReturnNotFound()
-    {
-        // Arrange
-        _server.AddPipeline(options =>
-        {
-            options.UseRouter<TestRouter>();
-            options.UseRequestHandler<TestRequestHandler>();
-        });
-        
-        // Act
-        var message = new HttpRequestMessage(HttpMethod.Get, "/");
-        using var response = await _httpClient.SendAsync(message);
-        
-        // Assert
-        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
-    }
 }

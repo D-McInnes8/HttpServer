@@ -21,7 +21,6 @@ internal class DefaultPipelineRegistry : IPipelineRegistry
         {
             Name = "Global",
         };
-        globalPipelineOptions.UseRouter<DefaultRouter>();
         globalPipelineOptions.UseRequestHandler<GlobalPipelineRequestHandler>();
         globalPipelineOptions.AddPlugin<GlobalErrorHandlerPlugin>();
         GlobalPipeline = new RequestPipeline(globalPipelineOptions);

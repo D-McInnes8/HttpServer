@@ -29,11 +29,6 @@ public class RequestPipelineBuilderOptions
     public IReadOnlyCollection<Type> Plugins => _plugins;
 
     /// <summary>
-    /// The router that will be used to route requests to the appropriate pipeline.
-    /// </summary>
-    public Type Router { get; private set; } = typeof(DefaultRouter);
-
-    /// <summary>
     /// The request handler that will be used to handle requests that are routed to this pipeline.
     /// </summary>
     public Type RequestHandler { get; private set; } = typeof(DefaultRequestHandler);
@@ -52,15 +47,6 @@ public class RequestPipelineBuilderOptions
     /// The path prefix that will be used to route requests to this pipeline.
     /// </summary>
     public string? PathPrefix { get; set; }
-    
-    /// <summary>
-    /// Sets the router that will be used to route requests to the appropriate pipeline.
-    /// </summary>
-    /// <typeparam name="TRouter"></typeparam>
-    public void UseRouter<TRouter>() where TRouter : IRouter
-    {
-        Router = typeof(TRouter);
-    }
     
     /// <summary>
     /// Sets the request handler that will be used to handle requests that are routed to this pipeline.

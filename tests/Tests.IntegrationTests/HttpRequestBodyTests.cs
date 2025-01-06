@@ -26,9 +26,9 @@ public class HttpRequestBodyTests : IAsyncLifetime
     {
         // Arrange
         HttpRequest? actual = null;
-        _server.MapRoute(HttpRequestMethod.POST, "/test", request =>
+        _server.MapRoute(HttpRequestMethod.POST, "/test", ctx =>
         {
-            actual = request;
+            actual = ctx.Request;
             return HttpResponse.Ok();
         });
         
@@ -55,9 +55,9 @@ public class HttpRequestBodyTests : IAsyncLifetime
         // Arrange
         HttpRequest? actual = null;
         var expected = new string('A', 500_000);
-        _server.MapRoute(HttpRequestMethod.POST, "/test", request =>
+        _server.MapRoute(HttpRequestMethod.POST, "/test", ctx =>
         {
-            actual = request;
+            actual = ctx.Request;
             return HttpResponse.Ok();
         });
         
@@ -85,20 +85,22 @@ public class HttpRequestBodyTests : IAsyncLifetime
     public async Task HttpRequestBody_ConcurrentRequests_ShouldProcessAll(int numberOfRequests, int bodySize)
     {
         // Arrange
+        using var httpClient = new HttpClient();
+        httpClient.BaseAddress =  new Uri($"http://localhost:{_server.Port}");
         var chars = Enumerable.Range(0, 26).Select(i => Convert.ToChar(i + 65)).ToArray();
-        _server.MapRoute(HttpRequestMethod.POST, "/test", request => HttpResponse.Ok(request.Body ?? string.Empty));
+        _server.MapRoute(HttpRequestMethod.POST, "/test", ctx => HttpResponse.Ok(ctx.Request.Body ?? string.Empty));
         
         // Act
         var tasks = new List<Task<HttpResponseMessage>>();
         for (int i = 0; i < numberOfRequests; i++)
         {
-            var client = new HttpClient();
-            client.BaseAddress =  new Uri($"http://localhost:{_server.Port}");
+            //var client = new HttpClient();
+            //client.BaseAddress =  new Uri($"http://localhost:{_server.Port}");
             var message = new HttpRequestMessage(HttpMethod.Post, "/test")
             {
                 Content = new StringContent(new string(chars[i % chars.Length], bodySize))
             };
-            tasks.Add(client.SendAsync(message));
+            tasks.Add(httpClient.SendAsync(message));
         }
         var actual = await Task.WhenAll(tasks);
         
