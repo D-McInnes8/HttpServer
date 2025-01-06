@@ -44,6 +44,12 @@ public class RequestPipelineContext
     public RouteMetadata? Route { get; internal set; }
     
     /// <summary>
+    /// The route parameters associated with this context. This property will only be populated after the
+    /// global request pipeline has executed the router and matched a route.
+    /// </summary>
+    public RouteParameters RouteParameters { get; internal set; }
+    
+    /// <summary>
     /// The unique identifier for this request.
     /// </summary>
     public string RequestId { get; init; }

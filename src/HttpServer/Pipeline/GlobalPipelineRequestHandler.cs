@@ -32,6 +32,7 @@ public class GlobalPipelineRequestHandler : IRequestHandler
         if (routingResult.IsMatch)
         {
             ctx.Route = routingResult.Value;
+            ctx.RouteParameters = new RouteParameters(routingResult.Parameters);
             
             // Route is configured to use a request pipeline.
             if (routingResult.Value?.Pipeline is not null
