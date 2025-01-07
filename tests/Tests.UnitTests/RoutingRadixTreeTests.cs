@@ -275,7 +275,7 @@ public class RoutingRadixTreeTests
         var actual = tree.Match(new Route("/helloworld", HttpRequestMethod.GET));
         
         // Assert
-        Assert.False(actual.IsMatch);
+        Assert.Equal(RouterResult.NotFound, actual.Result);
     }
     
     [Fact]
@@ -292,7 +292,7 @@ public class RoutingRadixTreeTests
         // Assert
         Assert.Multiple(() =>
         {
-            Assert.True(actual.IsMatch);
+            Assert.Equal(RouterResult.Success, actual.Result);
             Assert.Equal(1, actual.Value);
         });
     }
@@ -354,7 +354,7 @@ public class RoutingRadixTreeTests
         var actual = tree.Match(path);
         
         // Assert
-        Assert.False(actual.IsMatch);
+        Assert.Equal(RouterResult.NotFound, actual.Result);
     }
     
     [Fact]
@@ -371,7 +371,7 @@ public class RoutingRadixTreeTests
         var actual = tree.Match(path2);
         
         // Assert
-        Assert.False(actual.IsMatch);
+        Assert.Equal(RouterResult.NotFound, actual.Result);
     }
     
     [Fact]
@@ -406,7 +406,7 @@ public class RoutingRadixTreeTests
         // Assert
         Assert.Multiple(() =>
         {
-            Assert.True(actual.IsMatch);
+            Assert.Equal(RouterResult.Success, actual.Result);
             Assert.Equal("world", actual.Parameters["name"]);
         });
     }
@@ -425,7 +425,7 @@ public class RoutingRadixTreeTests
         // Assert
         Assert.Multiple(() =>
         {
-            Assert.True(actual.IsMatch);
+            Assert.Equal(RouterResult.Success, actual.Result);
             Assert.Equal("world", actual.Parameters["name"]);
             Assert.Equal("42", actual.Parameters["age"]);
         });
@@ -443,7 +443,7 @@ public class RoutingRadixTreeTests
         var actual = tree.Match(new Route("/hello/world/42", HttpRequestMethod.GET));
         
         // Assert
-        Assert.False(actual.IsMatch);
+        Assert.Equal(RouterResult.NotFound, actual.Result);
     }
     
     [Fact]
@@ -460,7 +460,7 @@ public class RoutingRadixTreeTests
         // Assert
         Assert.Multiple(() =>
         {
-            Assert.True(actual.IsMatch);
+            Assert.Equal(RouterResult.Success, actual.Result);
             Assert.Equal("world", actual.Parameters["name"]);
         });
     }
@@ -482,7 +482,7 @@ public class RoutingRadixTreeTests
         // Assert
         Assert.Multiple(() =>
         {
-            Assert.True(actual.IsMatch);
+            Assert.Equal(RouterResult.Success, actual.Result);
             Assert.Empty(actual.Parameters);
             Assert.Equal(2, actual.Value);
         });
@@ -502,7 +502,7 @@ public class RoutingRadixTreeTests
         // Assert
         Assert.Multiple(() =>
         {
-            Assert.True(actual.IsMatch);
+            Assert.Equal(RouterResult.Success, actual.Result);
             Assert.Equal("world/42", actual.Parameters["*"]);
         });
     }
@@ -524,7 +524,7 @@ public class RoutingRadixTreeTests
         // Assert
         Assert.Multiple(() =>
         {
-            Assert.True(actual.IsMatch);
+            Assert.Equal(RouterResult.Success, actual.Result);
             Assert.Empty(actual.Parameters);
             Assert.Equal(2, actual.Value);
         });
@@ -544,7 +544,7 @@ public class RoutingRadixTreeTests
         // Assert
         Assert.Multiple(() =>
         {
-            Assert.True(actual.IsMatch);
+            Assert.Equal(RouterResult.Success, actual.Result);
             Assert.Equal("world", actual.Parameters["name"]);
             Assert.Equal("42", actual.Parameters["*"]);
         });
@@ -564,7 +564,7 @@ public class RoutingRadixTreeTests
         // Assert
         Assert.Multiple(() =>
         {
-            Assert.True(actual.IsMatch);
+            Assert.Equal(RouterResult.Success, actual.Result);
             Assert.Equal(1, actual.Value);
         });
     }
@@ -583,7 +583,7 @@ public class RoutingRadixTreeTests
         // Assert
         Assert.Multiple(() =>
         {
-            Assert.True(actual.IsMatch);
+            Assert.Equal(RouterResult.Success, actual.Result);
             Assert.Equal("world", actual.Parameters["name"]);
             Assert.Equal(1, actual.Value);
         });
@@ -603,7 +603,7 @@ public class RoutingRadixTreeTests
         // Assert
         Assert.Multiple(() =>
         {
-            Assert.True(actual.IsMatch);
+            Assert.Equal(RouterResult.Success, actual.Result);
             Assert.Equal("world", actual.Parameters["*"]);
             Assert.Equal(1, actual.Value);
         });

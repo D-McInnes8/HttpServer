@@ -12,16 +12,19 @@ namespace HttpServer.Pipeline;
 public class GlobalPipelineRequestHandler : IRequestHandler
 {
     private readonly IReadOnlyPipelineRegistry _pipelineRegistry;
-    private readonly IHttpRouter _router;
+    private readonly IRouter _router;
+    private readonly IHttpRouter _router2;
 
     /// <summary>
     /// Creates a new <see cref="GlobalPipelineRequestHandler"/> with the specified pipeline registry.
     /// </summary>
     /// <param name="pipelineRegistry">The <see cref="IReadOnlyPipelineRegistry"/>.</param>
-    /// <param name="router">The <see cref="IHttpRouter"/> used to route requests to a specific endpoint.</param>
-    public GlobalPipelineRequestHandler(IReadOnlyPipelineRegistry pipelineRegistry, IHttpRouter router)
+    /// <param name="router2">The <see cref="IHttpRouter"/> used to route requests to a specific endpoint.</param>
+    /// <param name="router">The <see cref="IRouter"/> used to route requests to a specific endpoint.</param>
+    public GlobalPipelineRequestHandler(IReadOnlyPipelineRegistry pipelineRegistry, IHttpRouter router2, IRouter router)
     {
         _pipelineRegistry = pipelineRegistry;
+        _router2 = router2;
         _router = router;
     }
 
@@ -29,7 +32,7 @@ public class GlobalPipelineRequestHandler : IRequestHandler
     public async Task<HttpResponse> HandleAsync(RequestPipelineContext ctx)
     {
         var routingResult = _router.Match(new Route(ctx.Request.Route, ctx.Request.Method));
-        if (routingResult.IsMatch)
+        if (routingResult.Result == RouterResult.Success)
         {
             ctx.Route = routingResult.Value;
             ctx.RouteParameters = new RouteParameters(routingResult.Parameters);
@@ -62,6 +65,11 @@ public class GlobalPipelineRequestHandler : IRequestHandler
             }
             
             Debug.Fail("Route matched but has no handler or pipeline.");
+        }
+
+        if (routingResult.Result == RouterResult.MethodNotAllowed)
+        {
+            return HttpResponse.MethodNotAllowed();
         }
 
         return new HttpResponse(HttpResponseStatusCode.NotFound);

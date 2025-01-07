@@ -338,24 +338,25 @@ public struct RadixTreeNode<T>()
 
 public class RouteMatch<T>
 {
-    public bool IsMatch { get; set; }
+    public RouterResult Result { get; set; }
     public T? Value { get; set; }
     public Dictionary<string, string> Parameters { get; set; } = new();
 
-    private RouteMatch(bool isMatch, T? value)
+    private RouteMatch(RouterResult result, T? value)
     {
-        IsMatch = isMatch;
+        Result = result;
         Value = value;
     }
 
-    private RouteMatch(bool isMatch, T? value, Dictionary<string, string> parameters)
+    private RouteMatch(RouterResult result, T? value, Dictionary<string, string> parameters)
     {
-        IsMatch = isMatch;
+        Result = result;
         Value = value;
         Parameters = parameters;
     }
     
-    public static RouteMatch<T> NoMatch => new RouteMatch<T>(false, default);
-    public static RouteMatch<T> Match(T? value) => new RouteMatch<T>(true, value);
-    public static RouteMatch<T> Match(T? value, Dictionary<string, string> parameters) => new RouteMatch<T>(true, value, parameters);
+    public static RouteMatch<T> NoMatch => new RouteMatch<T>(RouterResult.NotFound, default);
+    public static RouteMatch<T> Match(T? value) => new RouteMatch<T>(RouterResult.Success, value);
+    public static RouteMatch<T> Match(T? value, Dictionary<string, string> parameters) => new RouteMatch<T>(RouterResult.Success, value, parameters);
+    public static RouteMatch<T> MethodNotAllowed => new RouteMatch<T>(RouterResult.MethodNotAllowed, default);
 }

@@ -83,7 +83,8 @@ public class HttpWebServer : IHttpWebServer
     private readonly TcpServer _tcpServer;
     private readonly RequestHandler _requestHandler;
     private readonly IPipelineRegistry _pipelineRegistry;
-    private readonly IHttpRouter _router;
+    //private readonly IHttpRouter _router;
+    private readonly IRouter _router;
     private readonly ILogger<HttpWebServer> _logger;
 
     /// <summary>
@@ -101,7 +102,8 @@ public class HttpWebServer : IHttpWebServer
         _tcpServer = new TcpServer(port, HandleRequest, loggerFactory.CreateLogger<TcpServer>());
         _pipelineRegistry = serviceProvider.GetRequiredService<IPipelineRegistry>();
         _requestHandler = new RequestHandler(_pipelineRegistry);
-        _router = serviceProvider.GetRequiredService<IHttpRouter>();
+        //_router = serviceProvider.GetRequiredService<IHttpRouter>();
+        _router = serviceProvider.GetRequiredService<IRouter>();
         _logger = loggerFactory.CreateLogger<HttpWebServer>();
     }
 

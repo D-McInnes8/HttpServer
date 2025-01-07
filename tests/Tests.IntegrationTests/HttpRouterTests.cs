@@ -1,4 +1,5 @@
 using System.Net;
+using System.Runtime.InteropServices;
 using HttpServer;
 using HttpServer.Request;
 using HttpServer.Response;
@@ -209,6 +210,47 @@ public class HttpRouterTests : IAsyncLifetime
     }
 
     [Theory]
+    [InlineData("david", "123")]
+    [InlineData("david123", "456")]
+    [InlineData("david-123", "789")]
+    [InlineData("david_123", "101112")]
+    [InlineData("david.123", "131415")]
+    [InlineData("david@123", "161718")]
+    [InlineData("david#123", "192021")]
+    [InlineData("david$123", "222324")]
+    [InlineData("david%123", "252627")]
+    [InlineData("david^123", "282930")]
+    [InlineData("david&123", "313233")]
+    [InlineData("david*123", "343536")]
+    [InlineData("david(123", "373839")]
+    [InlineData("david)123", "404142")]
+    [InlineData("david+123", "434445")]
+    [InlineData("david=123", "464748")]
+    public async Task HttpRouter_RouteWithMultipleParameters_ShouldParseBothParameters(string param1, string param2)
+    {
+        // Arrange
+        _server.MapGet("/api/v1/users/{userId}/posts/{postId}", context =>
+        {
+            var userId = context.RouteParameters["userId"];
+            var postId = context.RouteParameters["postId"];
+            return HttpResponse.Ok($"{userId}-{postId}");
+        });
+        
+        // Act
+        var message = new HttpRequestMessage(HttpMethod.Get, $"/api/v1/users/{param1}/posts/{param2}");;
+        var response = await _httpClient.SendAsync(message);
+        var actual = await response.Content.ReadAsStringAsync();
+        
+        // Assert
+        Assert.Multiple(() =>
+        {
+            Assert.True(response.IsSuccessStatusCode);
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            Assert.Equal($"{param1}-{param2}", actual);
+        });
+    }
+
+    [Theory]
     [InlineData("/")]
     [InlineData("/api")]
     [InlineData("/api/v1/users")]
@@ -299,5 +341,30 @@ public class HttpRouterTests : IAsyncLifetime
         
         // Assert
         Assert.Equal(expected[1..], actual);
+    }
+
+    [Theory]
+    [InlineData("images", "logo.png")]
+    [InlineData("images", "logo.png?version=1")]
+    [InlineData("images", "logo.png?version=1&size=large")]
+    [InlineData("images", "logo.png?version=1&size=large&format=png")]
+    public async Task HttpRouter_RouteWithParametersAndWildcard_ShouldParseBoth(string param, string wildcard)
+    {
+        // Arrange
+        _server.MapGet("/files/{folder}/{*}", context
+            => HttpResponse.Ok($"{context.RouteParameters["folder"]}-{context.RouteParameters.Wildcard}"));
+        
+        // Act
+        var message = new HttpRequestMessage(HttpMethod.Get, $"/files/{param}/{wildcard}");
+        var response = await _httpClient.SendAsync(message);
+        var actual = await response.Content.ReadAsStringAsync();
+        
+        // Assert
+        Assert.Multiple(() =>
+        {
+            Assert.True(response.IsSuccessStatusCode);
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            Assert.Equal("images-logo.png", actual);
+        });
     }
 }
