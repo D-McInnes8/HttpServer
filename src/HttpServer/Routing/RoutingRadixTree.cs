@@ -1,16 +1,6 @@
 using System.Text;
-using HttpServer.Request;
-using HttpServer.Response;
 
 namespace HttpServer.Routing;
-
-public interface IHttpRouter : IRoutingTree<RouteMetadata>
-{
-}
-
-public class HttpRouter : RoutingRadixTree<RouteMetadata>, IHttpRouter
-{
-}
 
 public interface IRoutingTree<T>
 {
@@ -272,13 +262,6 @@ public class RoutingRadixTree<T> : IRoutingTree<T>
                 currentNode = ref child;
                 i = -1;
             }
-            
-            /*if (commonPrefix < child.Prefix.Length
-                && commonPrefix < path.Length)
-            {
-                
-                return RouteMatch<T>.NoMatch;
-            }*/
         }
 
         return RouteMatch<T>.NoMatch;
