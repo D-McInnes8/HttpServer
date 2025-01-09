@@ -20,7 +20,7 @@ public static class StaticFileRequestHandler
     
     public static HttpResponse HandleDirectory(RequestPipelineContext ctx)
     {
-        var filePath = ctx.Route?.Metadata["PhysicalPath"] + ctx.Request.Path;
+        var filePath = ctx.Route?.Metadata["PhysicalPath"] + ctx.Request.Route;
         if (!File.Exists(filePath))
         {
             return HttpResponse.NotFound();

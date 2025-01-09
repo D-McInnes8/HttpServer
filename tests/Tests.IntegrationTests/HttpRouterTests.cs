@@ -10,7 +10,7 @@ namespace Tests.IntegrationTests;
 
 public class HttpRouterTests : IAsyncLifetime
 {
-    private readonly IHttpWebServer _server = HttpWebServer.CreateBuilder(9993).Build();
+    private readonly IHttpWebServer _server = HttpWebServer.CreateBuilder(9992).Build();
     private readonly HttpClient _httpClient = new HttpClient();
 
     public async Task InitializeAsync()

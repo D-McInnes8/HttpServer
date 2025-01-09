@@ -273,12 +273,12 @@ public class RoutingRadixTree<T> : IRoutingTree<T>
                 i = -1;
             }
             
-            if (commonPrefix < child.Prefix.Length
+            /*if (commonPrefix < child.Prefix.Length
                 && commonPrefix < path.Length)
             {
                 
                 return RouteMatch<T>.NoMatch;
-            }
+            }*/
         }
 
         return RouteMatch<T>.NoMatch;
