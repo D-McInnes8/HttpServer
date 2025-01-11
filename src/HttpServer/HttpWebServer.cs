@@ -66,9 +66,6 @@ public interface IHttpWebServer
     public IHttpWebServer MapRoute(HttpRequestMethod method, string path, RouteMetadata metadata);
     public IHttpWebServer MapRoute(HttpRequestMethod method, string path, Func<RequestPipelineContext, HttpResponse> handler);
     public IHttpWebServer MapRoute(HttpRequestMethod method, string path, string pipelineName, Func<RequestPipelineContext, HttpResponse> handler);
-    public IHttpWebServer MapRoute(HttpRequestMethod method, string path, string pipelineName, string endpointName, Func<RequestPipelineContext, HttpResponse> handler);
-    //public IHttpWebServer MapGet(string path, Func<RequestPipelineContext, HttpResponse> handler);
-    //public IHttpWebServer MapGet(string path, string pipelineName, Func<RequestPipelineContext, HttpResponse> handler);
 }
 
 /// <summary>
@@ -81,9 +78,7 @@ public class HttpWebServer : IHttpWebServer
     public Uri LocalEndpoint => _tcpServer.LocalEndpoint;
     
     private readonly TcpServer _tcpServer;
-    private readonly RequestHandler _requestHandler;
     private readonly IPipelineRegistry _pipelineRegistry;
-    //private readonly IHttpRouter _router;
     private readonly IRouter _router;
     private readonly ILogger<HttpWebServer> _logger;
 
@@ -101,8 +96,6 @@ public class HttpWebServer : IHttpWebServer
         ArgumentOutOfRangeException.ThrowIfNegative(port, nameof(port));
         _tcpServer = new TcpServer(port, HandleRequest, loggerFactory.CreateLogger<TcpServer>());
         _pipelineRegistry = serviceProvider.GetRequiredService<IPipelineRegistry>();
-        _requestHandler = new RequestHandler(_pipelineRegistry);
-        //_router = serviceProvider.GetRequiredService<IHttpRouter>();
         _router = serviceProvider.GetRequiredService<IRouter>();
         _logger = loggerFactory.CreateLogger<HttpWebServer>();
     }
@@ -205,21 +198,6 @@ public class HttpWebServer : IHttpWebServer
         _router.AddRoute(new Route(path, method), metadata);
         return this;
     }
-
-    public IHttpWebServer MapRoute(HttpRequestMethod method, string path, string pipelineName, string endpointName, Func<RequestPipelineContext, HttpResponse> handler)
-    {
-        throw new NotImplementedException();
-    }
-
-    /*public IHttpWebServer MapGet(string path, Func<RequestPipelineContext, HttpResponse> handler)
-    {
-        return MapRoute(HttpRequestMethod.GET, path, handler);
-    }
-
-    public IHttpWebServer MapGet(string path, string pipelineName, Func<RequestPipelineContext, HttpResponse> handler)
-    {
-        return MapRoute(HttpRequestMethod.GET, path, pipelineName, handler);
-    }*/
 
     public IHttpWebServer AddPipeline<TOptions>(string pipelineName, Action<TOptions> configure) where TOptions : RequestPipelineBuilderOptions
     {

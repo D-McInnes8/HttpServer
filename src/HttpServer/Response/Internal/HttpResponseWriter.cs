@@ -2,8 +2,16 @@ using System.Text;
 
 namespace HttpServer.Response.Internal;
 
-public class HttpResponseWriter
+/// <summary>
+/// Contains methods to write an <see cref="HttpResponse"/> to a string.
+/// </summary>
+public static class HttpResponseWriter
 {
+    /// <summary>
+    /// Writes an <see cref="HttpResponse"/> to a string.
+    /// </summary>
+    /// <param name="response">The <see cref="HttpResponse"/> object to write.</param>
+    /// <returns>The <see cref="HttpResponse"/> object serialised into a proper HTTP response.</returns>
     public static string WriteResponse(HttpResponse response)
     {
         if (response.Body != null)
