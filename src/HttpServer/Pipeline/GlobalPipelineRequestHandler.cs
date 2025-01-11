@@ -75,6 +75,13 @@ public class GlobalPipelineRequestHandler : IRequestHandler
             return HttpResponse.InternalServerError();
         }
 
+        if (routingResult.Result == RouterResult.Options)
+        {
+            var response = HttpResponse.Ok();
+            response.AddHeader("Allow", string.Join(", ", routingResult.AllowedMethods));
+            return response;
+        }
+
         if (routingResult.Result == RouterResult.MethodNotAllowed)
         {
             return HttpResponse.MethodNotAllowed();

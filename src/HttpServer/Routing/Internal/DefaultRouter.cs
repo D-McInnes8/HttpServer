@@ -39,6 +39,24 @@ internal class DefaultRouter : IRouter
             return result;
         }
         
+        // Check for OPTIONS requests.
+        if (path.Method == HttpRequestMethod.OPTIONS)
+        {
+            _logger.LogDebug("Route '{Path}' matched with OPTIONS method", path.Path);
+
+            var allowedMethods = new List<string>(capacity: Enum.GetValues<HttpRequestMethod>().Length);
+            foreach (var method in Enum.GetValues<HttpRequestMethod>())
+            {
+                var match = _prefixTrees[method].Match(path);
+                if (match.Result == RouterResult.Success)
+                {
+                    allowedMethods.Add(method.ToString());
+                }
+            }
+            
+            return RouteMatch<RouteMetadata>.Options(allowedMethods.ToArray());
+        }
+        
         // Check for other methods with the same route and return a 405 if one is found.
         foreach (var method in Enum.GetValues<HttpRequestMethod>())
         {

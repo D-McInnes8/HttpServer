@@ -42,6 +42,11 @@ public enum RouterResult
     /// A path was found but the method was not allowed.
     /// </summary>
     MethodNotAllowed,
+    
+    /// <summary>
+    /// The request sent wa an OPTIONS request.
+    /// </summary>
+    Options
 }
 
 public readonly record struct Option<TValue>
