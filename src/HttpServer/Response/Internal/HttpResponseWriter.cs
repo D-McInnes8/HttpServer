@@ -16,7 +16,7 @@ public static class HttpResponseWriter
     {
         if (response.Body != null)
         {
-            response.Headers["Content-Type"] = response.Body.ContentType;
+            response.Headers["Content-Type"] = response.Body.ContentType.Render();
             response.Headers["Content-Length"] = response.Body?.Content.Length.ToString() ?? "0";
         }
         

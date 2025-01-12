@@ -83,6 +83,22 @@ public readonly struct HttpContentType : IEquatable<HttpContentType>, IParsable<
         }
     }
 
+    /// <summary>
+    /// Renders the content type into a string.
+    /// </summary>
+    /// <returns>The content type formatted for HTTP request/responses.</returns>
+    public string Render()
+    {
+        if (Parameters.Count == 0)
+        {
+            return $"{Type}/{SubType}";
+        }
+
+        var collection = Parameters;
+        var parameters = Parameters.AllKeys.Select(key => $"{key}={collection[key]}");
+        return $"{Type}/{SubType}; {string.Join(';', parameters)}";
+    }
+
     /// <inheritdoc />
     public static HttpContentType Parse(string s, IFormatProvider? provider)
     {
@@ -140,7 +156,7 @@ public readonly struct HttpContentType : IEquatable<HttpContentType>, IParsable<
     }
     
     /// <summary>
-    /// 
+    /// Tries to parse the provided string into an instance of <see cref="HttpContentType"/>.
     /// </summary>
     /// <param name="s"></param>
     /// <param name="result"></param>
@@ -191,14 +207,70 @@ public readonly struct HttpContentType : IEquatable<HttpContentType>, IParsable<
         return true;
     }
 
+    /// <inheritdoc />
     public bool Equals(HttpContentType other)
     {
         return Type == other.Type
                && SubType == other.SubType;
     }
 
+    /// <inheritdoc />
     public override bool Equals(object? obj) => obj is HttpContentType type && Equals(type);
+    
+    /// <inheritdoc />
     public override int GetHashCode() => HashCode.Combine(Type, SubType);
     
+    /// <inheritdoc />
     public override string ToString() => $"{Type}/{SubType}";
+    
+    /// <summary>
+    /// Creates a text/plain content type.
+    /// </summary>
+    public static HttpContentType TextPlain => new("text", "plain", new NameValueCollection());
+    
+    /// <summary>
+    /// Creates a text/html content type.
+    /// </summary>
+    public static HttpContentType TextHtml => new("text", "html", new NameValueCollection());
+    
+    /// <summary>
+    /// Creates a text/xml content type.
+    /// </summary>
+    public static HttpContentType TextXml => new("text", "xml", new NameValueCollection());
+    
+    /// <summary>
+    /// Creates a text/json content type.
+    /// </summary>
+    public static HttpContentType TextJson => new("text", "json", new NameValueCollection());
+    
+    /// <summary>
+    /// Creates a text/csv content type.
+    /// </summary>
+    public static HttpContentType TextCsv => new("text", "csv", new NameValueCollection());
+    
+    /// <summary>
+    /// Creates an application/json content type.
+    /// </summary>
+    public static HttpContentType ApplicationJson => new("application", "json", new NameValueCollection());
+    
+    /// <summary>
+    /// Creates an application/xml content type.
+    /// </summary>
+    public static HttpContentType ApplicationXml => new("application", "xml", new NameValueCollection());
+    
+    /// <summary>
+    /// Creates an application/octet-stream content type.
+    /// </summary>
+    public static HttpContentType ApplicationOctetStream => new("application", "octet-stream", new NameValueCollection());
+    
+    /// <summary>
+    /// Creates an application/x-www-form-urlencoded content type.
+    /// </summary>
+    public static HttpContentType ApplicationFormUrlEncoded => new("application", "x-www-form-urlencoded", new NameValueCollection());
+    
+    /// <summary>
+    /// Creates a multipart/form-data content type.
+    /// </summary>
+    public static HttpContentType MultipartFormData => new("multipart", "form-data", new NameValueCollection());
+    
 }

@@ -111,10 +111,10 @@ public class StaticFilePipelineTests : IAsyncLifetime
     
     [Theory]
     [InlineData("/file.txt", "SampleFiles/file.txt", "text/plain")]
-    [InlineData("/file.json", "SampleFiles/file.json", "application/json")]
+    [InlineData("/file.json", "SampleFiles/file.json", "text/json")]
     [InlineData("/file.csv", "SampleFiles/file.csv", "text/csv")]
     [InlineData("/file.html", "SampleFiles/file.html", "text/html")]
-    [InlineData("/file.xml", "SampleFiles/file.xml", "application/xml")]
+    [InlineData("/file.xml", "SampleFiles/file.xml", "text/xml")]
     public async Task StaticFilePipeline_ShouldReturnCorrectContentType(string url, string filePath, string expectedContentType)
     {
         // Arrange

@@ -10,7 +10,7 @@ public class HttpBody
     /// <summary>
     /// The content type of the body.
     /// </summary>
-    public required string ContentType { get; init; }
+    public required HttpContentType ContentType { get; init; }
     
     /// <summary>
     /// The content of the body.
@@ -30,7 +30,7 @@ public class HttpBody
     /// <param name="contentType"></param>
     /// <param name="content"></param>
     [SetsRequiredMembers]
-    public HttpBody(string contentType, string content)
+    public HttpBody(HttpContentType contentType, string content)
     {
         ContentType = contentType;
         Content = content;

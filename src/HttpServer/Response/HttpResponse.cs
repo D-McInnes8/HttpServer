@@ -88,7 +88,7 @@ public class HttpResponse
     /// </summary>
     /// <param name="body"></param>
     /// <returns></returns>
-    public static HttpResponse Ok(string body) => new HttpResponse(HttpResponseStatusCode.OK, new HttpBody("text/plain", body));
+    public static HttpResponse Ok(string body) => new HttpResponse(HttpResponseStatusCode.OK, new HttpBody(HttpContentType.TextPlain, body));
     
     /// <summary>
     /// Creates a new <see cref="HttpResponse"/> with a status code of 404 Not Found.
@@ -107,7 +107,7 @@ public class HttpResponse
     /// </summary>
     /// <param name="body"></param>
     /// <returns></returns>
-    public static HttpResponse BadRequest(string body) => new HttpResponse(HttpResponseStatusCode.BadRequest, new HttpBody("text/plain", body));
+    public static HttpResponse BadRequest(string body) => new HttpResponse(HttpResponseStatusCode.BadRequest, new HttpBody(HttpContentType.TextPlain, body));
     
     /// <summary>
     /// Creates a new <see cref="HttpResponse"/> with a status code of 401 Unauthorized.

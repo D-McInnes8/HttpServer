@@ -3,6 +3,7 @@ using HttpServer.Logging;
 using HttpServer.Pipeline.Registry;
 using HttpServer.Routing;
 using HttpServer.Routing.Internal;
+using HttpServer.Routing.StaticFiles;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
@@ -69,7 +70,8 @@ public class HttpWebWebServerBuilder : IHttpWebServerBuilder
         });
         Services.AddSingleton<IPipelineRegistry, DefaultPipelineRegistry>()
                 .AddSingleton<IReadOnlyPipelineRegistry>(provider => provider.GetRequiredService<IPipelineRegistry>())
-                .AddSingleton<IRouter, DefaultRouter>();
+                .AddSingleton<IRouter, DefaultRouter>()
+                .AddScoped<IFileContentTypeProvider, DefaultContentTypeProvider>();
     }
     
     /// <inheritdoc />

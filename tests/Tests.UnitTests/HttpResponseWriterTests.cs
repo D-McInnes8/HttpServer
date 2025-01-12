@@ -51,7 +51,7 @@ public class HttpResponseWriterTests
         // Arrange
         var body = new HttpBody
         {
-            ContentType = "text/plain",
+            ContentType = HttpContentType.TextPlain,
             Content = "Hello, World!"
         };
         var response = new HttpResponse(HttpResponseStatusCode.OK, body)
@@ -90,7 +90,7 @@ public class HttpResponseWriterTests
         // Arrange
         var body = new HttpBody
         {
-            ContentType = "application/json",
+            ContentType = HttpContentType.ApplicationJson,
             Content = "{\"key\":\"value\"}"
         };
         var response = new HttpResponse(HttpResponseStatusCode.OK, body)
@@ -155,7 +155,7 @@ public class HttpResponseWriterTests
             HttpVersion = "HTTP/1.1",
             Body = new HttpBody
             {
-                ContentType = "text/plain",
+                ContentType = HttpContentType.TextPlain,
                 Content = string.Empty
             }
         };
@@ -174,7 +174,7 @@ public class HttpResponseWriterTests
         // Arrange
         var body = new HttpBody
         {
-            ContentType = "application/json",
+            ContentType = HttpContentType.ApplicationJson,
             Content = "{\"message\":\"success\"}"
         };
         var response = new HttpResponse(HttpResponseStatusCode.OK, body)
@@ -196,7 +196,7 @@ public class HttpResponseWriterTests
         // Arrange
         var body = new HttpBody
         {
-            ContentType = "text/html",
+            ContentType = HttpContentType.TextHtml,
             Content = "<html><body>Hello</body></html>"
         };
         var response = new HttpResponse(HttpResponseStatusCode.OK, body)
