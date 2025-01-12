@@ -37,7 +37,7 @@ public class HttpRequestTests : IAsyncLifetime
     public async Task HttpRequestRouting_RequestWithValidRoute_ShouldReturnOk(HttpRequestMethod httpRequestMethod)
     {
         // Arrange
-        _server.MapGet("/", _ => HttpResponse.Ok());
+        _server.MapRoute(httpRequestMethod, "/", _ => HttpResponse.Ok());
         
         // Act
         var message = new HttpRequestMessage(httpRequestMethod.ToHttpMethod(), "/");

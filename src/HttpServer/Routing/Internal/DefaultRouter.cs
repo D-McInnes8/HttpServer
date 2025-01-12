@@ -54,7 +54,9 @@ internal class DefaultRouter : IRouter
                 }
             }
             
-            return RouteMatch<RouteMetadata>.Options(allowedMethods.ToArray());
+            return allowedMethods.Any()
+                ? RouteMatch<RouteMetadata>.Options(allowedMethods.ToArray())
+                : RouteMatch<RouteMetadata>.NoMatch;
         }
         
         // Check for other methods with the same route and return a 405 if one is found.
