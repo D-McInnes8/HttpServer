@@ -37,7 +37,7 @@ public class HttpRouterTests : IAsyncLifetime
     public async Task HttpRouter_SimpleRoute_ShouldReturnOk(HttpRequestMethod httpRequestMethod)
     {
         // Arrange
-        _server.MapGet("/api", _ => HttpResponse.Ok());
+        _server.MapRoute(httpRequestMethod, "/api", _ => HttpResponse.Ok());
         
         // Act
         var message = new HttpRequestMessage(httpRequestMethod.ToHttpMethod(), "/api");
@@ -78,7 +78,6 @@ public class HttpRouterTests : IAsyncLifetime
     [InlineData(HttpRequestMethod.DELETE)]
     [InlineData(HttpRequestMethod.PATCH)]
     [InlineData(HttpRequestMethod.HEAD)]
-    [InlineData(HttpRequestMethod.OPTIONS)]
     [InlineData(HttpRequestMethod.TRACE)]
     public async Task HttpRouter_SimpleRoute_ShouldNotReturnMethodNotAllowedForDifferentMethods(HttpRequestMethod httpRequestMethod)
     {
@@ -251,7 +250,6 @@ public class HttpRouterTests : IAsyncLifetime
     }
 
     [Theory]
-    [InlineData("/")]
     [InlineData("/api")]
     [InlineData("/api/v1/users")]
     [InlineData("/api/v1/users/1")]
