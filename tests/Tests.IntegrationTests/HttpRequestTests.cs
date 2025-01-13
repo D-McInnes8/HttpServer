@@ -135,4 +135,83 @@ public class HttpRequestTests : IAsyncLifetime
             Assert.Equal(new string('A', i), headerValue);
         }
     }
+    
+    [Theory]
+    [InlineData("John Doe")]
+    [InlineData("john.doe@example.com")]
+    [InlineData("New York")]
+    [InlineData("Hello World")]
+    [InlineData("!*'();:@&=+$,/?#[]")]
+    [InlineData("你好")]
+    [InlineData("~`!@#$%^&*()_+-={}[]|\\:\";'<>?,./")]
+    public async Task HttpRequest_UrlEncodingQueryParameters_ShouldDecodeParameters(string plainText)
+    {
+        // Arrange
+        _server.MapGet("/api/v1/users/{userId}", context =>
+        {
+            var userId = context.RouteParameters["userId"];
+            return HttpResponse.Ok(userId);
+        });
+
+        // Act
+        var encodedText = Uri.EscapeDataString(plainText);
+        var message = new HttpRequestMessage(HttpMethod.Get, $"/api/v1/users/{encodedText}");
+        var response = await _httpClient.SendAsync(message);
+        var actual = await response.Content.ReadAsStringAsync();
+
+        // Assert
+        Assert.Equal(plainText, actual);
+    }
+    
+    [Theory]
+    [InlineData("/api/v1/users/John%20Doe")]
+    [InlineData("/api/v1/users/john.doe%40example.com")]
+    [InlineData("/api/v1/users/New%20York")]
+    [InlineData("/api/v1/users/Hello%20World")]
+    [InlineData("/api/v1/users/!*'();:@&=+$,/?#[]")]
+    [InlineData("/api/v1/users/你好")]
+    [InlineData("/api/v1/users/~`!@#$%^&*()_+-={}[]|\\:\";'<>?,./")]
+    public async Task HttpRequest_UrlEncodingInPath_ShouldDecodePath(string encodedPath)
+    {
+        // Arrange
+        _server.MapGet("/api/v1/users/{*}", context =>
+        {
+            var path = context.RouteParameters.Wildcard;
+            return HttpResponse.Ok(path);
+        });
+
+        // Act
+        var message = new HttpRequestMessage(HttpMethod.Get, encodedPath);
+        var response = await _httpClient.SendAsync(message);
+        var actual = await response.Content.ReadAsStringAsync();
+
+        // Assert
+        var expected = Uri.UnescapeDataString(encodedPath.Substring("/api/v1/users/".Length));
+        Assert.Equal(expected, actual);
+    }
+    
+    [Theory]
+    [InlineData("name=John+Doe")]
+    [InlineData("email=john.doe+example.com")]
+    [InlineData("city=New+York")]
+    [InlineData("query=Hello+World")]
+    [InlineData("multiple=Hello+World+from+New+York")]
+    public async Task HttpRequest_UrlEncodingSpacePlus_ShouldDecodeParameters(string query)
+    {
+        // Arrange
+        _server.MapGet("/api/v1/search", context =>
+        {
+            var queryString = context.Request.QueryParameters.GetKey(0);
+            return HttpResponse.Ok(queryString!);
+        });
+
+        // Act
+        var message = new HttpRequestMessage(HttpMethod.Get, $"/api/v1/search?{query}");
+        var response = await _httpClient.SendAsync(message);
+        var actual = await response.Content.ReadAsStringAsync();
+
+        // Assert
+        var expected = query.Replace("+", " ");
+        Assert.Equal(expected, actual);
+    }
 }
