@@ -171,6 +171,7 @@ public class HttpRequestTests : IAsyncLifetime
     [InlineData("/api/v1/users/!*'();:@&=+$,/?#[]")]
     [InlineData("/api/v1/users/你好")]
     [InlineData("/api/v1/users/~`!@#$%^&*()_+-={}[]|\\:\";'<>?,./")]
+    [InlineData("/api/v1/users/Hello+G%C3%BCnter")]
     public async Task HttpRequest_UrlEncodingInPath_ShouldDecodePath(string encodedPath)
     {
         // Arrange
@@ -201,8 +202,10 @@ public class HttpRequestTests : IAsyncLifetime
         // Arrange
         _server.MapGet("/api/v1/search", context =>
         {
-            var queryString = context.Request.QueryParameters.GetKey(0);
-            return HttpResponse.Ok(queryString!);
+            var key = context.Request.QueryParameters.GetKey(0);
+            var value = context.Request.QueryParameters.Get(key);
+            var queryParameter = $"{key}={value}";
+            return HttpResponse.Ok(queryParameter);
         });
 
         // Act

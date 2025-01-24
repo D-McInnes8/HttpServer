@@ -63,7 +63,7 @@ public class HttpRequest
     public HttpRequest(HttpRequestMethod method, string path)
     {
         Method = method;
-        Path = path;
+        Path = UrlEncoder.Decode(path);
         Headers = new Dictionary<string, string>();
         QueryParameters = new NameValueCollection();
 
