@@ -139,4 +139,13 @@ public class HttpResponse
     /// </summary>
     /// <returns></returns>
     public static HttpResponse MethodNotAllowed() => new HttpResponse(HttpResponseStatusCode.MethodNotAllowed);
+    
+    /// <summary>
+    /// Creates a new <see cref="HttpResponse"/> with the specified status code and the provided object serialized as JSON.
+    /// </summary>
+    /// <param name="statusCode"></param>
+    /// <param name="value"></param>
+    /// <typeparam name="T"></typeparam>
+    /// <returns></returns>
+    public static HttpResponse Json<T>(HttpResponseStatusCode statusCode, T value) => new HttpResponse(statusCode, new JsonBodyContent<T>(value));
 }

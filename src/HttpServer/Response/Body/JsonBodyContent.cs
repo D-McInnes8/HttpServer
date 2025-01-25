@@ -24,17 +24,11 @@ public class JsonBodyContent<T> : IHttpBodyContent
     /// <param name="encoding"></param>
     public JsonBodyContent(T content, HttpContentType contentType, Encoding encoding)
     {
+        ArgumentNullException.ThrowIfNull(encoding);
         Content = JsonSerializer.SerializeToUtf8Bytes(content);
         ContentType = contentType;
         Encoding = encoding;
     }
-    
-    /// <summary>
-    /// Constructs a new <see cref="JsonBodyContent{T}"/> from an object.
-    /// </summary>
-    /// <param name="content"></param>
-    /// <returns></returns>
-    public static JsonBodyContent<T> FromObject(T content) => new(content);
     
     /// <inheritdoc />
     public HttpContentType ContentType { get; }

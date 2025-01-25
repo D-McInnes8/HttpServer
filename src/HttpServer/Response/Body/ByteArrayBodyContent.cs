@@ -15,6 +15,7 @@ public class ByteArrayBodyContent : IHttpBodyContent
     /// <param name="encoding"></param>
     public ByteArrayBodyContent(byte[] content, HttpContentType contentType, Encoding encoding)
     {
+        ArgumentNullException.ThrowIfNull(encoding);
         Content = content;
         ContentType = contentType;
         Encoding = encoding;
