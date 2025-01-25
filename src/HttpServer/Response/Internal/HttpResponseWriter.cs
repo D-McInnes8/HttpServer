@@ -32,7 +32,8 @@ public static class HttpResponseWriter
         
         if (response.Body != null)
         {
-            sb.Append(response.Body.Content);
+            var content = response.Body.Encoding.GetString(response.Body.Content);
+            sb.Append(content);
         }
 
         return sb.ToString();

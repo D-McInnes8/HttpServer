@@ -1,5 +1,6 @@
 using HttpServer;
 using HttpServer.Response;
+using HttpServer.Response.Body;
 using HttpServer.Response.Internal;
 
 namespace Tests.UnitTests;
@@ -49,11 +50,7 @@ public class HttpResponseWriterTests
     public void WriteResponse_WithBody_WritesCorrectResponse()
     {
         // Arrange
-        var body = new HttpBody
-        {
-            ContentType = HttpContentType.TextPlain,
-            Content = "Hello, World!"
-        };
+        var body =  new StringBodyContent("Hello, World!");
         var response = new HttpResponse(HttpResponseStatusCode.OK, body)
         {
             HttpVersion = "HTTP/1.1"
@@ -88,11 +85,7 @@ public class HttpResponseWriterTests
     public void WriteResponse_WithDifferentContentTypes_WritesCorrectResponse()
     {
         // Arrange
-        var body = new HttpBody
-        {
-            ContentType = HttpContentType.ApplicationJson,
-            Content = "{\"key\":\"value\"}"
-        };
+        var body = new StringBodyContent("{\"key\":\"value\"}", HttpContentType.ApplicationJson);
         var response = new HttpResponse(HttpResponseStatusCode.OK, body)
         {
             HttpVersion = "HTTP/1.1"
@@ -153,11 +146,7 @@ public class HttpResponseWriterTests
         var response = new HttpResponse(HttpResponseStatusCode.OK)
         {
             HttpVersion = "HTTP/1.1",
-            Body = new HttpBody
-            {
-                ContentType = HttpContentType.TextPlain,
-                Content = string.Empty
-            }
+            Body = StringBodyContent.Empty
         };
 
         // Act
@@ -172,11 +161,7 @@ public class HttpResponseWriterTests
     public void WriteResponse_WithJsonBody_WritesCorrectResponse()
     {
         // Arrange
-        var body = new HttpBody
-        {
-            ContentType = HttpContentType.ApplicationJson,
-            Content = "{\"message\":\"success\"}"
-        };
+        var body = new StringBodyContent("{\"message\":\"success\"}", HttpContentType.ApplicationJson);
         var response = new HttpResponse(HttpResponseStatusCode.OK, body)
         {
             HttpVersion = "HTTP/1.1"
@@ -194,11 +179,7 @@ public class HttpResponseWriterTests
     public void WriteResponse_WithHtmlBody_WritesCorrectResponse()
     {
         // Arrange
-        var body = new HttpBody
-        {
-            ContentType = HttpContentType.TextHtml,
-            Content = "<html><body>Hello</body></html>"
-        };
+        var body = new StringBodyContent("<html><body>Hello</body></html>", HttpContentType.TextHtml);
         var response = new HttpResponse(HttpResponseStatusCode.OK, body)
         {
             HttpVersion = "HTTP/1.1"

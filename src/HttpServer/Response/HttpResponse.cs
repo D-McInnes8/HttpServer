@@ -1,4 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
+using HttpServer.Response.Body;
 
 namespace HttpServer.Response;
 
@@ -20,7 +21,7 @@ public class HttpResponse
     /// <summary>
     /// The body of the HTTP response.
     /// </summary>
-    public HttpBody? Body { get; set; }
+    public IHttpBodyContent? Body { get; set; }
     
     /// <summary>
     /// The HTTP version of the response.
@@ -44,7 +45,7 @@ public class HttpResponse
     /// <param name="statusCode">The <see cref="HttpResponseStatusCode"/> to be sent with the response.</param>
     /// <param name="body">The response body to be sent with the response.</param>
     [SetsRequiredMembers]
-    public HttpResponse(HttpResponseStatusCode statusCode, HttpBody body)
+    public HttpResponse(HttpResponseStatusCode statusCode, IHttpBodyContent body)
     {
         StatusCode = statusCode;
         Headers = new Dictionary<string, string>();
@@ -65,7 +66,7 @@ public class HttpResponse
     /// Sets the body of the response.
     /// </summary>
     /// <param name="body"></param>
-    public void SetBody(HttpBody body)
+    public void SetBody(IHttpBodyContent body)
     {
         Body = body;
     }
@@ -81,14 +82,14 @@ public class HttpResponse
     /// </summary>
     /// <param name="body"></param>
     /// <returns></returns>
-    public static HttpResponse Ok(HttpBody body) => new HttpResponse(HttpResponseStatusCode.OK, body);
+    public static HttpResponse Ok(IHttpBodyContent body) => new HttpResponse(HttpResponseStatusCode.OK, body);
     
     /// <summary>
     /// Creates a new <see cref="HttpResponse"/> with a status code of 200 OK and the provided string as a plain text body.
     /// </summary>
     /// <param name="body"></param>
     /// <returns></returns>
-    public static HttpResponse Ok(string body) => new HttpResponse(HttpResponseStatusCode.OK, new HttpBody(HttpContentType.TextPlain, body));
+    public static HttpResponse Ok(string body) => new HttpResponse(HttpResponseStatusCode.OK, new StringBodyContent(body));
     
     /// <summary>
     /// Creates a new <see cref="HttpResponse"/> with a status code of 404 Not Found.
@@ -107,7 +108,7 @@ public class HttpResponse
     /// </summary>
     /// <param name="body"></param>
     /// <returns></returns>
-    public static HttpResponse BadRequest(string body) => new HttpResponse(HttpResponseStatusCode.BadRequest, new HttpBody(HttpContentType.TextPlain, body));
+    public static HttpResponse BadRequest(string body) => new HttpResponse(HttpResponseStatusCode.BadRequest, new StringBodyContent(body));
     
     /// <summary>
     /// Creates a new <see cref="HttpResponse"/> with a status code of 401 Unauthorized.

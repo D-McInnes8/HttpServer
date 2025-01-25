@@ -1,4 +1,3 @@
-using System.Diagnostics.CodeAnalysis;
 using System.Text;
 using System.Text.Json;
 
@@ -10,20 +9,10 @@ namespace HttpServer.Response.Body;
 public class JsonBodyContent<T> : IHttpBodyContent
 {
     /// <summary>
-    /// The default content type for <see cref="JsonBodyContent{T}"/>.
-    /// </summary>
-    private static readonly HttpContentType DefaultContentType = HttpContentType.ApplicationJson;
-    
-    /// <summary>
-    /// The default encoding for <see cref="JsonBodyContent{T}"/>.
-    /// </summary>
-    private static readonly Encoding DefaultEncoding = Encoding.UTF8;
-    
-    /// <summary>
     /// Constructs a new <see cref="JsonBodyContent{T}"/> with the specified content.
     /// </summary>
     /// <param name="content"></param>
-    public JsonBodyContent(T content) : this(content, DefaultContentType, DefaultEncoding)
+    public JsonBodyContent(T content) : this(content, HttpContentType.ApplicationJson, Encoding.UTF8)
     {
     }
     

@@ -13,20 +13,10 @@ public class StringBodyContent : IHttpBodyContent
     public static readonly IHttpBodyContent Empty = new StringBodyContent(string.Empty);
     
     /// <summary>
-    /// The default content type for <see cref="StringBodyContent"/>.
-    /// </summary>
-    private static readonly HttpContentType DefaultContentType = HttpContentType.TextPlain;
-    
-    /// <summary>
-    /// The default encoding for <see cref="StringBodyContent"/>.
-    /// </summary>
-    private static readonly Encoding DefaultEncoding = Encoding.UTF8;
-    
-    /// <summary>
     /// Constructs a new <see cref="StringBodyContent"/> with the specified content.
     /// </summary>
     /// <param name="content"></param>
-    public StringBodyContent(string content) : this(content, DefaultContentType, DefaultEncoding)
+    public StringBodyContent(string content) : this(content, HttpContentType.TextPlain, Encoding.Default)
     {
     }
 
@@ -35,7 +25,16 @@ public class StringBodyContent : IHttpBodyContent
     /// </summary>
     /// <param name="content"></param>
     /// <param name="encoding"></param>
-    public StringBodyContent(string content, Encoding encoding) : this(content, DefaultContentType, encoding)
+    public StringBodyContent(string content, Encoding encoding) : this(content, HttpContentType.TextPlain, encoding)
+    {
+    }
+    
+    /// <summary>
+    /// Constructs a new <see cref="StringBodyContent"/> with the specified content and content type.
+    /// </summary>
+    /// <param name="content"></param>
+    /// <param name="contentType"></param>
+    public StringBodyContent(string content, HttpContentType contentType) : this(content, contentType, Encoding.Default)
     {
     }
     
@@ -47,6 +46,7 @@ public class StringBodyContent : IHttpBodyContent
     /// <param name="encoding"></param>
     public StringBodyContent(string content, HttpContentType contentType, Encoding encoding)
     {
+        ArgumentNullException.ThrowIfNull(encoding);
         Content = encoding.GetBytes(content);
         ContentType = contentType;
         Encoding = encoding;

@@ -1,6 +1,7 @@
 using System.Text;
 using HttpServer.Pipeline;
 using HttpServer.Response;
+using HttpServer.Response.Body;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace HttpServer.Routing.StaticFiles;
@@ -19,8 +20,7 @@ public static class StaticFileRequestHandler
         var bytes = File.ReadAllBytes(filePath);
         var contentTypeProvider = ctx.Services.GetRequiredService<IFileContentTypeProvider>();
         var contentType = contentTypeProvider.GetContentType(Path.GetExtension(filePath));
-        return HttpResponse.Ok(new HttpBody(contentType, Encoding.UTF8.GetString(bytes)));
-        //return HttpResponse.Ok(Encoding.UTF8.GetString(bytes));
+        return HttpResponse.Ok(new ByteArrayBodyContent(bytes, contentType, Encoding.Default));
     }
     
     public static HttpResponse HandleDirectory(RequestPipelineContext ctx)
@@ -34,7 +34,6 @@ public static class StaticFileRequestHandler
         var bytes = File.ReadAllBytes(filePath);
         var contentTypeProvider = ctx.Services.GetRequiredService<IFileContentTypeProvider>();
         var contentType = contentTypeProvider.GetContentType(Path.GetExtension(filePath));
-        return HttpResponse.Ok(new HttpBody(contentType, Encoding.UTF8.GetString(bytes)));
-        //return HttpResponse.Ok(Encoding.UTF8.GetString(bytes));
+        return HttpResponse.Ok(new ByteArrayBodyContent(bytes, contentType, Encoding.Default));
     }
 }
