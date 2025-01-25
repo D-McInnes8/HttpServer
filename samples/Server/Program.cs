@@ -1,5 +1,6 @@
 ﻿using HttpServer;
 using HttpServer.Response;
+using HttpServer.Response.Body;
 using HttpServer.Routing;
 using HttpServer.Routing.StaticFiles;
 using Server;
@@ -13,6 +14,9 @@ server.AddPipeline("TestPipeline", options =>
 });
 
 server.MapGet("/api/helloworld/", "TestPipeline", _ => HttpResponse.Ok("Hello, World!"));
-server.ServeDirectory("/", "wwwroot");
+server.ServeDirectory(
+    virtualPath: "/", 
+    physicalPath: "wwwroot",
+    pipelineName: "TestPipeline");
 
 await server.StartAsync();
