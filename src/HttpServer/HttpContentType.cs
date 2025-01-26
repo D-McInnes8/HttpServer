@@ -6,7 +6,7 @@ namespace HttpServer;
 /// <summary>
 /// Represents the content type of an HTTP request or response.
 /// </summary>
-public readonly struct HttpContentType : IEquatable<HttpContentType>, IParsable<HttpContentType>, ISpanParsable<HttpContentType>
+public class HttpContentType : IEquatable<HttpContentType>, IParsable<HttpContentType>, ISpanParsable<HttpContentType>
 {
     /// <summary>
     /// The type of the HTTP content.
@@ -22,16 +22,34 @@ public readonly struct HttpContentType : IEquatable<HttpContentType>, IParsable<
     /// The parameters of the HTTP content.
     /// </summary>
     public required NameValueCollection Parameters { get; init; }
-    
+
     /// <summary>
     /// The charset of the HTTP content, if the charset is not specified, returns null.
     /// </summary>
-    public string? Charset => Parameters["charset"];
-    
+    public string? Charset
+    {
+        get => Parameters["charset"];
+        set
+        {
+            if (value == null)
+            {
+                Parameters.Remove("charset");
+            }
+            else
+            {
+                Parameters["charset"] = value;
+            }
+        }
+    }
+
     /// <summary>
     /// The boundary of the HTTP content, if the boundary is not specified, returns null.
     /// </summary>
-    public string? Boundary => Parameters["boundary"];
+    public string? Boundary
+    {
+        get => Parameters["boundary"];
+        set => Parameters["boundary"] = value;
+    }
 
     /// <summary>
     /// The rendered value of the content type.

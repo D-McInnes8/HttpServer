@@ -60,7 +60,7 @@ public class HttpResponseWriterTests
         var result = HttpResponseWriter.WriteResponse(response);
 
         // Assert
-        var expected = "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: 13\r\n\r\nHello, World!";
+        var expected = "HTTP/1.1 200 OK\r\nContent-Type: text/plain; charset=utf-8\r\nContent-Length: 13\r\n\r\nHello, World!";
         Assert.Equal(expected, result);
     }
 
@@ -95,7 +95,7 @@ public class HttpResponseWriterTests
         var result = HttpResponseWriter.WriteResponse(response);
 
         // Assert
-        var expected = "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\nContent-Length: 15\r\n\r\n{\"key\":\"value\"}";
+        var expected = "HTTP/1.1 200 OK\r\nContent-Type: application/json; charset=utf-8\r\nContent-Length: 15\r\n\r\n{\"key\":\"value\"}";
         Assert.Equal(expected, result);
     }
     [Fact]
@@ -153,7 +153,7 @@ public class HttpResponseWriterTests
         var result = HttpResponseWriter.WriteResponse(response);
 
         // Assert
-        var expected = "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: 0\r\n\r\n";
+        var expected = "HTTP/1.1 200 OK\r\nContent-Type: text/plain; charset=utf-8\r\nContent-Length: 0\r\n\r\n";
         Assert.Equal(expected, result);
     }
 
@@ -171,7 +171,7 @@ public class HttpResponseWriterTests
         var result = HttpResponseWriter.WriteResponse(response);
 
         // Assert
-        var expected = "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\nContent-Length: 21\r\n\r\n{\"message\":\"success\"}";
+        var expected = "HTTP/1.1 200 OK\r\nContent-Type: application/json; charset=utf-8\r\nContent-Length: 21\r\n\r\n{\"message\":\"success\"}";
         Assert.Equal(expected, result);
     }
 
@@ -189,7 +189,7 @@ public class HttpResponseWriterTests
         var result = HttpResponseWriter.WriteResponse(response);
 
         // Assert
-        var expected = "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\nContent-Length: 31\r\n\r\n<html><body>Hello</body></html>";
+        var expected = "HTTP/1.1 200 OK\r\nContent-Type: text/html; charset=utf-8\r\nContent-Length: 31\r\n\r\n<html><body>Hello</body></html>";
         Assert.Equal(expected, result);
     }
 
