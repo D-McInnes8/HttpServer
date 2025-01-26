@@ -12,7 +12,7 @@ public static class HttpResponseWriter
     /// </summary>
     /// <param name="response">The <see cref="HttpResponse"/> object to write.</param>
     /// <returns>The <see cref="HttpResponse"/> object serialised into a proper HTTP response.</returns>
-    public static string WriteResponse(HttpResponse response)
+    public static byte[] WriteResponse(HttpResponse response)
     {
         if (response.Body != null)
         {
@@ -31,12 +31,23 @@ public static class HttpResponseWriter
         }
         sb.Append("\r\n");
         
-        if (response.Body != null)
+        /*if (response.Body != null)
         {
             var content = response.Body.Encoding.GetString(response.Body.Content);
             sb.Append(content);
-        }
+        }*/
 
-        return sb.ToString();
+        var httpRequestMetadata = sb.ToString();
+        var httpRequestBytes = Encoding.ASCII.GetBytes(httpRequestMetadata);
+
+        if (response.Body is null)
+        {
+            return httpRequestBytes;
+        }
+        
+        var httpResponseBytes = new byte[httpRequestBytes.Length + response.Body.Content.Length];
+        httpRequestBytes.CopyTo(httpResponseBytes, 0);
+        response.Body.Content.CopyTo(httpResponseBytes, httpRequestBytes.Length);
+        return httpResponseBytes;
     }
 }

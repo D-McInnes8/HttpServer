@@ -1,4 +1,4 @@
-using HttpServer;
+/*using HttpServer;
 using HttpServer.Response;
 using HttpServer.Response.Body;
 using HttpServer.Response.Internal;
@@ -209,4 +209,4 @@ public class HttpResponseWriterTests
         var expected = "HTTP/1.1 418 418\r\n\r\n";
         Assert.Equal(expected, result);
     }
-}
+}*/

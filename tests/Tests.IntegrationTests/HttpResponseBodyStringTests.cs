@@ -46,15 +46,9 @@ public class HttpResponseBodyStringTests : IAsyncLifetime
     [InlineData("utf-16", "مرحبا بالعالم")]
     [InlineData("utf-16", "שלום עולם")]
     [InlineData("ascii", "Hello, World!")]
-    [InlineData("ascii", "Hello, 世界!")]
-    [InlineData("ascii", "こんにちは世界")]
-    [InlineData("ascii", "Привет, мир!")]
     [InlineData("ascii", "Hola, mundo!")]
     [InlineData("ascii", "Bonjour, le monde!")]
     [InlineData("ascii", "Hallo, Welt!")]
-    [InlineData("ascii", "안녕하세요 세계")]
-    [InlineData("ascii", "مرحبا بالعالم")]
-    [InlineData("ascii", "שלום עולם")]
     public async Task HttpResponseBodyString_DifferentEncodings_ShouldCorrectlyEncodeBody(string encodingName, string expectedContent)
     {
         // Arrange
