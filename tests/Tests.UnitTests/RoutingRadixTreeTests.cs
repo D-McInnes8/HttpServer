@@ -1,5 +1,6 @@
 using HttpServer.Request;
 using HttpServer.Routing;
+using HttpServer.Routing.Internal;
 using Xunit.Abstractions;
 
 namespace Tests.UnitTests;

@@ -1,4 +1,5 @@
 using HttpServer.Request;
+using HttpServer.Routing.Internal;
 using Microsoft.Extensions.Logging;
 
 namespace HttpServer.Routing;

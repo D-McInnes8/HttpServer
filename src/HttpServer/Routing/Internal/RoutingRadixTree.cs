@@ -1,6 +1,6 @@
 using System.Text;
 
-namespace HttpServer.Routing;
+namespace HttpServer.Routing.Internal;
 
 public interface IRoutingTree<T>
 {

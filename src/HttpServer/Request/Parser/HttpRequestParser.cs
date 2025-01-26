@@ -3,8 +3,16 @@ using HttpServer.Routing;
 
 namespace HttpServer.Request.Parser;
 
+/// <summary>
+/// Static class containing methods to parse a HTTP request.
+/// </summary>
 public static class HttpRequestParser
 {
+    /// <summary>
+    /// Parses a HTTP request from a stream.
+    /// </summary>
+    /// <param name="stream"></param>
+    /// <returns></returns>
     public static async Task<Result<HttpRequest, string>> Parse(Stream stream)
     {
         using var reader = new HttpRequestStreamReader(stream);
@@ -61,7 +69,11 @@ public static class HttpRequestParser
         };
     }
     
-    
+    /// <summary>
+    /// Parses the path of a HTTP request into a route and a collection of query parameters.
+    /// </summary>
+    /// <param name="path"></param>
+    /// <returns></returns>
     public static (string Path, NameValueCollection Parameters) ParsePath(ReadOnlySpan<char> path)
     {
         var parameters = new NameValueCollection();

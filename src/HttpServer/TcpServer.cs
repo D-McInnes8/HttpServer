@@ -103,8 +103,6 @@ internal class TcpServer
         {
             using var stream = client.GetStream();
             var response = _requestHandler(stream);
-            
-            //var responseBytes = Encoding.UTF8.GetBytes(response);
             Debug.Assert(response.Length > 0);
 
             _logger.LogDebug("Sending response: Writing {ResponseBytes} bytes to buffer", response.Length);
