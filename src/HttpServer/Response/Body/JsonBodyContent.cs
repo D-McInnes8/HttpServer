@@ -25,7 +25,9 @@ public class JsonBodyContent<T> : IHttpBodyContent
     public JsonBodyContent(T content, HttpContentType contentType, Encoding encoding)
     {
         ArgumentNullException.ThrowIfNull(encoding);
-        Content = JsonSerializer.SerializeToUtf8Bytes(content);
+        Content = Equals(encoding, Encoding.UTF8)
+            ? JsonSerializer.SerializeToUtf8Bytes(content)
+            : encoding.GetBytes(JsonSerializer.Serialize(content));
         ContentType = contentType;
         Encoding = encoding;
     }
