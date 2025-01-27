@@ -5,7 +5,7 @@ namespace HttpServer.Response.Body;
 /// <summary>
 /// Represents a byte array body for a HTTP response.
 /// </summary>
-public class ByteArrayBodyContent : IHttpBodyContent
+public class ByteArrayBodyContent : HttpBodyContent
 {
     /// <summary>
     /// Constructs a new <see cref="ByteArrayBodyContent"/> with the specified content.

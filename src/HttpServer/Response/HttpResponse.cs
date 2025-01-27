@@ -21,7 +21,7 @@ public class HttpResponse
     /// <summary>
     /// The body of the HTTP response.
     /// </summary>
-    public IHttpBodyContent? Body { get; set; }
+    public HttpBodyContent? Body { get; set; }
     
     /// <summary>
     /// The HTTP version of the response.
@@ -45,7 +45,7 @@ public class HttpResponse
     /// <param name="statusCode">The <see cref="HttpResponseStatusCode"/> to be sent with the response.</param>
     /// <param name="body">The response body to be sent with the response.</param>
     [SetsRequiredMembers]
-    public HttpResponse(HttpResponseStatusCode statusCode, IHttpBodyContent body)
+    public HttpResponse(HttpResponseStatusCode statusCode, HttpBodyContent body)
     {
         StatusCode = statusCode;
         Headers = new Dictionary<string, string>();
@@ -66,7 +66,7 @@ public class HttpResponse
     /// Sets the body of the response.
     /// </summary>
     /// <param name="body"></param>
-    public void SetBody(IHttpBodyContent body)
+    public void SetBody(HttpBodyContent body)
     {
         Body = body;
     }
@@ -82,7 +82,7 @@ public class HttpResponse
     /// </summary>
     /// <param name="body"></param>
     /// <returns></returns>
-    public static HttpResponse Ok(IHttpBodyContent body) => new HttpResponse(HttpResponseStatusCode.OK, body);
+    public static HttpResponse Ok(HttpBodyContent body) => new HttpResponse(HttpResponseStatusCode.OK, body);
     
     /// <summary>
     /// Creates a new <see cref="HttpResponse"/> with a status code of 200 OK and the provided string as a plain text body.

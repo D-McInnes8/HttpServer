@@ -1,11 +1,11 @@
 using System.Text;
 
-namespace HttpServer;
+namespace HttpServer.Response.Body;
 
 /// <summary>
 /// Represents the body of a HTTP request or response.
 /// </summary>
-public interface IHttpBodyContent
+public interface HttpBodyContent
 {
     /// <summary>
     /// The content type of the body.

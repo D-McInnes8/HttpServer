@@ -6,7 +6,7 @@ namespace HttpServer.Response.Body;
 /// <summary>
 /// Represents a JSON body for a HTTP response.
 /// </summary>
-public class JsonBodyContent<T> : IHttpBodyContent
+public class JsonBodyContent<T> : HttpBodyContent
 {
     /// <summary>
     /// Constructs a new <see cref="JsonBodyContent{T}"/> with the specified content.

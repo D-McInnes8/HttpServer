@@ -5,12 +5,12 @@ namespace HttpServer.Response.Body;
 /// <summary>
 /// Represents a string body for a HTTP response.
 /// </summary>
-public class StringBodyContent : IHttpBodyContent
+public class StringBodyContent : HttpBodyContent
 {
     /// <summary>
-    /// An empty <see cref="IHttpBodyContent"/>.
+    /// An empty <see cref="HttpBodyContent"/>.
     /// </summary>
-    public static readonly IHttpBodyContent Empty = new StringBodyContent(string.Empty);
+    public static readonly HttpBodyContent Empty = new StringBodyContent(string.Empty);
     
     /// <summary>
     /// Constructs a new <see cref="StringBodyContent"/> with the specified content.
