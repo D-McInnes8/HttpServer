@@ -23,6 +23,30 @@ public class HttpResponseBodyStringTests : IAsyncLifetime
         _httpClient.Dispose();
         await _server.StopAsync();
     }
+    
+    [Theory]
+    [InlineData("Hello, World!")]
+    [InlineData("Hello, World! 1234567890")]
+    [InlineData("Hello, World! With Special Characters!@#")]
+    [InlineData("Hello, World! With Spaces")]
+    [InlineData("Hello, World! With New Line\n")]
+    [InlineData("Hello, World! With Carriage Return\r")]
+    [InlineData("Hello, World! With Tab\t")]
+    [InlineData("Hello, World! With Backspace\b")]
+    [InlineData("Hello, World! With Form Feed\f")]
+    [InlineData("Hello, World! With Vertical Tab\v")]
+    public async Task HttpResponseBodyString_PlainTextContent_ShouldSetBody(string expected)
+    {
+        // Arrange
+        _server.MapGet("/test", _ => HttpResponse.Ok(expected));
+        
+        // Act
+        var response = await _httpClient.GetAsync("/test");
+        var actual = await response.Content.ReadAsStringAsync();
+        
+        // Assert
+        Assert.Equal(expected, actual);
+    }
 
     [Theory]
     [InlineData("utf-8", "Hello, World!")]
@@ -49,7 +73,7 @@ public class HttpResponseBodyStringTests : IAsyncLifetime
     [InlineData("ascii", "Hola, mundo!")]
     [InlineData("ascii", "Bonjour, le monde!")]
     [InlineData("ascii", "Hallo, Welt!")]
-    public async Task HttpResponseBodyString_DifferentEncodings_ShouldCorrectlyEncodeBody(string encodingName, string expectedContent)
+    public async Task HttpResponseBodyString_Encodings_ShouldEncodeBody(string encodingName, string expectedContent)
     {
         // Arrange
         var encoding = Encoding.GetEncoding(encodingName);
@@ -74,7 +98,7 @@ public class HttpResponseBodyStringTests : IAsyncLifetime
     [InlineData("utf-8")]
     [InlineData("utf-16")]
     [InlineData("ascii")]
-    public async Task HttpResponseBodyString_DifferentEncodings_ShouldCorrectlySetCharset(string encodingName)
+    public async Task HttpResponseBodyString_Encodings_ShouldSetCharset(string encodingName)
     {
         // Arrange
         var encoding = Encoding.GetEncoding(encodingName);
