@@ -4,7 +4,7 @@ using HttpServer.Response;
 namespace HttpServer.Routing;
 
 /// <summary>
-/// 
+/// Represents the metadata for a route in the router.
 /// </summary>
 public class RouteMetadata
 {

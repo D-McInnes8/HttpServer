@@ -6,16 +6,9 @@ namespace HttpServer.Routing;
 public class RouteParameters : Dictionary<string, string>
 {
     /// <summary>
-    /// Constructs a new <see cref="RouteParameters"/> object.
-    /// </summary>
-    public RouteParameters()
-    {
-    }
-    
-    /// <summary>
     /// Constructs a new <see cref="RouteParameters"/> object from the provided dictionary.
     /// </summary>
-    /// <param name="dictionary"></param>
+    /// <param name="dictionary">The dictionary used to populate the route parameters.</param>
     public RouteParameters(IDictionary<string, string> dictionary) : base(dictionary)
     {
     }

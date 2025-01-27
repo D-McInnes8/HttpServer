@@ -318,37 +318,3 @@ public struct RadixTreeNode<T>()
     public RadixTreeNode<T>[] Children { get; set; } = [];
     public NodeType Type { get; set; } = NodeType.Path;
 }
-
-public class RouteMatch<T>
-{
-    public RouterResult Result { get; set; }
-    public T? Value { get; set; }
-    public Dictionary<string, string> Parameters { get; set; } = new();
-    public string[] AllowedMethods { get; set; } = [];
-
-    private RouteMatch(RouterResult result, T? value)
-    {
-        Result = result;
-        Value = value;
-    }
-
-    private RouteMatch(RouterResult result, T? value, Dictionary<string, string> parameters)
-    {
-        Result = result;
-        Value = value;
-        Parameters = parameters;
-    }
-
-    private RouteMatch(string[] allowedMethods)
-    {
-        Result = RouterResult.Options;
-        AllowedMethods = allowedMethods;
-        Value = default;
-    }
-    
-    public static RouteMatch<T> NoMatch => new RouteMatch<T>(RouterResult.NotFound, default);
-    public static RouteMatch<T> Match(T? value) => new RouteMatch<T>(RouterResult.Success, value);
-    public static RouteMatch<T> Match(T? value, Dictionary<string, string> parameters) => new RouteMatch<T>(RouterResult.Success, value, parameters);
-    public static RouteMatch<T> MethodNotAllowed => new RouteMatch<T>(RouterResult.MethodNotAllowed, default);
-    public static RouteMatch<T> Options(string[] allowedMethods) => new (allowedMethods);
-}
