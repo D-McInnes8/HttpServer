@@ -47,6 +47,24 @@ public class HttpResponseBodyStringTests : IAsyncLifetime
         // Assert
         Assert.Equal(expected, actual);
     }
+    
+    [Fact]
+    public async Task HttpResponseBodyString_EmptyContent_ShouldReturnEmptyBody()
+    {
+        // Arrange
+        _server.MapGet("/api/test-empty", _ =>
+        {
+            return HttpResponse.Ok(string.Empty);
+        });
+
+        // Act
+        var response = await _httpClient.GetAsync("/api/test-empty");
+        var actual = await response.Content.ReadAsStringAsync();
+
+        // Assert
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Equal(string.Empty, actual);
+    }
 
     [Theory]
     [InlineData("utf-8", "Hello, World!")]
