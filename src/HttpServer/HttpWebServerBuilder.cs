@@ -71,6 +71,7 @@ public class HttpWebWebServerBuilder : IHttpWebServerBuilder
         Services.AddSingleton<IPipelineRegistry, DefaultPipelineRegistry>()
                 .AddSingleton<IReadOnlyPipelineRegistry>(provider => provider.GetRequiredService<IPipelineRegistry>())
                 .AddSingleton<IRouter, DefaultRouter>()
+                .AddSingleton<HttpWebServerOptions>()
                 .AddScoped<IFileContentTypeProvider, DefaultContentTypeProvider>();
     }
     

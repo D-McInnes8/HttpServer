@@ -31,6 +31,11 @@ public interface IHttpWebServer
     Uri LocalEndpoint { get; }
     
     /// <summary>
+    /// The options for the web server.
+    /// </summary>
+    HttpWebServerOptions Options { get; }
+    
+    /// <summary>
     /// Starts the web server.
     /// </summary>
     /// <returns></returns>
@@ -76,11 +81,13 @@ public class HttpWebServer : IHttpWebServer
     public IServiceProvider Services { get; }
     public int Port => _tcpServer.Port;
     public Uri LocalEndpoint => _tcpServer.LocalEndpoint;
+    public HttpWebServerOptions Options => _options;
     
     private readonly TcpServer _tcpServer;
     private readonly IPipelineRegistry _pipelineRegistry;
     private readonly IRouter _router;
     private readonly ILogger<HttpWebServer> _logger;
+    private readonly HttpWebServerOptions _options;
 
     /// <summary>
     /// Creates a new instance of <see cref="HttpWebServer"/>. Should only
@@ -97,6 +104,7 @@ public class HttpWebServer : IHttpWebServer
         _tcpServer = new TcpServer(port, HandleRequest, loggerFactory.CreateLogger<TcpServer>());
         _pipelineRegistry = serviceProvider.GetRequiredService<IPipelineRegistry>();
         _router = serviceProvider.GetRequiredService<IRouter>();
+        _options = serviceProvider.GetRequiredService<HttpWebServerOptions>();
         _logger = loggerFactory.CreateLogger<HttpWebServer>();
     }
 
