@@ -13,7 +13,18 @@ internal class TcpServer
     /// <summary>
     /// The port the server is listening on.
     /// </summary>
-    public int Port { get; private set; }
+    public int Port
+    {
+        get
+        {
+            if (_tcpListener.LocalEndpoint is IPEndPoint ipEndPoint)
+            {
+                return ipEndPoint.Port;
+            }
+
+            return -1;
+        }
+    }
     
     /// <summary>
     /// The local endpoint the server is listening on.
@@ -38,11 +49,10 @@ internal class TcpServer
     /// <param name="options">The <see cref="HttpWebServerOptions"/> object containing the server options.</param>
     public TcpServer(int port, Func<Stream, byte[]> requestHandler, ILogger<TcpServer> logger, IConnectionPool connectionPool, HttpWebServerOptions options)
     {
-        Port = port;
         _requestHandler = requestHandler;
         _logger = logger;
         _options = options;
-        _tcpListener = new TcpListener(IPAddress.Any, Port);
+        _tcpListener = new TcpListener(IPAddress.Any, port);
         _connectionPool = connectionPool;
     }
     

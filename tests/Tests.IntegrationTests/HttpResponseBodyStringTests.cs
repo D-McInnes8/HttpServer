@@ -9,13 +9,13 @@ namespace Tests.IntegrationTests;
 
 public class HttpResponseBodyStringTests : IAsyncLifetime
 {
-    private readonly IHttpWebServer _server = HttpWebServer.CreateBuilder(9801).Build();
+    private readonly IHttpWebServer _server = HttpWebServer.CreateBuilder(0).Build();
     private readonly HttpClient _httpClient = new HttpClient();
 
     public async Task InitializeAsync()
     {
-        _httpClient.BaseAddress = new Uri($"http://localhost:{_server.Port}");
         await _server.StartAsync();
+        _httpClient.BaseAddress = new Uri($"http://localhost:{_server.Port}");
     }
 
     public async Task DisposeAsync()

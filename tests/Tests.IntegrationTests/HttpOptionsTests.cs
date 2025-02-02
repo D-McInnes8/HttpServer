@@ -8,13 +8,13 @@ namespace Tests.IntegrationTests;
 
 public class HttpOptionsTests : IAsyncLifetime
 {
-    private readonly IHttpWebServer _server = HttpWebServer.CreateBuilder(9990).Build();
+    private readonly IHttpWebServer _server = HttpWebServer.CreateBuilder(0).Build();
     private readonly HttpClient _httpClient = new HttpClient();
 
     public async Task InitializeAsync()
     {
-        _httpClient.BaseAddress = new Uri($"http://localhost:{_server.Port}");
         await _server.StartAsync();
+        _httpClient.BaseAddress = new Uri($"http://localhost:{_server.Port}");
     }
 
     public async Task DisposeAsync()
