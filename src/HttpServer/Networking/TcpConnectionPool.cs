@@ -27,6 +27,7 @@ public class TcpConnectionPool : IConnectionPool, IAsyncDisposable
     private readonly List<TcpClientConnection> _connections;
     private readonly HttpWebServerOptions _options;
     private readonly Timer _expiredConnectionTimer;
+    private readonly Lock _lock;
 
     /// <summary>
     /// Initializes a new instance of <see cref="TcpConnectionPool"/>.
@@ -38,20 +39,27 @@ public class TcpConnectionPool : IConnectionPool, IAsyncDisposable
         _timeProvider = timeProvider;
         _options = options;
         _connections = new List<TcpClientConnection>(capacity: options.MaxConnections);
-        _expiredConnectionTimer = new Timer(RemoveExpiredConnections, null, TimeSpan.Zero, TimeSpan.FromSeconds(1));
+        _expiredConnectionTimer = new Timer(RemoveExpiredConnections, null, TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(1));
+        _lock = new Lock();
     }
 
     /// <inheritdoc />
     public void AddConnection(TcpClientConnection connection)
     {
-        _connections.Add(connection);
+        lock (_lock)
+        {
+            _connections.Add(connection);
+        }
     }
 
     /// <inheritdoc />
     public void CloseConnection(TcpClientConnection connection)
     {
-        _connections.Remove(connection);
-        connection.Client.Close();
+        lock (_lock)
+        {
+            _connections.Remove(connection);
+            connection.Client.Close();
+        }
     }
 
     /// <summary>
@@ -59,20 +67,24 @@ public class TcpConnectionPool : IConnectionPool, IAsyncDisposable
     /// </summary>
     private void RemoveExpiredConnections(object? _)
     {
-        var invocationDateTime = _timeProvider.GetUtcNow();
-        /*foreach (var connection in _connections)
+        lock (_lock)
         {
-            if (connection.ConnectionOpened.Add(_options.KeepAlive.Timeout) < invocationDateTime)
+            var invocationDateTime = _timeProvider.GetUtcNow();
+            foreach (var connection in _connections)
             {
-                CloseConnection(connection);
+                if (connection.ConnectionOpened.Add(_options.KeepAlive.Timeout) < invocationDateTime)
+                {
+                    connection.Client.Close();
+                }
             }
-        }*/
+            _connections.RemoveAll(c => c.ConnectionOpened.Add(_options.KeepAlive.Timeout) < invocationDateTime);
+        }
     }
 
     /// <inheritdoc />
     public async ValueTask DisposeAsync()
     {
         await _expiredConnectionTimer.DisposeAsync();
-        //GC.SuppressFinalize(this);
+        GC.SuppressFinalize(this);
     }
 }
