@@ -1,12 +1,12 @@
 using System.Collections.Specialized;
 using System.Diagnostics.CodeAnalysis;
 
-namespace HttpServer;
+namespace HttpServer.Headers;
 
 /// <summary>
 /// Represents the content type of an HTTP request or response.
 /// </summary>
-public class HttpContentType : IEquatable<HttpContentType>, IParsable<HttpContentType>, ISpanParsable<HttpContentType>
+public class HttpContentType : IEquatable<HttpContentType>, ISpanParsable<HttpContentType>
 {
     /// <summary>
     /// The type of the HTTP content.

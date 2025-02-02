@@ -1,4 +1,5 @@
 using System.Text;
+using HttpServer.Headers;
 
 namespace HttpServer.Response.Body;
 

@@ -1,4 +1,5 @@
 using HttpServer;
+using HttpServer.Headers;
 
 namespace Tests.UnitTests;
 

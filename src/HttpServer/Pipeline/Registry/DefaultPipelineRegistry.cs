@@ -23,6 +23,7 @@ internal class DefaultPipelineRegistry : IPipelineRegistry
         };
         globalPipelineOptions.UseRequestHandler<GlobalPipelineRequestHandler>();
         globalPipelineOptions.AddPlugin<GlobalErrorHandlerPlugin>();
+        globalPipelineOptions.AddPlugin<KeepAlivePlugin>();
         GlobalPipeline = new RequestPipeline(globalPipelineOptions);
     }
 

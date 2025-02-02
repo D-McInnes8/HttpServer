@@ -1,3 +1,5 @@
+using HttpServer.Headers;
+
 namespace HttpServer.Routing.StaticFiles;
 
 /// <summary>

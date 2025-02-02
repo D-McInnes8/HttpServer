@@ -1,4 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
+using HttpServer.Headers;
 using HttpServer.Response.Body;
 
 namespace HttpServer.Response;
@@ -29,6 +30,11 @@ public class HttpResponse
     public string HttpVersion { get; set; } = "HTTP/1.1";
     
     /// <summary>
+    /// The keep-alive settings for the response.
+    /// </summary>
+    public HttpKeepAlive KeepAlive { get; set; }
+    
+    /// <summary>
     /// Constructs a new <see cref="HttpResponse"/> with the specified status code.
     /// </summary>
     /// <param name="statusCode">The <see cref="HttpResponseStatusCode"/> to be sent with the response.</param>
@@ -37,6 +43,11 @@ public class HttpResponse
     {
         StatusCode = statusCode;
         Headers = new Dictionary<string, string>();
+        KeepAlive = new HttpKeepAlive
+        {
+            Connection = HttpConnectionType.Close,
+            Timeout = TimeSpan.Zero,
+        };
     }
     
     /// <summary>
@@ -50,6 +61,11 @@ public class HttpResponse
         StatusCode = statusCode;
         Headers = new Dictionary<string, string>();
         Body = body;
+        KeepAlive = new HttpKeepAlive
+        {
+            Connection = HttpConnectionType.Close,
+            Timeout = TimeSpan.Zero,
+        };
     }
     
     /// <summary>

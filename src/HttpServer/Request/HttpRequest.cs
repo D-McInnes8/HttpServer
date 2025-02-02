@@ -1,5 +1,6 @@
 using System.Collections.Specialized;
 using System.Diagnostics.CodeAnalysis;
+using HttpServer.Headers;
 using HttpServer.Request.Parser;
 
 namespace HttpServer.Request;

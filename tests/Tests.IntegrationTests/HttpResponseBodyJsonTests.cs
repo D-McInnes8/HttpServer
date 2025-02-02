@@ -1,6 +1,7 @@
 using System.Text;
 using System.Text.Json;
 using HttpServer;
+using HttpServer.Headers;
 using HttpServer.Response;
 using HttpServer.Response.Body;
 using HttpServer.Routing;

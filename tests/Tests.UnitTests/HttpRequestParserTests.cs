@@ -1,5 +1,6 @@
 using System.Text;
 using HttpServer;
+using HttpServer.Headers;
 using HttpServer.Request;
 using HttpServer.Request.Parser;
 

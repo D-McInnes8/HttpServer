@@ -1,4 +1,5 @@
 using System.Collections.Specialized;
+using HttpServer.Headers;
 using HttpServer.Routing;
 
 namespace HttpServer.Request.Parser;

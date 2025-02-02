@@ -1,3 +1,5 @@
+using HttpServer.Headers;
+
 namespace HttpServer.Response;
 
 public interface IContentTypeProvider
