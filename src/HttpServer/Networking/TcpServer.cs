@@ -3,7 +3,7 @@ using System.Net;
 using System.Net.Sockets;
 using Microsoft.Extensions.Logging;
 
-namespace HttpServer;
+namespace HttpServer.Networking;
 
 /// <summary>
 /// The TCP server that listens for incoming TCP requests.
@@ -22,9 +22,11 @@ internal class TcpServer
     
     private readonly TcpListener _tcpListener;
     private bool _isRunning;
+    private HttpWebServerOptions _options;
     private readonly ILogger<TcpServer> _logger;
-    
+
     private readonly Func<Stream, byte[]> _requestHandler;
+    private IConnectionPool _connectionPool;
 
     /// <summary>
     /// Creates a new <see cref="TcpServer"/> with the specified port and request handler.
@@ -32,12 +34,16 @@ internal class TcpServer
     /// <param name="port">The port the TCP server will listen on.</param>
     /// <param name="requestHandler">The request handler to execute when receiving a TCP request.</param>
     /// <param name="logger">The <see cref="ILogger"/> object to be logged to.</param>
-    public TcpServer(int port, Func<Stream, byte[]> requestHandler, ILogger<TcpServer> logger)
+    /// <param name="connectionPool">The <see cref="IConnectionPool"/> object to manage connections.</param>
+    /// <param name="options">The <see cref="HttpWebServerOptions"/> object containing the server options.</param>
+    public TcpServer(int port, Func<Stream, byte[]> requestHandler, ILogger<TcpServer> logger, IConnectionPool connectionPool, HttpWebServerOptions options)
     {
         Port = port;
         _requestHandler = requestHandler;
         _logger = logger;
+        _options = options;
         _tcpListener = new TcpListener(IPAddress.Any, Port);
+        _connectionPool = connectionPool;
     }
     
     /// <summary>
@@ -77,7 +83,12 @@ internal class TcpServer
             try
             {
                 var client = _tcpListener.AcceptTcpClient();
-                ThreadPool.QueueUserWorkItem(HandleRequest, client);
+                var tcpClientConnection = new TcpClientConnection(client, DateTime.UtcNow);
+                
+                _logger.LogDebug("Accepted connection from {RemoteEndpoint}", client.Client.RemoteEndPoint);
+                _connectionPool.AddConnection(tcpClientConnection);
+                
+                ThreadPool.QueueUserWorkItem(HandleRequest, tcpClientConnection);
             }
             catch (SocketException ex) when (ex.SocketErrorCode == SocketError.Interrupted)
             {
@@ -94,20 +105,22 @@ internal class TcpServer
     /// <param name="state">The <see cref="TcpClient"/> state object passed to the handler by the <see cref="ThreadPool.QueueUserWorkItem(WaitCallback, object?)"/> function.</param>
     private void HandleRequest(object? state)
     {
-        if (state is not TcpClient client)
+        if (state is not TcpClientConnection connection)
         {
+            _logger.LogError("Invalid state object passed to HandleRequest: {State}", state);
+            Debug.Fail("Invalid state object passed to HandleRequest");
             return;
         }
         
         try
         {
-            using var stream = client.GetStream();
+            using var stream = connection.Client.GetStream();
             var response = _requestHandler(stream);
             Debug.Assert(response.Length > 0);
 
             _logger.LogDebug("Sending response: Writing {ResponseBytes} bytes to buffer", response.Length);
             stream.Write(response);
-            client.Close();
+            _connectionPool.CloseConnection(connection);
         }
         catch (Exception ex)
         {

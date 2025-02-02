@@ -9,6 +9,11 @@ public class HttpWebServerOptions
     /// Options for configuring keep-alive behavior.
     /// </summary>
     public HttpWebServerKeepAliveOptions KeepAlive { get; set; } = new HttpWebServerKeepAliveOptions();
+    
+    /// <summary>
+    /// The maximum number of connections to allow on the server.
+    /// </summary>
+    public int MaxConnections { get; set; } = 100;
 }
 
 public class HttpWebServerKeepAliveOptions

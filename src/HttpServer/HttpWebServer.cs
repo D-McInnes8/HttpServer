@@ -1,3 +1,4 @@
+using HttpServer.Networking;
 using HttpServer.Pipeline;
 using HttpServer.Pipeline.Registry;
 using HttpServer.Request;
@@ -101,10 +102,10 @@ public class HttpWebServer : IHttpWebServer
         var loggerFactory = serviceProvider.GetRequiredService<ILoggerFactory>();
         
         ArgumentOutOfRangeException.ThrowIfNegative(port, nameof(port));
-        _tcpServer = new TcpServer(port, HandleRequest, loggerFactory.CreateLogger<TcpServer>());
+        _options = serviceProvider.GetRequiredService<HttpWebServerOptions>();
+        _tcpServer = new TcpServer(port, HandleRequest, loggerFactory.CreateLogger<TcpServer>(), serviceProvider.GetRequiredService<IConnectionPool>(), _options);
         _pipelineRegistry = serviceProvider.GetRequiredService<IPipelineRegistry>();
         _router = serviceProvider.GetRequiredService<IRouter>();
-        _options = serviceProvider.GetRequiredService<HttpWebServerOptions>();
         _logger = loggerFactory.CreateLogger<HttpWebServer>();
     }
 

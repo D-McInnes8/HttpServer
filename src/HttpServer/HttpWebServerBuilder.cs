@@ -1,10 +1,12 @@
 using System.Diagnostics;
 using HttpServer.Logging;
+using HttpServer.Networking;
 using HttpServer.Pipeline.Registry;
 using HttpServer.Routing;
 using HttpServer.Routing.Internal;
 using HttpServer.Routing.StaticFiles;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
 
 namespace HttpServer;
@@ -72,7 +74,9 @@ public class HttpWebWebServerBuilder : IHttpWebServerBuilder
                 .AddSingleton<IReadOnlyPipelineRegistry>(provider => provider.GetRequiredService<IPipelineRegistry>())
                 .AddSingleton<IRouter, DefaultRouter>()
                 .AddSingleton<HttpWebServerOptions>()
+                .AddSingleton<IConnectionPool, TcpConnectionPool>()
                 .AddScoped<IFileContentTypeProvider, DefaultContentTypeProvider>();
+        Services.TryAddSingleton<TimeProvider>(_ => TimeProvider.System);
     }
     
     /// <inheritdoc />
