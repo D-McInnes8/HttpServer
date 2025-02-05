@@ -21,7 +21,7 @@ public class HttpWebServerKeepAliveOptions
     /// <summary>
     /// The amount of time to wait for the next request before closing the connection.
     /// </summary>
-    public TimeSpan Timeout { get; set; } = TimeSpan.FromSeconds(5);
+    public TimeSpan Timeout { get; set; } = TimeSpan.FromSeconds(60);
     
     /// <summary>
     /// The maximum number of requests to allow on a single connection.

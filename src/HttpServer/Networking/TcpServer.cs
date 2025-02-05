@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using System.Net;
 using System.Net.Sockets;
+using HttpServer.Headers;
 using HttpServer.Response;
 using HttpServer.Response.Internal;
 using Microsoft.Extensions.Logging;
@@ -123,22 +124,27 @@ internal class TcpServer
             Debug.Fail("Invalid state object passed to HandleRequest");
             return;
         }
-        
+
         try
         {
-            using var stream = connection.Client.GetStream();
+            var stream = connection.Client.GetStream();
             var response = _requestHandler(stream);
             var buffer = HttpResponseWriter.WriteResponse(response);
             Debug.Assert(buffer.Length > 0);
 
             _logger.LogDebug("Sending response: Writing {ResponseBytes} bytes to buffer", buffer.Length);
             stream.Write(buffer);
-            _connectionPool.CloseConnection(connection);
+
+            if (response.KeepAlive.Connection == HttpConnectionType.Close)
+            {
+                _logger.LogDebug("Closing connection to {RemoteEndpoint}", connection.Client.Client.RemoteEndPoint);
+                _connectionPool.CloseConnection(connection);
+            }
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "An uncaught exception occurred in the request worker thread: {Message}", ex.Message);
-            
+
             // Due to the way exceptions are handled in background threads, if a test fails due to an exception
             // being thrown then it will treat that test and every other test qs being inconclusive.
             // Only failing if the debugger is attached means that the tests will fail properly, and that
@@ -148,6 +154,10 @@ internal class TcpServer
                 //Debug.Fail($"{ex.GetType().Name}: Exception thrown by the TCP request handler.", ex.Message);
                 throw;
             }
+        }
+        finally
+        {
+            _connectionPool.CloseConnection(connection);
         }
     }
 }

@@ -39,7 +39,7 @@ public class TcpConnectionPool : IConnectionPool, IAsyncDisposable
         _timeProvider = timeProvider;
         _options = options;
         _connections = new List<TcpClientConnection>(capacity: options.MaxConnections);
-        _expiredConnectionTimer = new Timer(RemoveExpiredConnections, null, TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(1));
+        _expiredConnectionTimer = new Timer(RemoveExpiredConnections, null, TimeSpan.FromSeconds(5), TimeSpan.FromSeconds(5));
         _lock = new Lock();
     }
 
