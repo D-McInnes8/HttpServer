@@ -121,14 +121,14 @@ public class HttpWebServer : IHttpWebServer
         await _tcpServer.StopAsync();
     }
 
-    private byte[] HandleRequest(Stream stream)
+    private HttpResponse HandleRequest(Stream stream)
     {
         using var scope = Services.CreateScope();
         var result = HttpRequestParser.Parse(stream).GetAwaiter().GetResult();
         if (result.IsError)
         {
             _logger.LogWarning("Failed to parse request: {Error}", result.Error);
-            return HttpResponseWriter.WriteResponse(HttpResponse.BadRequest());
+            return HttpResponse.BadRequest();
         }
 
         var httpRequest = result.Value;
@@ -143,7 +143,7 @@ public class HttpWebServer : IHttpWebServer
             var httpResponse = _pipelineRegistry.GlobalPipeline.ExecuteAsync(ctx).GetAwaiter().GetResult();
             
             _logger.LogInformation("Sending response: {StatusCode}", httpResponse.StatusCode);
-            return HttpResponseWriter.WriteResponse(httpResponse);
+            return httpResponse;
         }
     }
     

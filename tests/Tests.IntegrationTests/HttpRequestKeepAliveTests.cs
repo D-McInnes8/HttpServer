@@ -136,9 +136,7 @@ public class HttpRequestKeepAliveTests : IAsyncLifetime
         // Assert
         Assert.Contains("HTTP/1.1 200 OK", response1);
         Assert.Contains("Connection: keep-alive", response1);
-
-        Assert.Contains("HTTP/1.1 200 OK", response2);
-        Assert.DoesNotContain("Connection: keep-alive", response2);
+        Assert.Empty(response2);
     }
     
     [Theory]

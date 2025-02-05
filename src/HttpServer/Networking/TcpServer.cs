@@ -1,6 +1,8 @@
 using System.Diagnostics;
 using System.Net;
 using System.Net.Sockets;
+using HttpServer.Response;
+using HttpServer.Response.Internal;
 using Microsoft.Extensions.Logging;
 
 namespace HttpServer.Networking;
@@ -36,8 +38,8 @@ internal class TcpServer
     private HttpWebServerOptions _options;
     private readonly ILogger<TcpServer> _logger;
 
-    private readonly Func<Stream, byte[]> _requestHandler;
-    private IConnectionPool _connectionPool;
+    private readonly Func<Stream, HttpResponse> _requestHandler;
+    private readonly IConnectionPool _connectionPool;
 
     /// <summary>
     /// Creates a new <see cref="TcpServer"/> with the specified port and request handler.
@@ -47,7 +49,7 @@ internal class TcpServer
     /// <param name="logger">The <see cref="ILogger"/> object to be logged to.</param>
     /// <param name="connectionPool">The <see cref="IConnectionPool"/> object to manage connections.</param>
     /// <param name="options">The <see cref="HttpWebServerOptions"/> object containing the server options.</param>
-    public TcpServer(int port, Func<Stream, byte[]> requestHandler, ILogger<TcpServer> logger, IConnectionPool connectionPool, HttpWebServerOptions options)
+    public TcpServer(int port, Func<Stream, HttpResponse> requestHandler, ILogger<TcpServer> logger, IConnectionPool connectionPool, HttpWebServerOptions options)
     {
         _requestHandler = requestHandler;
         _logger = logger;
@@ -126,10 +128,11 @@ internal class TcpServer
         {
             using var stream = connection.Client.GetStream();
             var response = _requestHandler(stream);
-            Debug.Assert(response.Length > 0);
+            var buffer = HttpResponseWriter.WriteResponse(response);
+            Debug.Assert(buffer.Length > 0);
 
-            _logger.LogDebug("Sending response: Writing {ResponseBytes} bytes to buffer", response.Length);
-            stream.Write(response);
+            _logger.LogDebug("Sending response: Writing {ResponseBytes} bytes to buffer", buffer.Length);
+            stream.Write(buffer);
             _connectionPool.CloseConnection(connection);
         }
         catch (Exception ex)
