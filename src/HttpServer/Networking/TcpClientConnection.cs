@@ -29,6 +29,11 @@ public class TcpClientConnection
     public int RequestCount { get; set; }
 
     /// <summary>
+    /// The stream for the client connection.
+    /// </summary>
+    public Stream Stream => Client.GetStream();
+
+    /// <summary>
     /// Initializes a new instance of <see cref="TcpClientConnection"/>.
     /// </summary>
     /// <param name="tcpClient"></param>

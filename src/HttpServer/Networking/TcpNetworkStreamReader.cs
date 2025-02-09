@@ -127,6 +127,7 @@ public class TcpNetworkStreamReader : IDisposable
         } while (await FillBufferAsync() > 0);
 
         Debug.Assert(remaining == 0);
+        Debug.Assert(buffer.Length == count);
         return buffer.ToString();
     }
     

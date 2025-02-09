@@ -1,5 +1,6 @@
 using System.Collections.Specialized;
 using HttpServer.Headers;
+using HttpServer.Networking;
 using HttpServer.Routing;
 
 namespace HttpServer.Request.Parser;
@@ -16,7 +17,7 @@ public static class HttpRequestParser
     /// <returns></returns>
     public static async Task<Result<HttpRequest, string>> Parse(Stream stream)
     {
-        using var reader = new HttpRequestStreamReader(stream);
+        using var reader = new TcpNetworkStreamReader(stream);
         var requestLine = await reader.ReadLineAsync();
         
         if (string.IsNullOrWhiteSpace(requestLine))
@@ -60,7 +61,7 @@ public static class HttpRequestParser
         }
         
         var contentLength = headers.GetValueOrDefault("Content-Length");
-        var body = await reader.ReadToEndAsync(contentLength is not null ? int.Parse(contentLength) : 0);
+        var body = contentLength is not null ? await reader.ReadAsync(int.Parse(contentLength)) : null;
         return new HttpRequest(method, path)
         {
             Headers = headers,
