@@ -7,30 +7,34 @@ namespace HttpServer.Networking;
 /// <summary>
 /// A network stream reader for reading data from a <see cref="TcpClientConnection"/>.
 /// </summary>
-internal class TcpNetworkStreamReader : IDisposable
+public class TcpNetworkStreamReader : IDisposable
 {
-    private readonly TcpClientConnection _tcpClientConnection;
+    private readonly Stream _stream;
     private readonly Encoding _encoding;
     private bool _bufferInitialised;
+    private bool _ignoreNextNewLine;
     private bool _isDisposed;
     
     private readonly byte[] _buffer;
+    private readonly int _bufferSize;
     private int _bufferPosition;
     private int _bufferLength;
     
     private static readonly ArrayPool<byte> BufferPool = ArrayPool<byte>.Create();
-    private const int BufferSize = 2048;
+    //private const int BufferSize = 2048;
 
     /// <summary>
     /// Initializes a new instance of <see cref="TcpNetworkStreamReader"/>.
     /// </summary>
-    /// <param name="tcpClientConnection"></param>
-    internal TcpNetworkStreamReader(TcpClientConnection tcpClientConnection)
+    /// <param name="stream">The stream to read from.</param>
+    /// <param name="bufferSize">The size of the buffer to use when reading from the stream.</param>
+    public TcpNetworkStreamReader(Stream stream, int bufferSize = 1024)
     {
-        _tcpClientConnection = tcpClientConnection;
+        _stream = stream;
         _encoding = Encoding.ASCII;
         
-        _buffer = BufferPool.Rent(BufferSize);
+        _bufferSize = bufferSize;
+        _buffer = BufferPool.Rent(_bufferSize);
         _bufferPosition = 0;
         _bufferLength = 0;
     }
@@ -50,7 +54,8 @@ internal class TcpNetworkStreamReader : IDisposable
         var lineBuffer = new StringBuilder();
         do
         {
-            var span = _buffer.AsSpan(_bufferPosition);
+            var span = _buffer.AsSpan(_bufferPosition, _bufferLength - _bufferPosition);
+            var text = _encoding.GetString(span);
             var newLineIndex = span.IndexOfAny((byte)'\r', (byte)'\n');
 
             if (newLineIndex != -1)
@@ -63,6 +68,14 @@ internal class TcpNetworkStreamReader : IDisposable
                     && _buffer[_bufferPosition] == '\n')
                 {
                     _bufferPosition++;
+                }
+
+                // If the buffer position is at the end of the buffer and the last character was a carriage return,
+                // we need to ignore the next newline character at the start of the next buffer.
+                if (_bufferPosition == _bufferLength
+                    && _buffer[_bufferPosition - 1] == '\r')
+                {
+                    _ignoreNextNewLine = true;
                 }
 
                 lineBuffer.Append(_encoding.GetString(span[..newLineIndex]));
@@ -93,7 +106,7 @@ internal class TcpNetworkStreamReader : IDisposable
         var remaining = count;
         do
         {
-            var span = _buffer.AsSpan(_bufferPosition);
+            var span = _buffer.AsSpan(_bufferPosition, _bufferLength - _bufferPosition);
             var bytesToRead = Math.Min(remaining, span.Length);
 
             buffer.Append(_encoding.GetString(span[..bytesToRead]));
@@ -131,8 +144,18 @@ internal class TcpNetworkStreamReader : IDisposable
     /// <returns>The number of bytes read from the stream.</returns>
     private async Task<int> FillBufferAsync()
     {
-        _bufferLength = await _tcpClientConnection.Stream.ReadAsync(_buffer, 0, BufferSize);
+        _bufferLength = await _stream.ReadAsync(_buffer, 0, _bufferSize);
         _bufferPosition = 0;
+        
+        if (_ignoreNextNewLine)
+        {
+            _ignoreNextNewLine = false;
+            if (_bufferLength > 0 && _buffer[0] == '\n')
+            {
+                _bufferPosition++;
+            }
+        }
+        
         return _bufferLength;
     }
 
