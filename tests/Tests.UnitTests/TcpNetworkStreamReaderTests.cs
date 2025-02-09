@@ -9,7 +9,7 @@ public class TcpNetworkStreamReaderTests
     {
         // Arrange
         var stream = CreateStream("Hello, World!");
-        var reader = new TcpNetworkStreamReader(stream);
+        using var reader = new TcpNetworkStreamReader(stream);
         
         // Act
         var actual = await reader.ReadAsync(5);
@@ -23,7 +23,7 @@ public class TcpNetworkStreamReaderTests
     {
         // Arrange
         var stream = CreateStream("Hello, World!");
-        var reader = new TcpNetworkStreamReader(stream);
+        using var reader = new TcpNetworkStreamReader(stream);
         
         // Act
         _ = await reader.ReadAsync(5);
@@ -38,7 +38,7 @@ public class TcpNetworkStreamReaderTests
     {
         // Arrange
         var stream = CreateStream("Hello, World!\r\n");
-        var reader = new TcpNetworkStreamReader(stream);
+        using var reader = new TcpNetworkStreamReader(stream);
         
         // Act
         var actual = await reader.ReadLineAsync();
@@ -52,7 +52,7 @@ public class TcpNetworkStreamReaderTests
     {
         // Arrange
         var stream = CreateStream("\r\n");
-        var reader = new TcpNetworkStreamReader(stream);
+        using var reader = new TcpNetworkStreamReader(stream);
         
         // Act
         var actual = await reader.ReadLineAsync();
@@ -66,7 +66,7 @@ public class TcpNetworkStreamReaderTests
     {
         // Arrange
         var stream = CreateStream(string.Empty);
-        var reader = new TcpNetworkStreamReader(stream);
+        using var reader = new TcpNetworkStreamReader(stream);
         
         // Act
         var actual = await reader.ReadLineAsync();
@@ -81,7 +81,7 @@ public class TcpNetworkStreamReaderTests
     {
         // Arrange
         var stream = CreateStream("Hello, World!\r\n");
-        var reader = new TcpNetworkStreamReader(stream);
+        using var reader = new TcpNetworkStreamReader(stream);
         
         // Act
         var actual = await reader.ReadLineAsync();
@@ -95,7 +95,7 @@ public class TcpNetworkStreamReaderTests
     {
         // Arrange
         var stream = CreateStream("Hello, World!\n");
-        var reader = new TcpNetworkStreamReader(stream);
+        using var reader = new TcpNetworkStreamReader(stream);
         
         // Act
         var actual = await reader.ReadLineAsync();
@@ -109,7 +109,7 @@ public class TcpNetworkStreamReaderTests
     {
         // Arrange
         var stream = CreateStream("Hello, World!");
-        var reader = new TcpNetworkStreamReader(stream);
+        using var reader = new TcpNetworkStreamReader(stream);
         
         // Act
         var actual = await reader.ReadLineAsync();
@@ -123,7 +123,7 @@ public class TcpNetworkStreamReaderTests
     {
         // Arrange
         var stream = CreateStream("Hello, World!\r\nHow are you?\r\n");
-        var reader = new TcpNetworkStreamReader(stream);
+        using var reader = new TcpNetworkStreamReader(stream);
         
         // Act
         var actual1 = await reader.ReadLineAsync();
@@ -139,7 +139,7 @@ public class TcpNetworkStreamReaderTests
     {
         // Arrange
         var stream = CreateStream("Hello, World!\r\nHow are you?\r\n");
-        var reader = new TcpNetworkStreamReader(stream, 5);
+        using var reader = new TcpNetworkStreamReader(stream, 5);
         
         // Act
         var actual1 = await reader.ReadLineAsync();
@@ -155,11 +155,27 @@ public class TcpNetworkStreamReaderTests
     {
         // Arrange
         var stream = CreateStream("Hello, World!\r\nHow are you?\r\n");
-        var reader = new TcpNetworkStreamReader(stream, 14);
+        using var reader = new TcpNetworkStreamReader(stream, 14);
         
         // Act
         var actual1 = await reader.ReadLineAsync();
         var actual2 = await reader.ReadLineAsync();
+        
+        // Assert
+        Assert.Equal("Hello, World!", actual1);
+        Assert.Equal("How are you?", actual2);
+    }
+    
+    [Fact]
+    public async Task ReadLineAsync_ThenReadAsync_ShouldReadLineAndRemainingBytes()
+    {
+        // Arrange
+        var stream = CreateStream("Hello, World!\r\nHow are you?");
+        using var reader = new TcpNetworkStreamReader(stream);
+        
+        // Act
+        var actual1 = await reader.ReadLineAsync();
+        var actual2 = await reader.ReadAsync(12);
         
         // Assert
         Assert.Equal("Hello, World!", actual1);
