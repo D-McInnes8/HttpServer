@@ -12,7 +12,7 @@ public class TcpNetworkStreamReader : IDisposable
     private readonly Stream _stream;
     private readonly Encoding _encoding;
     private bool _bufferInitialised;
-    private bool _ignoreNextNewLine;
+    private bool _ignoreNextNewLineCharacter;
     private bool _isDisposed;
     
     private readonly byte[] _buffer;
@@ -21,22 +21,31 @@ public class TcpNetworkStreamReader : IDisposable
     private int _bufferLength;
     
     private static readonly ArrayPool<byte> BufferPool = ArrayPool<byte>.Create();
-    //private const int BufferSize = 2048;
-
+    
     /// <summary>
     /// Initializes a new instance of <see cref="TcpNetworkStreamReader"/>.
     /// </summary>
     /// <param name="stream">The stream to read from.</param>
+    /// <param name="encoding">The encoding to use when reading from the stream.</param>
     /// <param name="bufferSize">The size of the buffer to use when reading from the stream.</param>
-    public TcpNetworkStreamReader(Stream stream, int bufferSize = 1024)
+    private TcpNetworkStreamReader(Stream stream, Encoding encoding, int bufferSize)
     {
         _stream = stream;
-        _encoding = Encoding.ASCII;
+        _encoding = encoding;
         
         _bufferSize = bufferSize;
         _buffer = BufferPool.Rent(_bufferSize);
         _bufferPosition = 0;
         _bufferLength = 0;
+    }
+    
+    /// <summary>
+    /// Initializes a new instance of <see cref="TcpNetworkStreamReader"/>.
+    /// </summary>
+    /// <param name="stream">The stream to read from.</param>
+    /// <param name="bufferSize">The size of the buffer to use when reading from the stream.</param>
+    public TcpNetworkStreamReader(Stream stream, int bufferSize = 1024) : this(stream, Encoding.Default, bufferSize)
+    {
     }
 
     /// <summary>
@@ -55,7 +64,6 @@ public class TcpNetworkStreamReader : IDisposable
         do
         {
             var span = _buffer.AsSpan(_bufferPosition, _bufferLength - _bufferPosition);
-            var text = _encoding.GetString(span);
             var newLineIndex = span.IndexOfAny((byte)'\r', (byte)'\n');
 
             if (newLineIndex != -1)
@@ -75,14 +83,13 @@ public class TcpNetworkStreamReader : IDisposable
                 if (_bufferPosition == _bufferLength
                     && _buffer[_bufferPosition - 1] == '\r')
                 {
-                    _ignoreNextNewLine = true;
+                    _ignoreNextNewLineCharacter = true;
                 }
 
                 lineBuffer.Append(_encoding.GetString(span[..newLineIndex]));
                 break;
             }
 
-            //_bufferPosition = _bufferLength;
             lineBuffer.Append(_encoding.GetString(span));
         } while (await FillBufferAsync() > 0);
         
@@ -129,7 +136,7 @@ public class TcpNetworkStreamReader : IDisposable
     /// <returns></returns>
     private Task InitialiseBufferAsync()
     {
-        if (_bufferInitialised)
+        if (_bufferInitialised && _bufferPosition < _bufferLength)
         {
             return Task.CompletedTask;
         }
@@ -147,9 +154,9 @@ public class TcpNetworkStreamReader : IDisposable
         _bufferLength = await _stream.ReadAsync(_buffer, 0, _bufferSize);
         _bufferPosition = 0;
         
-        if (_ignoreNextNewLine)
+        if (_ignoreNextNewLineCharacter)
         {
-            _ignoreNextNewLine = false;
+            _ignoreNextNewLineCharacter = false;
             if (_bufferLength > 0 && _buffer[0] == '\n')
             {
                 _bufferPosition++;
