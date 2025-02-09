@@ -7,7 +7,7 @@ namespace HttpServer.Networking;
 /// <summary>
 /// A network stream reader for reading data from a <see cref="TcpClientConnection"/>.
 /// </summary>
-public class TcpNetworkStreamReader : IDisposable
+public class TcpNetworkStreamReader : IDisposable, INetworkStreamReader
 {
     private readonly Stream _stream;
     private readonly Encoding _encoding;

@@ -11,14 +11,13 @@ namespace HttpServer.Request.Parser;
 public static class HttpRequestParser
 {
     /// <summary>
-    /// Parses a HTTP request from a stream.
+    /// Parses a HTTP request from a <see cref="INetworkStreamReader"/>.
     /// </summary>
-    /// <param name="stream"></param>
-    /// <returns></returns>
-    public static async Task<Result<HttpRequest, string>> Parse(Stream stream)
+    /// <param name="networkStreamReader">The network stream reader to parse the request from.</param>
+    /// <returns>The parsed HTTP request.</returns>
+    public static async Task<Result<HttpRequest, string>> Parse(INetworkStreamReader networkStreamReader)
     {
-        using var reader = new TcpNetworkStreamReader(stream);
-        var requestLine = await reader.ReadLineAsync();
+        var requestLine = await networkStreamReader.ReadLineAsync();
         
         if (string.IsNullOrWhiteSpace(requestLine))
         {
@@ -47,7 +46,7 @@ public static class HttpRequestParser
         
         var headers = new Dictionary<string, string>();
         string? line;
-        while (!string.IsNullOrWhiteSpace(line = await reader.ReadLineAsync()))
+        while (!string.IsNullOrWhiteSpace(line = await networkStreamReader.ReadLineAsync()))
         {
             _ = TryGetParsedHeader(line, out var httpHeader);
             headers.Add(httpHeader.Key, httpHeader.Value);
@@ -61,7 +60,7 @@ public static class HttpRequestParser
         }
         
         var contentLength = headers.GetValueOrDefault("Content-Length");
-        var body = contentLength is not null ? await reader.ReadAsync(int.Parse(contentLength)) : null;
+        var body = contentLength is not null ? await networkStreamReader.ReadAsync(int.Parse(contentLength)) : null;
         return new HttpRequest(method, path)
         {
             Headers = headers,

@@ -1,6 +1,7 @@
 using System.Text;
 using HttpServer;
 using HttpServer.Headers;
+using HttpServer.Networking;
 using HttpServer.Request;
 using HttpServer.Request.Parser;
 
@@ -24,9 +25,10 @@ public class HttpRequestParserTests
         var body = hasBody ? "Body content" : string.Empty;
         var request = $"{method} {path} HTTP/1.1\r\nHost: localhost\r\nContent-Length: {body.Length}\r\n\r\n{body}";
         using var stream = new MemoryStream(Encoding.UTF8.GetBytes(request));
+        using var streamReader = new TcpNetworkStreamReader(stream);
         
         // Act
-        var result = await HttpRequestParser.Parse(stream);
+        var result = await HttpRequestParser.Parse(streamReader);
 
         // Assert
         var actual = result.Value;
@@ -47,9 +49,10 @@ public class HttpRequestParserTests
         // Arrange
         var request = $"{method} {path} {httpVersion}\r\nHost: localhost\r\n\r\n";
         using var stream = new MemoryStream(Encoding.UTF8.GetBytes(request));
+        using var streamReader = new TcpNetworkStreamReader(stream);
 
         // Act
-        var result = await HttpRequestParser.Parse(stream);
+        var result = await HttpRequestParser.Parse(streamReader);
 
         // Assert
         var actual = result.Value;
@@ -68,9 +71,10 @@ public class HttpRequestParserTests
         // Arrange
         var request = $"{method} {path} {httpVersion}\r\nHost: localhost\r\n\r\n";
         using var stream = new MemoryStream(Encoding.UTF8.GetBytes(request));
+        using var streamReader = new TcpNetworkStreamReader(stream);
 
         // Act
-        var result = await HttpRequestParser.Parse(stream);
+        var result = await HttpRequestParser.Parse(streamReader);
 
         // Assert
         var actual = result.Value;
@@ -83,9 +87,10 @@ public class HttpRequestParserTests
         // Arrange
         const string request = "GET / HTTP/1.1\r\nHost: localhost\r\nUser-Agent: xUnit\r\nAccept: #1#*\r\n\r\n";
         using var stream = new MemoryStream(Encoding.UTF8.GetBytes(request));
+        using var streamReader = new TcpNetworkStreamReader(stream);
         
         // Act
-        var result = await HttpRequestParser.Parse(stream);
+        var result = await HttpRequestParser.Parse(streamReader);
 
         // Assert
         var actual = result.Value;
@@ -106,9 +111,10 @@ public class HttpRequestParserTests
         // Arrange
         const string request = "POST /submit HTTP/1.1\r\nHost: localhost\r\nContent-Length: 11\r\n\r\nHello World";
         using var stream = new MemoryStream(Encoding.UTF8.GetBytes(request));
+        using var streamReader = new TcpNetworkStreamReader(stream);
         
         // Act
-        var result = await HttpRequestParser.Parse(stream);
+        var result = await HttpRequestParser.Parse(streamReader);
 
         // Assert
         var actual = result.Value;
@@ -127,9 +133,10 @@ public class HttpRequestParserTests
         // Arrange
         const string request = "POST /submit HTTP/1.1\r\nHost: localhost\r\nContent-Length: 0\r\n\r\n";
         using var stream = new MemoryStream(Encoding.UTF8.GetBytes(request));
+        using var streamReader = new TcpNetworkStreamReader(stream);
 
         // Act
-        var result = await HttpRequestParser.Parse(stream);
+        var result = await HttpRequestParser.Parse(streamReader);
 
         // Assert
         var actual = result.Value;
@@ -144,9 +151,10 @@ public class HttpRequestParserTests
     {
         // Arrange
         using var stream = new MemoryStream(Encoding.UTF8.GetBytes(request));
+        using var streamReader = new TcpNetworkStreamReader(stream);
         
         // Act
-        var result = await HttpRequestParser.Parse(stream);
+        var result = await HttpRequestParser.Parse(streamReader);
 
         // Assert
         var actual = result.Value;
@@ -165,10 +173,11 @@ public class HttpRequestParserTests
         // Arrange
         const string request = "POST /submit HTTP/1.1\r\nHost: localhost\r\nContent-Type: application/json\r\n\r\n";
         using var stream = new MemoryStream(Encoding.UTF8.GetBytes(request));
+        using var streamReader = new TcpNetworkStreamReader(stream);
         var expected = new HttpContentType("application", "json");
         
         // Act
-        var result = await HttpRequestParser.Parse(stream);
+        var result = await HttpRequestParser.Parse(streamReader);
         
         // Assert
         var actual = result.Value;
@@ -182,9 +191,10 @@ public class HttpRequestParserTests
         // Arrange
         const string request = "GET /api/v1/resource?query=param HTTP/1.1\r\nHost: localhost\r\n\r\n";
         using var stream = new MemoryStream(Encoding.UTF8.GetBytes(request));
+        using var streamReader = new TcpNetworkStreamReader(stream);
         
         // Act
-        var result = await HttpRequestParser.Parse(stream);
+        var result = await HttpRequestParser.Parse(streamReader);
         
         // Assert
         var actual = result.Value;
@@ -198,9 +208,10 @@ public class HttpRequestParserTests
         // Arrange
         const string request = "GET /api/v1/resource?query=param&filter=123 HTTP/1.1\r\nHost: localhost\r\n\r\n";
         using var stream = new MemoryStream(Encoding.UTF8.GetBytes(request));
+        using var streamReader = new TcpNetworkStreamReader(stream);
         
         // Act
-        var result = await HttpRequestParser.Parse(stream);
+        var result = await HttpRequestParser.Parse(streamReader);
         
         // Assert
         var actual = result.Value;
@@ -216,9 +227,10 @@ public class HttpRequestParserTests
     {
         // Arrange
         using var stream = new MemoryStream(Encoding.UTF8.GetBytes(request));
+        using var streamReader = new TcpNetworkStreamReader(stream);
         
         // Act
-        var result = await HttpRequestParser.Parse(stream);
+        var result = await HttpRequestParser.Parse(streamReader);
         
         // Assert
         var actual = result.Value;
