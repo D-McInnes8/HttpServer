@@ -102,9 +102,7 @@ internal class TcpServer
                 _logger.LogDebug("Accepted connection from {RemoteEndpoint}", client.Client.RemoteEndPoint);
                 _connectionPool.AddConnection(tcpClientConnection);
 
-                ThreadPool.QueueUserWorkItem(ListenToTcpSession, tcpClientConnection);
-                //ThreadPool.QueueUserWorkItem(HandleRequest, tcpClientConnection);
-                //ThreadPool.QueueUserWorkItem(ListenToSocket, tcpClientConnection);
+                ThreadPool.QueueUserWorkItem(HandleRequest, tcpClientConnection);
             }
             catch (SocketException ex) when (ex.SocketErrorCode == SocketError.Interrupted)
             {
@@ -114,58 +112,11 @@ internal class TcpServer
         
         _logger.LogInformation("Server stopped");
     }
-
-    private void ListenToTcpSession(object? state)
-    {
-        if (state is not TcpClientConnection connection)
-        {
-            _logger.LogError("Invalid state object passed to HandleRequest: {State}", state);
-            Debug.Fail("Invalid state object passed to HandleRequest");
-            return;
-        }
-
-        try
-        {
-            var stream = connection.Client.GetStream();
-            using var streamReader = new TcpNetworkStreamReader(stream);
-            var response = _requestHandler(streamReader);
-            var buffer = HttpResponseWriter.WriteResponse(response);
-            Debug.Assert(buffer.Length > 0);
-
-            _logger.LogDebug("Sending response: Writing {ResponseBytes} bytes to buffer", buffer.Length);
-            stream.Write(buffer);
-
-            if (response.KeepAlive.Connection == HttpConnectionType.Close)
-            {
-                _logger.LogDebug("Closing connection to {RemoteEndpoint}", connection.Client.Client.RemoteEndPoint);
-                _connectionPool.CloseConnection(connection);
-            }
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "An uncaught exception occurred in the request worker thread: {Message}", ex.Message);
-
-            // Due to the way exceptions are handled in background threads, if a test fails due to an exception
-            // being thrown then it will treat that test and every other test qs being inconclusive.
-            // Only failing if the debugger is attached means that the tests will fail properly, and that
-            // proper error message can be found by debugging a failing test.SSS
-            if (Debugger.IsAttached)
-            {
-                //Debug.Fail($"{ex.GetType().Name}: Exception thrown by the TCP request handler.", ex.Message);
-                throw;
-            }
-        }
-        finally
-        {
-            _connectionPool.CloseConnection(connection);
-        }
-    }
-
+    
     /// <summary>
     /// Handles a TCP request and forwards the request to the HTTP server.
     /// </summary>
     /// <param name="state">The <see cref="TcpClient"/> state object passed to the handler by the <see cref="ThreadPool.QueueUserWorkItem(WaitCallback, object?)"/> function.</param>
-    [Obsolete]
     private void HandleRequest(object? state)
     {
         if (state is not TcpClientConnection connection)
@@ -179,17 +130,22 @@ internal class TcpServer
         {
             var stream = connection.Client.GetStream();
             using var streamReader = new TcpNetworkStreamReader(stream);
-            var response = _requestHandler(streamReader);
-            var buffer = HttpResponseWriter.WriteResponse(response);
-            Debug.Assert(buffer.Length > 0);
 
-            _logger.LogDebug("Sending response: Writing {ResponseBytes} bytes to buffer", buffer.Length);
-            stream.Write(buffer);
-
-            if (response.KeepAlive.Connection == HttpConnectionType.Close)
+            while (!connection.IsDisposed)
             {
-                _logger.LogDebug("Closing connection to {RemoteEndpoint}", connection.Client.Client.RemoteEndPoint);
-                _connectionPool.CloseConnection(connection);
+                var response = _requestHandler(streamReader);
+                var buffer = HttpResponseWriter.WriteResponse(response);
+                Debug.Assert(buffer.Length > 0);
+
+                _logger.LogDebug("Sending response: Writing {ResponseBytes} bytes to buffer", buffer.Length);
+                stream.Write(buffer);
+
+                if (response.KeepAlive.Connection == HttpConnectionType.Close)
+                {
+                    _logger.LogDebug("Closing connection to {RemoteEndpoint}", connection.Client.Client.RemoteEndPoint);
+                    _connectionPool.CloseConnection(connection);
+                    return;
+                }
             }
         }
         catch (Exception ex)
