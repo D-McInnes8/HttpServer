@@ -58,6 +58,7 @@ public class TcpConnectionPool : IConnectionPool, IAsyncDisposable
         lock (_lock)
         {
             _connections.Remove(connection);
+            connection.IsDisposed = true;
             connection.Client.Close();
         }
     }
@@ -74,6 +75,7 @@ public class TcpConnectionPool : IConnectionPool, IAsyncDisposable
             {
                 if (connection.ConnectionOpened.Add(_options.KeepAlive.Timeout) < invocationDateTime)
                 {
+                    connection.IsDisposed = true;
                     connection.Client.Close();
                 }
             }

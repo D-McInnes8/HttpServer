@@ -14,6 +14,11 @@ public class TcpClientConnection
     public required TcpClient Client { get; set; }
     
     /// <summary>
+    /// Whether the connection has been disposed.
+    /// </summary>
+    public bool IsDisposed { get; set; }
+    
+    /// <summary>
     /// The last time a request was received from the client.
     /// </summary>
     public DateTime? LastRequest { get; set; }

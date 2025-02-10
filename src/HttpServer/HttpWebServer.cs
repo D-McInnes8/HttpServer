@@ -121,10 +121,9 @@ public class HttpWebServer : IHttpWebServer
         await _tcpServer.StopAsync();
     }
 
-    private HttpResponse HandleRequest(Stream stream)
+    private HttpResponse HandleRequest(INetworkStreamReader streamReader)
     {
         using var scope = Services.CreateScope();
-        using var streamReader = new TcpNetworkStreamReader(stream);
         var result = HttpRequestParser.Parse(streamReader).GetAwaiter().GetResult();
         if (result.IsError)
         {
