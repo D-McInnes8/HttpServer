@@ -130,6 +130,43 @@ public class TcpNetworkStreamReader : IDisposable, INetworkStreamReader
         Debug.Assert(buffer.Length == count);
         return buffer.ToString();
     }
+
+    /// <summary>
+    /// Reads a specified number of bytes from the stream.
+    /// </summary>
+    /// <param name="count">The number of bytes to read.</param>
+    /// <returns>The read bytes as a byte array.</returns>
+    public async Task<byte[]> ReadBytesAsync(int count)
+    {
+        if (_isDisposed || count <= 0)
+        {
+            return [];
+        }
+        
+        await InitialiseBufferAsync();
+        var buffer = new byte[count];
+        var bufferPosition = 0;
+        var remaining = count;
+        do
+        {
+            var span = _buffer.AsSpan(_bufferPosition, _bufferLength - _bufferPosition);
+            var bytesToRead = Math.Min(remaining, span.Length);
+
+            span[..bytesToRead].CopyTo(buffer.AsSpan(bufferPosition));
+            bufferPosition += bytesToRead;
+            _bufferPosition += bytesToRead;
+
+            remaining -= bytesToRead;
+            if (remaining == 0)
+            {
+                break;
+            }
+        } while (await FillBufferAsync() > 0);
+
+        Debug.Assert(remaining == 0);
+        Debug.Assert(buffer.Length == count);
+        return buffer;
+    }
     
     /// <summary>
     /// Initialises the buffer by filling it with data from the stream.

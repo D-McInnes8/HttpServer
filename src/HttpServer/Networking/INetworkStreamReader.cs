@@ -17,4 +17,11 @@ public interface INetworkStreamReader
     /// <param name="count">The number of bytes to read.</param>
     /// <returns>The read bytes as a string.</returns>
     Task<string?> ReadAsync(int count);
+    
+    /// <summary>
+    /// Reads a specified number of bytes from the stream.
+    /// </summary>
+    /// <param name="count">The number of bytes to read.</param>
+    /// <returns>The read bytes as a byte array.</returns>
+    Task<byte[]> ReadBytesAsync(int count);
 }

@@ -34,6 +34,35 @@ public class TcpNetworkStreamReaderTests
     }
     
     [Fact]
+    public async Task ReadBytesAsync_SingleCall_ShouldReadSpecifiedNumberOfBytes()
+    {
+        // Arrange
+        var stream = CreateStream("Hello, World!");
+        using var reader = new TcpNetworkStreamReader(stream);
+        
+        // Act
+        var actual = await reader.ReadBytesAsync(5);
+        
+        // Assert
+        Assert.Equal("Hello"u8.ToArray(), actual);
+    }
+    
+    [Fact]
+    public async Task ReadBytesAsync_MultipleCalls_ShouldReadSpecifiedNumberOfBytes()
+    {
+        // Arrange
+        var stream = CreateStream("Hello, World!");
+        using var reader = new TcpNetworkStreamReader(stream);
+        
+        // Act
+        _ = await reader.ReadBytesAsync(5);
+        var actual = await reader.ReadBytesAsync(7);
+        
+        // Assert
+        Assert.Equal(", World"u8.ToArray(), actual);
+    }
+    
+    [Fact]
     public async Task ReadLineAsync_SingleLine_ShouldReadLine()
     {
         // Arrange

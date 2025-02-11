@@ -16,7 +16,7 @@ public class StringBodyContent : HttpBodyContent
     /// <summary>
     /// Constructs a new <see cref="StringBodyContent"/> with the specified content.
     /// </summary>
-    /// <param name="content"></param>
+    /// <param name="content">The content of the body.</param>
     public StringBodyContent(string content) : this(content, HttpContentType.TextPlain, Encoding.Default)
     {
     }
@@ -24,8 +24,8 @@ public class StringBodyContent : HttpBodyContent
     /// <summary>
     /// Constructs a new <see cref="StringBodyContent"/> with the specified content and encoding.
     /// </summary>
-    /// <param name="content"></param>
-    /// <param name="encoding"></param>
+    /// <param name="content">The content of the body.</param>
+    /// <param name="encoding">The encoding of the body.</param>
     public StringBodyContent(string content, Encoding encoding) : this(content, HttpContentType.TextPlain, encoding)
     {
     }
@@ -33,20 +33,25 @@ public class StringBodyContent : HttpBodyContent
     /// <summary>
     /// Constructs a new <see cref="StringBodyContent"/> with the specified content and content type.
     /// </summary>
-    /// <param name="content"></param>
-    /// <param name="contentType"></param>
-    public StringBodyContent(string content, HttpContentType contentType) : this(content, contentType, Encoding.Default)
+    /// <param name="content">The content of the body.</param>
+    /// <param name="contentType">The content type of the body.</param>
+    public StringBodyContent(string content, HttpContentType contentType)
     {
+        ArgumentNullException.ThrowIfNull(contentType);
+        Encoding = contentType.Charset is not null ? Encoding.GetEncoding(contentType.Charset) : Encoding.Default;
+        Content = Encoding.GetBytes(content);
+        ContentType = contentType;
     }
     
     /// <summary>
     /// Constructs a new <see cref="StringBodyContent"/> with the specified content and content type.
     /// </summary>
-    /// <param name="content"></param>
-    /// <param name="contentType"></param>
-    /// <param name="encoding"></param>
+    /// <param name="content">The content of the body.</param>
+    /// <param name="contentType">The content type of the body.</param>
+    /// <param name="encoding">The encoding of the body.</param>
     public StringBodyContent(string content, HttpContentType contentType, Encoding encoding)
     {
+        ArgumentNullException.ThrowIfNull(contentType);
         ArgumentNullException.ThrowIfNull(encoding);
         Content = encoding.GetBytes(content);
         ContentType = contentType;

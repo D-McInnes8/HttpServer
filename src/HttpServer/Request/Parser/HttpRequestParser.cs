@@ -1,4 +1,5 @@
 using System.Collections.Specialized;
+using System.Text;
 using HttpServer.Headers;
 using HttpServer.Networking;
 using HttpServer.Response.Body;
@@ -61,11 +62,26 @@ public static class HttpRequestParser
         }
         
         var contentLength = headers.GetValueOrDefault("Content-Length");
-        var body = contentLength is not null ? await networkStreamReader.ReadAsync(int.Parse(contentLength)) : null;
+        var body = contentLength is not null ? await networkStreamReader.ReadBytesAsync(int.Parse(contentLength)) : null;
+        if (body is null)
+        {
+            return new HttpRequest(method, path)
+            {
+                Headers = headers,
+                HttpVersion = httpVersion,
+                ContentType = httpContentType,
+            };
+        }
+
+        if (httpContentType is null)
+        {
+            return Result.Error<HttpRequest, string>("Content-Type header is required.");
+        }
+        var encoding = httpContentType.Charset is not null ? Encoding.GetEncoding(httpContentType.Charset) : Encoding.UTF8;
         return new HttpRequest(method, path)
         {
             Headers = headers,
-            Body = string.IsNullOrWhiteSpace(body) ? null : new StringBodyContent(body),
+            Body = new ByteArrayBodyContent(body, httpContentType, encoding),
             HttpVersion = httpVersion,
             ContentType = httpContentType,
         };
