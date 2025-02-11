@@ -123,7 +123,7 @@ public class HttpRequestParserTests
             Assert.Equal(HttpRequestMethod.POST, actual.Method);
             Assert.Equal("/submit", actual.Path);
             Assert.True(actual.HasBody);
-            Assert.Equal("Hello World", actual.Body);
+            Assert.Equal("Hello World", actual.Body?.Encoding.GetString(actual.Body.Content));
         });
     }
     

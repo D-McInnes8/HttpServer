@@ -1,6 +1,7 @@
 using HttpServer;
 using HttpServer.Request;
 using HttpServer.Response;
+using HttpServer.Response.Body;
 
 namespace Tests.IntegrationTests;
 
@@ -43,7 +44,7 @@ public class HttpRequestBodyTests : IAsyncLifetime
         Assert.NotNull(actual);
         Assert.Multiple(() =>
         {
-            Assert.Equal("Hello, World!", actual.Body);
+            Assert.Equal("Hello, World!", actual.Body?.Encoding.GetString(actual.Body.Content));
             Assert.Equal("text/plain; charset=utf-8", actual.ContentType?.Value);
             //Assert.Equal("text/plain; charset=utf-8", actual.ContentType);
         });
@@ -73,7 +74,7 @@ public class HttpRequestBodyTests : IAsyncLifetime
         {
             Assert.True(response.IsSuccessStatusCode);
             Assert.NotNull(actual);
-            Assert.Equal(expected, actual.Body);
+            Assert.Equal(expected, actual.Body?.Encoding.GetString(actual.Body.Content));
         });
     }
 
@@ -88,7 +89,7 @@ public class HttpRequestBodyTests : IAsyncLifetime
         using var httpClient = new HttpClient();
         httpClient.BaseAddress =  new Uri($"http://localhost:{_server.Port}");
         var chars = Enumerable.Range(0, 26).Select(i => Convert.ToChar(i + 65)).ToArray();
-        _server.MapRoute(HttpRequestMethod.POST, "/test", ctx => HttpResponse.Ok(ctx.Request.Body ?? string.Empty));
+        _server.MapRoute(HttpRequestMethod.POST, "/test", ctx => HttpResponse.Ok(ctx.Request.Body ?? new StringBodyContent(string.Empty)));
         
         // Act
         var tasks = new List<Task<HttpResponseMessage>>();

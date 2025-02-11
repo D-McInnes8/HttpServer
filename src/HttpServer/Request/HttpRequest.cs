@@ -2,6 +2,7 @@ using System.Collections.Specialized;
 using System.Diagnostics.CodeAnalysis;
 using HttpServer.Headers;
 using HttpServer.Request.Parser;
+using HttpServer.Response.Body;
 
 namespace HttpServer.Request;
 
@@ -38,7 +39,7 @@ public class HttpRequest
     /// <summary>
     /// The body of the request, if one is present. Otherwise null.
     /// </summary>
-    public string? Body { get; init; }
+    public HttpBodyContent? Body { get; init; }
     
     /// <summary>
     /// The HTTP headers sent with the request.

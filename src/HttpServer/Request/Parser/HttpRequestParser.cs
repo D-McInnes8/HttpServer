@@ -1,6 +1,7 @@
 using System.Collections.Specialized;
 using HttpServer.Headers;
 using HttpServer.Networking;
+using HttpServer.Response.Body;
 using HttpServer.Routing;
 
 namespace HttpServer.Request.Parser;
@@ -64,7 +65,7 @@ public static class HttpRequestParser
         return new HttpRequest(method, path)
         {
             Headers = headers,
-            Body = string.IsNullOrWhiteSpace(body) ? null : body,
+            Body = string.IsNullOrWhiteSpace(body) ? null : new StringBodyContent(body),
             HttpVersion = httpVersion,
             ContentType = httpContentType,
         };
