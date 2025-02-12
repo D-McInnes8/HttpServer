@@ -134,6 +134,13 @@ internal class TcpServer
             while (!connection.IsDisposed)
             {
                 var response = _requestHandler(streamReader);
+                
+                connection.RequestCount += 1;
+                if (connection.RequestCount >= _options.KeepAlive.MaxRequests)
+                {
+                    response.KeepAlive.Connection = HttpConnectionType.Close;
+                    _logger.LogDebug("Closing connection to {RemoteEndpoint} due to reaching maximum request count", connection.Client.Client.RemoteEndPoint);
+                }
                 var buffer = HttpResponseWriter.WriteResponse(response);
                 Debug.Assert(buffer.Length > 0);
 
