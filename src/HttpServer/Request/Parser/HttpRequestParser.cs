@@ -81,7 +81,7 @@ public static class HttpRequestParser
         return new HttpRequest(method, path)
         {
             Headers = headers,
-            Body = new ByteArrayBodyContent(body, httpContentType, encoding),
+            Body = CreateBodyContent(body, httpContentType, encoding),
             HttpVersion = httpVersion,
             ContentType = httpContentType,
         };
@@ -122,6 +122,16 @@ public static class HttpRequestParser
         }
 
         return (pathString, parameters);
+    }
+    
+    private static HttpBodyContent CreateBodyContent(byte[] body, HttpContentType contentType, Encoding encoding)
+    {
+        if (HttpContentType.TextPlain.Equals(contentType))
+        {
+            return new StringBodyContent(encoding.GetString(body), contentType, encoding);
+        }
+        
+        return new ByteArrayBodyContent(body, contentType, encoding);
     }
     
     private static bool TryGetParsedHeader(ReadOnlySpan<char> header, out KeyValuePair<string, string> httpHeader)

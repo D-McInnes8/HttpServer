@@ -2,6 +2,7 @@ using System.Text;
 using HttpServer;
 using HttpServer.Request;
 using HttpServer.Response;
+using HttpServer.Response.Body;
 using HttpServer.Routing;
 
 namespace Tests.IntegrationTests;
@@ -37,10 +38,10 @@ public class HttpRequestBodyStringTests : IAsyncLifetime
     public async Task HttpRequestBodyString_PlainTextContent_ShouldSetBody(string expected)
     {
         // Arrange
-        HttpRequest? actual = null;
+        HttpRequest? request = null;
         _server.MapPost("/test", ctx =>
         {
-            actual = ctx.Request;
+            request = ctx.Request;
             return HttpResponse.Ok();
         });
         
@@ -49,18 +50,18 @@ public class HttpRequestBodyStringTests : IAsyncLifetime
         _ = await _httpClient.PostAsync("/test", content);
         
         // Assert
-        Assert.NotNull(actual?.Body);
-        Assert.Equal(expected, actual?.Body?.Encoding.GetString(actual.Body.Content));
+        var actual = Assert.IsType<StringBodyContent>(request?.Body);
+        Assert.Equal(expected, actual.GetStringContent());
     }
     
     [Fact]
     public async Task HttpRequestBodyString_EmptyContent_ShouldReturnEmptyBody()
     {
         // Arrange
-        HttpRequest? actual = null;
+        HttpRequest? request = null;
         _server.MapPost("/api/test-empty", ctx =>
         {
-            actual = ctx.Request;
+            request = ctx.Request;
             return HttpResponse.Ok();
         });
 
@@ -69,9 +70,9 @@ public class HttpRequestBodyStringTests : IAsyncLifetime
         _ = await _httpClient.PostAsync("/api/test-empty", content);
 
         // Assert
-        Assert.NotNull(actual?.Body);
-        Assert.Equal(0, actual?.Body.Length);
-        Assert.Equal(string.Empty, actual?.Body?.Encoding.GetString(actual.Body.Content));
+        var actual = Assert.IsType<StringBodyContent>(request?.Body);
+        Assert.Equal(0, request.Body.Length);
+        Assert.Equal(string.Empty, actual.GetStringContent());
     }
 
     [Theory]
@@ -103,10 +104,10 @@ public class HttpRequestBodyStringTests : IAsyncLifetime
     {
         // Arrange
         var encoding = Encoding.GetEncoding(encodingName);
-        HttpRequest? actual = null;
+        HttpRequest? request = null;
         _server.MapPost("/api/test-encoding", ctx =>
         {
-            actual = ctx.Request;
+            request = ctx.Request;
             return HttpResponse.Ok();
         });
 
@@ -115,8 +116,8 @@ public class HttpRequestBodyStringTests : IAsyncLifetime
         _ = await _httpClient.PostAsync("/api/test-encoding", content);
 
         // Assert
-        Assert.NotNull(actual?.Body);
-        Assert.Equal(expectedContent, actual?.Body?.Encoding.GetString(actual.Body.Content));
+        var actual = Assert.IsType<StringBodyContent>(request?.Body);
+        Assert.Equal(expectedContent, actual.GetStringContent());
     }
     
     [Theory]

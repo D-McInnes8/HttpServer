@@ -44,6 +44,21 @@ public class StringBodyContent : HttpBodyContent
     }
     
     /// <summary>
+    /// Constructs a new <see cref="StringBodyContent"/> with the specified byte array and content type.
+    /// </summary>
+    /// <param name="content">The content of the body as a byte array.</param>
+    /// <param name="contentType">The content type of the body.</param>
+    /// <param name="encoding">The encoding of the body.</param>
+    public StringBodyContent(byte[] content, HttpContentType contentType, Encoding encoding)
+    {
+        ArgumentNullException.ThrowIfNull(contentType);
+        ArgumentNullException.ThrowIfNull(encoding);
+        Content = content;
+        ContentType = contentType;
+        Encoding = encoding;
+    }
+    
+    /// <summary>
     /// Constructs a new <see cref="StringBodyContent"/> with the specified content and content type.
     /// </summary>
     /// <param name="content">The content of the body.</param>
@@ -57,6 +72,12 @@ public class StringBodyContent : HttpBodyContent
         ContentType = contentType;
         Encoding = encoding;
     }
+    
+    /// <summary>
+    /// Gets the content of the body as a string.
+    /// </summary>
+    /// <returns>The content of the body as a string.</returns>
+    public string GetStringContent() => Encoding.GetString(Content);
     
     /// <inheritdoc />
     public HttpContentType ContentType { get; }
