@@ -14,9 +14,9 @@ internal class FileLogger : ILogger
     /// <summary>
     /// Creates a new <see cref="FileLogger"/> with the specified category name and log buffer.
     /// </summary>
-    /// <param name="categoryName"></param>
-    /// <param name="logBuffer"></param>
-    /// <param name="scopeProvider"></param>
+    /// <param name="categoryName">The category name of the logger.</param>
+    /// <param name="logBuffer">The log buffer to write log messages to.</param>
+    /// <param name="scopeProvider">The external scope provider to provide scope information.</param>
     public FileLogger(string categoryName, FileLoggerWriter logBuffer, IExternalScopeProvider? scopeProvider)
     {
         _categoryName = categoryName;
