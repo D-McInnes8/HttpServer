@@ -8,7 +8,7 @@ using Tests.IntegrationTests.TestExtensions;
 
 namespace Tests.IntegrationTests;
 
-public class HttpRouterTests : IAsyncLifetime
+public class HttpRoutingTests : IAsyncLifetime
 {
     private readonly IHttpWebServer _server = HttpWebServer.CreateBuilder(0).Build();
     private readonly HttpClient _httpClient = new HttpClient();
@@ -24,6 +24,32 @@ public class HttpRouterTests : IAsyncLifetime
         _httpClient.Dispose();
         await _server.StopAsync();
     }
+
+    [Theory]
+    [InlineData(HttpRequestMethod.GET)]
+    [InlineData(HttpRequestMethod.POST)]
+    [InlineData(HttpRequestMethod.PUT)]
+    [InlineData(HttpRequestMethod.DELETE)]
+    [InlineData(HttpRequestMethod.PATCH)]
+    [InlineData(HttpRequestMethod.HEAD)]
+    [InlineData(HttpRequestMethod.OPTIONS)]
+    [InlineData(HttpRequestMethod.TRACE)]
+    public async Task HttpRouting_BaseRoute_ShouldReturnOk(HttpRequestMethod httpRequestMethod)
+    {
+        // Arrange
+        _server.MapRoute(httpRequestMethod, "/", _ => HttpResponse.Ok());
+        
+        // Act
+        var message = new HttpRequestMessage(httpRequestMethod.ToHttpMethod(), "/");
+        var response = await _httpClient.SendAsync(message);
+        
+        // Assert
+        Assert.Multiple(() =>
+        {
+            Assert.True(response.IsSuccessStatusCode);
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        });
+    }
     
     [Theory]
     [InlineData(HttpRequestMethod.GET)]
@@ -34,7 +60,7 @@ public class HttpRouterTests : IAsyncLifetime
     [InlineData(HttpRequestMethod.HEAD)]
     [InlineData(HttpRequestMethod.OPTIONS)]
     [InlineData(HttpRequestMethod.TRACE)]
-    public async Task HttpRouter_SimpleRoute_ShouldReturnOk(HttpRequestMethod httpRequestMethod)
+    public async Task HttpRouting_SimpleRoute_ShouldReturnOk(HttpRequestMethod httpRequestMethod)
     {
         // Arrange
         _server.MapRoute(httpRequestMethod, "/api", _ => HttpResponse.Ok());
@@ -52,10 +78,36 @@ public class HttpRouterTests : IAsyncLifetime
     }
     
     [Theory]
+    [InlineData(HttpRequestMethod.GET)]
+    [InlineData(HttpRequestMethod.POST)]
+    [InlineData(HttpRequestMethod.PUT)]
+    [InlineData(HttpRequestMethod.DELETE)]
+    [InlineData(HttpRequestMethod.PATCH)]
+    [InlineData(HttpRequestMethod.HEAD)]
+    [InlineData(HttpRequestMethod.OPTIONS)]
+    [InlineData(HttpRequestMethod.TRACE)]
+    public async Task HttpRequestRouting_SimpleInvalidRoute_ShouldReturnNotFound(HttpRequestMethod httpRequestMethod)
+    {
+        // Arrange
+        _server.MapGet("/test", _ => HttpResponse.Ok());
+        
+        // Act
+        var message = new HttpRequestMessage(httpRequestMethod.ToHttpMethod(), "/");
+        var response = await _httpClient.SendAsync(message);
+        
+        // Assert
+        Assert.Multiple(() =>
+        {
+            Assert.False(response.IsSuccessStatusCode);
+            Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+        });
+    }
+    
+    [Theory]
     [InlineData("/api/v1/users")]
     [InlineData("/api/v1/users/1")]
     [InlineData("/api-users")]
-    public async Task HttpRouter_SimpleRoutes_ShouldReturnNotFoundForSubPaths(string requestUri)
+    public async Task HttpRouting_SimpleRoutes_ShouldReturnNotFoundForSubPaths(string requestUri)
     {
         // Arrange
         _server.MapGet("/api", _ => HttpResponse.Ok());
@@ -79,7 +131,7 @@ public class HttpRouterTests : IAsyncLifetime
     [InlineData(HttpRequestMethod.PATCH)]
     [InlineData(HttpRequestMethod.HEAD)]
     [InlineData(HttpRequestMethod.TRACE)]
-    public async Task HttpRouter_SimpleRoute_ShouldNotReturnMethodNotAllowedForDifferentMethods(HttpRequestMethod httpRequestMethod)
+    public async Task HttpRouting_SimpleRoute_ShouldNotReturnMethodNotAllowedForDifferentMethods(HttpRequestMethod httpRequestMethod)
     {
         // Arrange
         _server.MapGet("/api", _ => HttpResponse.Ok());
@@ -97,6 +149,28 @@ public class HttpRouterTests : IAsyncLifetime
     }
     
     [Theory]
+    [InlineData("/test", "query=Hello")]
+    [InlineData("/test", "query=Hello&name=World")]
+    [InlineData("/test", "query=Hello&name=World&age=42")]
+    [InlineData("/test", "query=Hello&name=World&age=42&city=New York")]
+    public async Task HttpRouting_WithQueryParameters_ShouldReturnOk(string route, string queryParameters)
+    {
+        // Arrange
+        _server.MapGet(route, _ => HttpResponse.Ok());
+        
+        // Act
+        var message = new HttpRequestMessage(HttpMethod.Get, $"{route}?{queryParameters}");
+        var response = await _httpClient.SendAsync(message);
+        
+        // Assert
+        Assert.Multiple(() =>
+        {
+            Assert.True(response.IsSuccessStatusCode);
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        });
+    }
+    
+    [Theory]
     [InlineData("/api", HttpStatusCode.OK)]
     [InlineData("/api/v1/users", HttpStatusCode.OK)]
     [InlineData("/api/v1/users/1", HttpStatusCode.OK)]
@@ -110,7 +184,7 @@ public class HttpRouterTests : IAsyncLifetime
     [InlineData("/api/v1/posts/1", HttpStatusCode.OK)]
     [InlineData("/api/v2/users", HttpStatusCode.OK)]
     [InlineData("/api/v2/users/1", HttpStatusCode.OK)]
-    public async Task HttpRouter_ComplexNestedRoutes_ShouldReturnCorrectStatusCode(string requestUri, HttpStatusCode expected)
+    public async Task HttpRouting_ComplexNestedRoutes_ShouldReturnCorrectStatusCode(string requestUri, HttpStatusCode expected)
     {
         // Arrange
         _server.MapGet("/api", _ => HttpResponse.Ok());
@@ -156,7 +230,7 @@ public class HttpRouterTests : IAsyncLifetime
     [InlineData("david)123")]
     [InlineData("david+123")]
     [InlineData("david=123")]
-    public async Task HttpRouter_RouteWithSingleParameter_ShouldReturnOk(string parameter)
+    public async Task HttpRouting_RouteWithSingleParameter_ShouldReturnOk(string parameter)
     {
         // Arrange
         _server.MapGet("/api/v1/users/{userId}", _ => HttpResponse.Ok());
@@ -190,7 +264,7 @@ public class HttpRouterTests : IAsyncLifetime
     [InlineData("david)123")]
     [InlineData("david+123")]
     [InlineData("david=123")]
-    public async Task HttpRouter_RouteWithSingleParameter_ShouldParseParameter(string expected)
+    public async Task HttpRouting_RouteWithSingleParameter_ShouldParseParameter(string expected)
     {
         // Arrange
         _server.MapGet("/api/v1/users/{userId}", context =>
@@ -225,7 +299,7 @@ public class HttpRouterTests : IAsyncLifetime
     [InlineData("david)123", "404142")]
     [InlineData("david+123", "434445")]
     [InlineData("david=123", "464748")]
-    public async Task HttpRouter_RouteWithMultipleParameters_ShouldParseBothParameters(string param1, string param2)
+    public async Task HttpRouting_RouteWithMultipleParameters_ShouldParseBothParameters(string param1, string param2)
     {
         // Arrange
         _server.MapGet("/api/v1/users/{userId}/posts/{postId}", context =>
@@ -277,7 +351,7 @@ public class HttpRouterTests : IAsyncLifetime
     [InlineData("/api/v3/user/)123")]
     [InlineData("/api/v3/user/+123")]
     [InlineData("/api/v3/user/=123")]
-    public async Task HttpRouter_RouteWithWildcard_ShouldReturnOk(string path)
+    public async Task HttpRouting_RouteWithWildcard_ShouldReturnOk(string path)
     {
         // Arrange
         _server.MapGet("/{*}", _ => HttpResponse.Ok());
@@ -323,7 +397,7 @@ public class HttpRouterTests : IAsyncLifetime
     [InlineData("/api/v3/user/)123")]
     [InlineData("/api/v3/user/+123")]
     [InlineData("/api/v3/user/=123")]
-    public async Task HttpRouter_RouteWithWildcard_ShouldParseWildcardPath(string expected)
+    public async Task HttpRouting_RouteWithWildcard_ShouldParseWildcardPath(string expected)
     {
         // Arrange
         _server.MapGet("/{*}", context =>
@@ -346,7 +420,7 @@ public class HttpRouterTests : IAsyncLifetime
     [InlineData("images", "logo.png?version=1")]
     [InlineData("images", "logo.png?version=1&size=large")]
     [InlineData("images", "logo.png?version=1&size=large&format=png")]
-    public async Task HttpRouter_RouteWithParametersAndWildcard_ShouldParseBoth(string param, string wildcard)
+    public async Task HttpRouting_RouteWithParametersAndWildcard_ShouldParseBoth(string param, string wildcard)
     {
         // Arrange
         _server.MapGet("/files/{folder}/{*}", context
