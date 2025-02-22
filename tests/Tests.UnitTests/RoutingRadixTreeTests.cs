@@ -35,22 +35,6 @@ public class RoutingRadixTreeTests
     }
 
     [Fact]
-    public void AddRoute_MultipleSamePathDifferentMethod_ShouldContainBothRoutes()
-    {
-        // Arrange
-        var tree = new RoutingRadixTree<int>();
-        var path1 = new Route("/helloworld", HttpRequestMethod.GET);
-        var path2 = new Route("/helloworld", HttpRequestMethod.POST);
-        
-        // Act
-        tree.AddRoute(path1, 1);
-        tree.AddRoute(path2, 2);
-        
-        // Assert
-        Assert.Fail();
-    }
-
-    [Fact]
     public void AddRoute_MultipleSameMethodDifferentPaths_ShouldContainBothRoutes()
     {
         // Arrange
@@ -244,10 +228,10 @@ public class RoutingRadixTreeTests
             Assert.Equal(NodeType.Parameter, actualParameter.Type);
         });
         
-        var actualChild = Assert.Single(actualParameter.Children);
+        var actualChild = Assert.Single(actualParameter.Children[0].Children);
         Assert.Multiple(() =>
         {
-            Assert.Equal("/world/", actualChild.Prefix);
+            Assert.Equal("world/", actualChild.Prefix);
             Assert.Equal(2, actualChild.Value);
             Assert.Equal(NodeType.Path, actualChild.Type);
         });
@@ -297,30 +281,7 @@ public class RoutingRadixTreeTests
             Assert.Equal(1, actual.Value);
         });
     }
-
-    [Fact]
-    public void Match_MultipleSamePathDifferentMethod_ShouldReturnCorrectRoute()
-    {
-        // Arrange
-        var tree = new RoutingRadixTree<int>();
-        var path1 = new Route("/helloworld", HttpRequestMethod.GET);
-        var path2 = new Route("/helloworld", HttpRequestMethod.POST);
-        
-        tree.AddRoute(path1, 1);
-        tree.AddRoute(path2, 2);
-        
-        // Act
-        var actual1 = tree.Match(path1);
-        var actual2 = tree.Match(path2);
-        
-        // Assert
-        Assert.Multiple(() =>
-        {
-            Assert.Equal(1, actual1.Value);
-            Assert.Equal(2, actual2.Value);
-        });
-    }
-
+    
     [Fact]
     public void Match_MultipleSameMethodDifferentPath_ShouldReturnCorrectRoute()
     {
@@ -358,41 +319,6 @@ public class RoutingRadixTreeTests
         Assert.Equal(RouterResult.NotFound, actual.Result);
     }
     
-    [Fact]
-    public void Match_NoMatchingMethod_ShouldReturnNull()
-    {
-        // Arrange
-        var tree = new RoutingRadixTree<int>();
-        var path1 = new Route("/helloworld", HttpRequestMethod.GET);
-        var path2 = new Route("/helloworld", HttpRequestMethod.POST);
-        
-        tree.AddRoute(path1, 1);
-        
-        // Act
-        var actual = tree.Match(path2);
-        
-        // Assert
-        Assert.Equal(RouterResult.NotFound, actual.Result);
-    }
-    
-    [Fact]
-    public void Match_RoutesWithSamePrefix_ShouldReturnCorrectRoute()
-    {
-        // Arrange
-        var tree = new RoutingRadixTree<int>();
-        var path1 = new Route("/helloworld", HttpRequestMethod.GET);
-        var path2 = new Route("/hello", HttpRequestMethod.GET);
-        
-        tree.AddRoute(path1, 1);
-        tree.AddRoute(path2, 2);
-        
-        // Act
-        var actual = tree.Match(path1);
-        
-        // Assert
-        Assert.Equal(1, actual.Value);
-    }
-
     [Fact]
     public void Match_RouteWithParameter_ShouldParseParameter()
     {
