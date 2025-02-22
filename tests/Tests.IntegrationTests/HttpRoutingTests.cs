@@ -1,5 +1,6 @@
 using System.Net;
 using System.Runtime.InteropServices;
+using System.Web;
 using HttpServer;
 using HttpServer.Request;
 using HttpServer.Response;
@@ -310,7 +311,7 @@ public class HttpRoutingTests : IAsyncLifetime
         });
         
         // Act
-        var message = new HttpRequestMessage(HttpMethod.Get, $"/api/v1/users/{param1}/posts/{param2}");;
+        var message = new HttpRequestMessage(HttpMethod.Get, $"/api/v1/users/{HttpUtility.UrlEncode(param1)}/posts/{param2}");;
         var response = await _httpClient.SendAsync(message);
         var actual = await response.Content.ReadAsStringAsync();
         

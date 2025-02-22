@@ -1,5 +1,6 @@
 using System.Collections.Specialized;
 using System.Diagnostics.CodeAnalysis;
+using System.Web;
 using HttpServer.Headers;
 using HttpServer.Request.Parser;
 using HttpServer.Response.Body;
@@ -65,7 +66,7 @@ public class HttpRequest
     public HttpRequest(HttpRequestMethod method, string path)
     {
         Method = method;
-        Path = UrlEncoder.Decode(path);
+        Path = HttpUtility.UrlDecode(path);
         Headers = new Dictionary<string, string>();
         QueryParameters = new NameValueCollection();
 
