@@ -275,7 +275,7 @@ public class HttpRoutingTests : IAsyncLifetime
         });
         
         // Act
-        var message = new HttpRequestMessage(HttpMethod.Get, $"/api/v1/users/{expected}");;
+        var message = new HttpRequestMessage(HttpMethod.Get, $"/api/v1/users/{HttpUtility.UrlEncode(expected)}");;
         var response = await _httpClient.SendAsync(message);
         var actual = await response.Content.ReadAsStringAsync();
         

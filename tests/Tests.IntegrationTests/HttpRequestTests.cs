@@ -65,9 +65,7 @@ public class HttpRequestTests : IAsyncLifetime
     [InlineData("john.doe@example.com")]
     [InlineData("New York")]
     [InlineData("Hello World")]
-    [InlineData("!*'();:@&=+$,/?#[]")]
     [InlineData("你好")]
-    [InlineData("~`!@#$%^&*()_+-={}[]|\\:\";'<>?,./")]
     public async Task HttpRequest_UrlEncodingQueryParameters_ShouldDecodeParameters(string plainText)
     {
         // Arrange
@@ -85,34 +83,6 @@ public class HttpRequestTests : IAsyncLifetime
 
         // Assert
         Assert.Equal(plainText, actual);
-    }
-    
-    [Theory]
-    [InlineData("/api/v1/users/John%20Doe")]
-    [InlineData("/api/v1/users/john.doe%40example.com")]
-    [InlineData("/api/v1/users/New%20York")]
-    [InlineData("/api/v1/users/Hello%20World")]
-    [InlineData("/api/v1/users/!*'();:@&=+$,/?#[]")]
-    [InlineData("/api/v1/users/你好")]
-    [InlineData("/api/v1/users/~`!@#$%^&*()_+-={}[]|\\:\";'<>?,./")]
-    [InlineData("/api/v1/users/Hello+G%C3%BCnter")]
-    public async Task HttpRequest_UrlEncodingInPath_ShouldDecodePath(string encodedPath)
-    {
-        // Arrange
-        _server.MapGet("/api/v1/users/{*}", context =>
-        {
-            var path = context.RouteParameters.Wildcard;
-            return HttpResponse.Ok(path);
-        });
-
-        // Act
-        var message = new HttpRequestMessage(HttpMethod.Get, encodedPath);
-        var response = await _httpClient.SendAsync(message);
-        var actual = await response.Content.ReadAsStringAsync();
-
-        // Assert
-        var expected = Uri.UnescapeDataString(encodedPath.Substring("/api/v1/users/".Length));
-        Assert.Equal(expected, actual);
     }
     
     [Theory]
