@@ -23,7 +23,7 @@ public class HttpRequestParserTests
     {
         // Arrange
         var body = hasBody ? "Body content" : string.Empty;
-        var request = $"{method} {path} HTTP/1.1\r\nHost: localhost\r\nContent-Length: {body.Length}\r\n\r\n{body}";
+        var request = $"{method} {path} HTTP/1.1\r\nHost: localhost\r\nContent-Length: {body.Length}{(hasBody ? "\r\nContent-Type: text/plain" : "")}\r\n\r\n{body}";
         using var stream = new MemoryStream(Encoding.UTF8.GetBytes(request));
         using var streamReader = new TcpNetworkStreamReader(stream);
         
@@ -109,7 +109,7 @@ public class HttpRequestParserTests
     public async Task RequestWithBody_ParsesCorrectly()
     {
         // Arrange
-        const string request = "POST /submit HTTP/1.1\r\nHost: localhost\r\nContent-Length: 11\r\n\r\nHello World";
+        const string request = "POST /submit HTTP/1.1\r\nHost: localhost\r\nContent-Length: 11\r\nContent-Type: text/plain\r\n\r\nHello World";
         using var stream = new MemoryStream(Encoding.UTF8.GetBytes(request));
         using var streamReader = new TcpNetworkStreamReader(stream);
         
