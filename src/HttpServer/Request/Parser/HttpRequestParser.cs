@@ -63,7 +63,7 @@ public static class HttpRequestParser
         
         var contentLength = headers.GetValueOrDefault("Content-Length");
         var body = contentLength is not null ? await networkStreamReader.ReadBytesAsync(int.Parse(contentLength)) : null;
-        if (body is null || body.Length == 0)
+        if (body is null || (body.Length == 0 && httpContentType is null))
         {
             return new HttpRequest(method, path)
             {
