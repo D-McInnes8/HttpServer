@@ -43,6 +43,10 @@ internal class DefaultRouter : IRouter
         if (path.Method == HttpRequestMethod.OPTIONS)
         {
             _logger.LogDebug("Route '{Path}' matched with OPTIONS method", path.Path);
+            if (path.Path == "*" || path.Path == "/*")
+            {
+                return RouteMatch<RouteMetadata>.Options(Enum.GetNames<HttpRequestMethod>());
+            }
 
             var allowedMethods = new List<string>(capacity: Enum.GetValues<HttpRequestMethod>().Length);
             foreach (var method in Enum.GetValues<HttpRequestMethod>())

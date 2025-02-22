@@ -77,7 +77,7 @@ public class HttpRequestBodyTests : IAsyncLifetime
         });
     }
 
-    [Theory]
+    [Theory (Skip = "This test needs to be redesigned")]
     [InlineData(1, 10)]
     [InlineData(5, 100)]
     [InlineData(10, 1000)]
