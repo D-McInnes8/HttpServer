@@ -108,7 +108,7 @@ public static class HttpRequestParser
         
         if (query.Length == 0 || query[0] == '\0')
         {
-            Console.WriteLine("Error!");
+            return (pathString, parameters);
         }
         var queryTokenizer = new StringTokenizer(query, ['&']);
         foreach (var range in queryTokenizer.Tokens)
