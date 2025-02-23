@@ -54,9 +54,9 @@ public class HttpRequestTests : IAsyncLifetime
         for (int i = 0; i < numberOfHeaders; i++)
         {
             var headerName = $"X-Custom-Header-{i}";
-            var hasHeader = actual.Headers.TryGetValue(headerName, out var headerValue);
+            var hasHeader = actual.Headers[headerName] is not null;
             Assert.True(hasHeader);
-            Assert.Equal(new string('A', i), headerValue);
+            Assert.Equal(new string('A', i), actual.Headers[headerName]);
         }
     }
     

@@ -45,7 +45,7 @@ public class HttpRequest
     /// <summary>
     /// The HTTP headers sent with the request.
     /// </summary>
-    public required Dictionary<string, string> Headers { get; init; }
+    public required NameValueCollection Headers { get; init; }
     
     /// <summary>
     /// The content type of the request body. Populated from the Content-Type header.
@@ -67,7 +67,7 @@ public class HttpRequest
     {
         Method = method;
         Path = HttpUtility.UrlDecode(path);
-        Headers = new Dictionary<string, string>();
+        Headers = new NameValueCollection();
         QueryParameters = new NameValueCollection();
 
         var (route, parameters) = HttpRequestParser.ParsePath(Path);

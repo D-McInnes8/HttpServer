@@ -25,12 +25,12 @@ public class KeepAlivePlugin : IRequestPipelinePlugin
     public async Task<HttpResponse> InvokeAsync(RequestPipelineContext ctx, Func<RequestPipelineContext, Task<HttpResponse>> next)
     {
         var response = await next(ctx);
-        if (!ctx.Request.Headers.TryGetValue("Connection", out var connection))
+        if (ctx.Request.Headers["Connection"] is null)
         {
             return response;
         }
         
-        response.KeepAlive.Connection = connection == "keep-alive" ? HttpConnectionType.KeepAlive : HttpConnectionType.Close;
+        response.KeepAlive.Connection = ctx.Request.Headers["Connection"] == "keep-alive" ? HttpConnectionType.KeepAlive : HttpConnectionType.Close;
         response.KeepAlive.Timeout = _timeout;
         response.KeepAlive.MaxRequests = _maxRequests;
         response.Headers.Add("Connection", response.KeepAlive.Connection == HttpConnectionType.KeepAlive ? "keep-alive" : "close");

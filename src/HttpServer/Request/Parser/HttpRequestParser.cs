@@ -46,22 +46,24 @@ public static class HttpRequestParser
             return Result.Error<HttpRequest, string>("Invalid HTTP version.");
         }
         
-        var headers = new Dictionary<string, string>();
+        var headers = new NameValueCollection();
         string? line;
         while (!string.IsNullOrWhiteSpace(line = await networkStreamReader.ReadLineAsync()))
         {
-            _ = TryGetParsedHeader(line, out var httpHeader);
-            headers.Add(httpHeader.Key, httpHeader.Value);
+            if (TryGetParsedHeader(line, out var httpHeader))
+            {
+                headers.Add(httpHeader.Key, httpHeader.Value);
+            }
         }
 
         HttpContentType? httpContentType = null;
-        if (headers.TryGetValue("Content-Type", out var headerContentType)
-            && HttpContentType.TryParse(headerContentType, out var contentType))
+        if (headers["Content-Type"] is not null
+            && HttpContentType.TryParse(headers["Content-Type"], out var contentType))
         {
             httpContentType = contentType;
         }
         
-        var contentLength = headers.GetValueOrDefault("Content-Length");
+        var contentLength = headers["Content-Length"];
         var body = contentLength is not null ? await networkStreamReader.ReadBytesAsync(int.Parse(contentLength)) : null;
         if (body is null || (body.Length == 0 && httpContentType is null))
         {
