@@ -27,9 +27,9 @@ public static class HttpRequestParser
         }
         
         var tokenizer = new StringTokenizer(requestLine, [' ']);
-        var method = ParseMethod(tokenizer[0]);
-        var path = tokenizer[1].ToString();
-        var httpVersion = tokenizer[2].ToString();
+        var method = ParseMethod(tokenizer.GetNextToken());
+        var path = tokenizer.GetNextToken();
+        var httpVersion = tokenizer.GetNextToken();
         
         if (method == HttpRequestMethod.UNKNOWN)
         {
