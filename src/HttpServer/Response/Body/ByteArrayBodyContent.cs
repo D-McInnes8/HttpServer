@@ -30,7 +30,10 @@ public class ByteArrayBodyContent : HttpBodyContent
     
     /// <inheritdoc />
     public byte[] Content { get; }
-    
+
+    /// <inheritdoc />
+    public ContentDisposition? ContentDisposition => throw new NotImplementedException();
+
     /// <inheritdoc />
     public void CopyTo(Span<byte> destination)
     {

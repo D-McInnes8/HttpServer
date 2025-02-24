@@ -29,6 +29,11 @@ public interface HttpBodyContent
     public int Length => Content.Length;
     
     /// <summary>
+    /// The content disposition of the body.
+    /// </summary>
+    public ContentDisposition? ContentDisposition { get; }
+    
+    /// <summary>
     /// Copies the body to a destination span.
     /// </summary>
     /// <param name="destination">The <see cref="Span{T}"/> to be copied to.</param>

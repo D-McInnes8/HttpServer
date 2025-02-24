@@ -102,6 +102,24 @@ public class HttpContentType : IEquatable<HttpContentType>, ISpanParsable<HttpCo
     }
 
     /// <summary>
+    /// Creates a new instance of <see cref="HttpContentType"/> from the provided content type.
+    /// </summary>
+    /// <param name="contentType">The content type to parse.</param>
+    /// <exception cref="ArgumentException">Thrown when the content type is invalid.</exception>
+    [SetsRequiredMembers]
+    public HttpContentType(string contentType)
+    {
+        if (!TryParse(contentType, out var result))
+        {
+            throw new ArgumentException("The format of the provided content type is invalid.", nameof(contentType));
+        }
+        
+        Type = result.Type;
+        SubType = result.SubType;
+        Parameters = result.Parameters;
+    }
+
+    /// <summary>
     /// Renders the content type into a string.
     /// </summary>
     /// <returns>The content type formatted for HTTP request/responses.</returns>
