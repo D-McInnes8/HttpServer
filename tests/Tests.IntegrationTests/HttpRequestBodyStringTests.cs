@@ -1,3 +1,4 @@
+using System.Net.Sockets;
 using System.Text;
 using HttpServer;
 using HttpServer.Request;
@@ -11,15 +12,24 @@ public class HttpRequestBodyStringTests : IAsyncLifetime
 {
     private readonly IHttpWebServer _server = HttpWebServer.CreateBuilder(0).Build();
     private readonly HttpClient _httpClient = new HttpClient();
+    private TcpClient? _tcpClient;
+    private NetworkStream? _networkStream;
 
     public async Task InitializeAsync()
     {
         await _server.StartAsync();
         _httpClient.BaseAddress = new Uri($"http://localhost:{_server.Port}");
+        _tcpClient = new TcpClient("localhost", _server.Port);
+        _networkStream = _tcpClient.GetStream();
     }
 
     public async Task DisposeAsync()
     {
+        if (_networkStream is not null)
+        {
+            await _networkStream.DisposeAsync();
+        }
+        _tcpClient?.Dispose();
         _httpClient.Dispose();
         await _server.StopAsync();
     }
@@ -142,5 +152,44 @@ public class HttpRequestBodyStringTests : IAsyncLifetime
         // Assert
         Assert.NotNull(actual?.Body);
         Assert.Equal(encoding.WebName, actual?.Body.ContentType.Charset);
+    }
+
+    [Fact]
+    public async Task HttpRequestBodyString_NoCharset_ShouldDefaultToAscii()
+    {
+        // Arrange
+        HttpRequest? actual = null;
+        _server.MapPost("/api/test-encoding", ctx =>
+        {
+            actual = ctx.Request;
+            return HttpResponse.Ok();
+        });
+        var request = new StringBuilder()
+            .AppendLine("POST /api/test-encoding HTTP/1.1")
+            .AppendLine("Host: localhost")
+            .AppendLine("Content-Type: text/plain")
+            .AppendLine("Content-Length: 13")
+            .AppendLine()
+            .AppendLine("Hello, World!")
+            .ToString();
+        var requestBytes = Encoding.ASCII.GetBytes(request);
+        
+        // Act
+        await _networkStream!.WriteAsync(requestBytes, 0, requestBytes.Length);
+        _ = await ReadResponseAsync();
+        
+        // Assert
+        Assert.Multiple(() =>
+        {
+            Assert.NotNull(actual?.Body);
+            Assert.Null(actual?.ContentType?.Charset);
+        });
+    }
+    
+    private async Task<string> ReadResponseAsync()
+    {
+        var buffer = new byte[4096];
+        var bytesRead = await _networkStream!.ReadAsync(buffer, 0, buffer.Length);
+        return Encoding.ASCII.GetString(buffer, 0, bytesRead);
     }
 }

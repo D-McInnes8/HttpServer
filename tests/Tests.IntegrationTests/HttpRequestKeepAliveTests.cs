@@ -8,7 +8,7 @@ namespace Tests.IntegrationTests;
 
 public class HttpRequestKeepAliveTests : IAsyncLifetime
 {
-    private readonly IHttpWebServer _server = HttpWebServer.CreateBuilder(7001).Build();
+    private readonly IHttpWebServer _server = HttpWebServer.CreateBuilder(0).Build();
     private TcpClient? _tcpClient;
     private NetworkStream? _networkStream;
 

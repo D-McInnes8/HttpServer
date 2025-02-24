@@ -79,7 +79,7 @@ public static class HttpRequestParser
         {
             return Result.Error<HttpRequest, string>("Content-Type header is required.");
         }
-        var encoding = httpContentType.Charset is not null ? Encoding.GetEncoding(httpContentType.Charset) : Encoding.UTF8;
+        var encoding = httpContentType.Charset is not null ? Encoding.GetEncoding(httpContentType.Charset) : Encoding.ASCII;
         return new HttpRequest(method, path)
         {
             Headers = headers,
