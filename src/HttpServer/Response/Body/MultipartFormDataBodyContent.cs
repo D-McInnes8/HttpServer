@@ -7,7 +7,7 @@ namespace HttpServer.Response.Body;
 /// <summary>
 /// Represents a multipart form data body for a HTTP request or response.
 /// </summary>
-public class MultipartFormDataBodyContent : HttpBodyContent, IEnumerable<HttpBodyContent>
+public class MultipartFormDataBodyContent : HttpBodyContent, IReadOnlyCollection<HttpBodyContent>
 {
     public HttpContentType ContentType { get; }
     public Encoding Encoding { get; }
@@ -73,4 +73,11 @@ public class MultipartFormDataBodyContent : HttpBodyContent, IEnumerable<HttpBod
     }
     
     public bool Contains(string name) => throw new NotImplementedException();
+    
+    public void Add(HttpBodyContent content) => throw new NotImplementedException();
+    public void Add(string name, HttpBodyContent content) => throw new NotImplementedException();
+    public void Add(string name, string fileName, HttpBodyContent content) => throw new NotImplementedException();
+    
+    public void Remove(string name) => throw new NotImplementedException();
+    public void Remove(HttpBodyContent content) => throw new NotImplementedException();
 }

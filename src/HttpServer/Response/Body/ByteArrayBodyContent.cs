@@ -22,6 +22,14 @@ public class ByteArrayBodyContent : HttpBodyContent
         Encoding = encoding;
     }
     
+    /// <summary>
+    /// Constructs a new <see cref="ByteArrayBodyContent"/> with the specified content.
+    /// </summary>
+    /// <param name="content">The content of the body.</param>
+    public ByteArrayBodyContent(byte[] content) : this(content, HttpContentType.ApplicationOctetStream, Encoding.Default)
+    {
+    }
+    
     /// <inheritdoc />
     public HttpContentType ContentType { get; }
     

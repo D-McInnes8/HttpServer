@@ -23,7 +23,7 @@ public class HttpRequestBodyMultipartFormTests : IAsyncLifetime
         _httpClient.Dispose();
         await _server.StopAsync();
     }
-
+    
     [Fact]
     public async Task HttpRequestBodyMultipartFormData_ContentType_ShouldSetContentTypeAndSubType()
     {
@@ -68,7 +68,7 @@ public class HttpRequestBodyMultipartFormTests : IAsyncLifetime
     }
     
     [Fact]
-    public async Task HttpRequestBodyMultipartFormData_EmptyContent_ShouldSetBody()
+    public async Task HttpRequestBodyMultipartFormData_EmptyContent_ShouldContainNoParts()
     {
         // Arrange
         HttpRequest? request = null;
@@ -343,6 +343,122 @@ public class HttpRequestBodyMultipartFormTests : IAsyncLifetime
         {
             Assert.Equal("binary", part.ContentDisposition?.Name);
             Assert.Equal("file.bin", part.ContentDisposition?.FileName);
+        });
+    }
+    
+    [Fact]
+    public async Task HttpRequestBodyMultipartFormData_MultipleParts_ShouldIncludeAllPartsInBody()
+    {
+        // Arrange
+        HttpRequest? request = null;
+        _server.MapPost("/test", ctx =>
+        {
+            request = ctx.Request;
+            return HttpResponse.Ok();
+        });
+        
+        // Act
+        using var content = new MultipartFormDataContent();
+        content.Add(new StringContent("Hello, World!", Encoding.UTF8), "text");
+        content.Add(new ByteArrayContent([0x01, 0x02, 0x03]), "binary", "file.bin");
+        _ = await _httpClient.PostAsync("/test", content);
+        
+        // Assert
+        var body = Assert.IsType<MultipartFormDataBodyContent>(request?.Body);
+        Assert.Multiple(() =>
+        {
+            Assert.Equal(2, body.Count);
+            Assert.True(body.Contains("text"));
+            Assert.True(body.Contains("binary"));
+        });
+    }
+    
+    [Fact]
+    public async Task HttpRequestBodyMultipartFormData_MultipleParts_ShouldMatchRequestContent()
+    {
+        // Arrange
+        HttpRequest? request = null;
+        _server.MapPost("/test", ctx =>
+        {
+            request = ctx.Request;
+            return HttpResponse.Ok();
+        });
+        
+        // Act
+        using var content = new MultipartFormDataContent();
+        content.Add(new StringContent("Hello, World!", Encoding.UTF8), "text");
+        content.Add(new ByteArrayContent([0x01, 0x02, 0x03]), "binary", "file.bin");
+        _ = await _httpClient.PostAsync("/test", content);
+        
+        // Assert
+        var body = Assert.IsType<MultipartFormDataBodyContent>(request?.Body);
+        var stringPart = Assert.IsType<StringBodyContent>(body["text"]);
+        var binaryPart = Assert.IsType<ByteArrayBodyContent>(body["binary"]);
+        Assert.Multiple(() =>
+        {
+            Assert.Equal("Hello, World!", stringPart.GetStringContent());
+            Assert.Equal(new byte[] { 0x01, 0x02, 0x03 }, binaryPart.Content);
+        });
+    }
+    
+    [Fact]
+    public async Task HttpRequestBodyMultipartFormData_MultipleParts_ShouldMatchRequestContentDisposition()
+    {
+        // Arrange
+        HttpRequest? request = null;
+        _server.MapPost("/test", ctx =>
+        {
+            request = ctx.Request;
+            return HttpResponse.Ok();
+        });
+        
+        // Act
+        using var content = new MultipartFormDataContent();
+        content.Add(new StringContent("Hello, World!", Encoding.UTF8), "text");
+        content.Add(new ByteArrayContent([0x01, 0x02, 0x03]), "binary", "file.bin");
+        _ = await _httpClient.PostAsync("/test", content);
+        
+        // Assert
+        var body = Assert.IsType<MultipartFormDataBodyContent>(request?.Body);
+        var stringPart = Assert.IsType<StringBodyContent>(body["text"]);
+        var binaryPart = Assert.IsType<ByteArrayBodyContent>(body["binary"]);
+        Assert.Multiple(() =>
+        {
+            Assert.Equal("text", stringPart.ContentDisposition?.Name);
+            Assert.Null(stringPart.ContentDisposition?.FileName);
+            Assert.Equal("binary", binaryPart.ContentDisposition?.Name);
+            Assert.Equal("file.bin", binaryPart.ContentDisposition?.FileName);
+        });
+    }
+    
+    [Fact]
+    public async Task HttpRequestBodyMultipartFormData_MultipleParts_ShouldMatchRequestContentTypes()
+    {
+        // Arrange
+        HttpRequest? request = null;
+        _server.MapPost("/test", ctx =>
+        {
+            request = ctx.Request;
+            return HttpResponse.Ok();
+        });
+        
+        // Act
+        using var content = new MultipartFormDataContent();
+        content.Add(new StringContent("Hello, World!", Encoding.UTF8), "text");
+        content.Add(new ByteArrayContent([0x01, 0x02, 0x03]), "binary", "file.bin");
+        _ = await _httpClient.PostAsync("/test", content);
+        
+        // Assert
+        var body = Assert.IsType<MultipartFormDataBodyContent>(request?.Body);
+        var stringPart = Assert.IsType<StringBodyContent>(body["text"]);
+        var binaryPart = Assert.IsType<ByteArrayBodyContent>(body["binary"]);
+        Assert.Multiple(() =>
+        {
+            Assert.Equal("text", stringPart.ContentType.Type);
+            Assert.Equal("plain", stringPart.ContentType.SubType);
+            Assert.Equal("utf-8", stringPart.ContentType.Charset);
+            Assert.Equal("application", binaryPart.ContentType.Type);
+            Assert.Equal("octet-stream", binaryPart.ContentType.SubType);
         });
     }
 }
