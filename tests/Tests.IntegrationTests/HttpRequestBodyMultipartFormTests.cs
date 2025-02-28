@@ -1,3 +1,4 @@
+using System.Net;
 using System.Text;
 using HttpServer;
 using HttpServer.Request;
@@ -65,6 +66,20 @@ public class HttpRequestBodyMultipartFormTests : IAsyncLifetime
         
         // Assert
         Assert.Equal(expected, request?.ContentType?.Boundary);
+    }
+
+    [Fact]
+    public async Task HttpRequestBodyMultipartFormData_EmptyBoundary_ShouldReturnBadRequest()
+    {
+        // Arrange
+        _server.MapPost("/test", ctx => HttpResponse.Ok());
+        
+        // Act
+        using var content = new MultipartFormDataContent(boundary: "");
+        var actual = await _httpClient.PostAsync("/test", content);
+        
+        // Assert
+        Assert.Equal(HttpStatusCode.BadRequest, actual.StatusCode);
     }
     
     [Fact]
@@ -460,5 +475,55 @@ public class HttpRequestBodyMultipartFormTests : IAsyncLifetime
             Assert.Equal("application", binaryPart.ContentType.Type);
             Assert.Equal("octet-stream", binaryPart.ContentType.SubType);
         });
+    }
+    
+    [Fact]
+    public async Task HttpRequestBodyMultipartFormData_NestedMultipartContent_ShouldSetNestedContent()
+    {
+        // Arrange
+        HttpRequest? request = null;
+        _server.MapPost("/test", ctx =>
+        {
+            request = ctx.Request;
+            return HttpResponse.Ok();
+        });
+        
+        // Act
+        using var content = new MultipartFormDataContent();
+        using var nestedContent = new MultipartFormDataContent();
+        nestedContent.Add(new StringContent("Hello, World!", Encoding.UTF8), "text");
+        content.Add(nestedContent, "nested");
+        _ = await _httpClient.PostAsync("/test", content);
+        
+        // Assert
+        var body = Assert.IsType<MultipartFormDataBodyContent>(request?.Body);
+        var nestedPart = Assert.IsType<MultipartFormDataBodyContent>(body["nested"]);
+        var stringPart = Assert.IsType<StringBodyContent>(nestedPart["text"]);
+        Assert.Equal("Hello, World!", stringPart.GetStringContent());
+    }
+    
+    [Fact]
+    public async Task HttpRequestBodyMultipartFormData_LargeContent_ShouldSetContent()
+    {
+        // Arrange
+        HttpRequest? request = null;
+        _server.MapPost("/test", ctx =>
+        {
+            request = ctx.Request;
+            return HttpResponse.Ok();
+        });
+        var expected = new byte[1024 * 1024];
+        new Random().NextBytes(expected);
+        
+        // Act
+        using var content = new MultipartFormDataContent();
+        content.Add(new ByteArrayContent(expected), "binary");
+        _ = await _httpClient.PostAsync("/test", content);
+        
+        // Assert
+        var body = Assert.IsType<MultipartFormDataBodyContent>(request?.Body);
+        var part = Assert.IsType<ByteArrayBodyContent>(body["binary"]);
+        var actual = part.Content;
+        Assert.Equal(expected, actual);
     }
 }

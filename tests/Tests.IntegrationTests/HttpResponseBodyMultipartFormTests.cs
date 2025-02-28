@@ -1,3 +1,5 @@
+using System.Net;
+using System.Net.Http.Json;
 using HttpServer;
 using HttpServer.Response;
 using HttpServer.Response.Body;
@@ -71,8 +73,10 @@ public class HttpResponseBodyMultipartFormTests : IAsyncLifetime
         // Arrange
         _server.MapGet("/test", _ =>
         {
-            var response = new MultipartFormDataBodyContent("boundary");
-            response.Add(new StringBodyContent("Hello, World!"));
+            var response = new MultipartFormDataBodyContent("boundary")
+            {
+                new StringBodyContent("Hello, World!")
+            };
             return HttpResponse.Ok(response);
         });
         
@@ -91,10 +95,12 @@ public class HttpResponseBodyMultipartFormTests : IAsyncLifetime
         // Arrange
         _server.MapGet("/test", _ =>
         {
-            var response = new MultipartFormDataBodyContent("boundary");
-            response.Add(new StringBodyContent("Hello, World!"));
-            response.Add(new StringBodyContent("Hello, 世界!"));
-            response.Add(new StringBodyContent("こんにちは世界"));
+            var response = new MultipartFormDataBodyContent("boundary")
+            {
+                new StringBodyContent("Hello, World!"),
+                new StringBodyContent("Hello, 世界!"),
+                new StringBodyContent("こんにちは世界")
+            };
             return HttpResponse.Ok(response);
         });
         
@@ -115,8 +121,10 @@ public class HttpResponseBodyMultipartFormTests : IAsyncLifetime
         // Arrange
         _server.MapGet("/test", _ =>
         {
-            var response = new MultipartFormDataBodyContent("boundary");
-            response.Add(new StringBodyContent("Hello, World!"));
+            var response = new MultipartFormDataBodyContent("boundary")
+            {
+                new StringBodyContent("Hello, World!")
+            };
             return HttpResponse.Ok(response);
         });
         
@@ -135,8 +143,10 @@ public class HttpResponseBodyMultipartFormTests : IAsyncLifetime
         // Arrange
         _server.MapGet("/test", _ =>
         {
-            var response = new MultipartFormDataBodyContent("boundary");
-            response.Add(new StringBodyContent("Hello, World!"));
+            var response = new MultipartFormDataBodyContent("boundary")
+            {
+                new StringBodyContent("Hello, World!")
+            };
             return HttpResponse.Ok(response);
         });
         
@@ -155,8 +165,10 @@ public class HttpResponseBodyMultipartFormTests : IAsyncLifetime
         // Arrange
         _server.MapGet("/test", _ =>
         {
-            var response = new MultipartFormDataBodyContent("boundary");
-            response.Add(new StringBodyContent("Hello, World!"));
+            var response = new MultipartFormDataBodyContent("boundary")
+            {
+                new StringBodyContent("Hello, World!")
+            };
             return HttpResponse.Ok(response);
         });
         
@@ -175,8 +187,10 @@ public class HttpResponseBodyMultipartFormTests : IAsyncLifetime
         // Arrange
         _server.MapGet("/test", _ =>
         {
-            var response = new MultipartFormDataBodyContent("boundary");
-            response.Add(new ByteArrayBodyContent([0x00, 0x01, 0x02, 0x03]));
+            var response = new MultipartFormDataBodyContent("boundary")
+            {
+                new ByteArrayBodyContent([0x00, 0x01, 0x02, 0x03])
+            };
             return HttpResponse.Ok(response);
         });
         
@@ -195,8 +209,10 @@ public class HttpResponseBodyMultipartFormTests : IAsyncLifetime
         // Arrange
         _server.MapGet("/test", _ =>
         {
-            var response = new MultipartFormDataBodyContent("boundary");
-            response.Add(new ByteArrayBodyContent([0x00, 0x01, 0x02, 0x03]));
+            var response = new MultipartFormDataBodyContent("boundary")
+            {
+                new ByteArrayBodyContent([0x00, 0x01, 0x02, 0x03])
+            };
             return HttpResponse.Ok(response);
         });
         
@@ -215,8 +231,10 @@ public class HttpResponseBodyMultipartFormTests : IAsyncLifetime
         // Arrange
         _server.MapGet("/test", _ =>
         {
-            var response = new MultipartFormDataBodyContent("boundary");
-            response.Add(new ByteArrayBodyContent([0x00, 0x01, 0x02, 0x03]));
+            var response = new MultipartFormDataBodyContent("boundary")
+            {
+                new ByteArrayBodyContent([0x00, 0x01, 0x02, 0x03])
+            };
             return HttpResponse.Ok(response);
         });
         
@@ -235,9 +253,12 @@ public class HttpResponseBodyMultipartFormTests : IAsyncLifetime
         // Arrange
         _server.MapGet("/test", _ =>
         {
-            var response = new MultipartFormDataBodyContent("boundary");
-            response.Add(new StringBodyContent("Hello, World!"));
-            response.Add(new ByteArrayBodyContent([0x00, 0x01, 0x02, 0x03]));
+            var response = new MultipartFormDataBodyContent("boundary")
+            {
+                new StringBodyContent("Hello, World!"),
+                new ByteArrayBodyContent([0x00, 0x01, 0x02, 0x03]),
+                new JsonBodyContent<int[]>([1, 2, 3, 4, 5])
+            };
             return HttpResponse.Ok(response);
         });
         
@@ -246,20 +267,24 @@ public class HttpResponseBodyMultipartFormTests : IAsyncLifetime
         
         // Assert
         var parts = await response.Content.ReadAsMultipartAsync();
+
         Assert.Collection(parts.Contents,
-            part => Assert.Equal("Hello, World!", part.ReadAsStringAsync().Result),
-            part => Assert.Equal(new byte[] { 0x00, 0x01, 0x02, 0x03 }, part.ReadAsByteArrayAsync().Result));
+            part => Assert.Equal("Hello, World!", part.ReadAsStringAsync().GetAwaiter().GetResult()),
+            part => Assert.Equal(new byte[] { 0x00, 0x01, 0x02, 0x03 }, part.ReadAsByteArrayAsync().GetAwaiter().GetResult()),
+            part => Assert.Equal([1,2,3,4,5], part.ReadFromJsonAsync<int[]>().GetAwaiter().GetResult()!));
     }
     
     [Fact]
-    public async Task HttpResponseMutlipartFormData_MultipleContents_ShouldSetContentTypeHeader()
+    public async Task HttpResponseMultipartFormData_MultipleContents_ShouldSetContentTypeHeader()
     {
         // Arrange
         _server.MapGet("/test", _ =>
         {
-            var response = new MultipartFormDataBodyContent("boundary");
-            response.Add(new StringBodyContent("Hello, World!"));
-            response.Add(new ByteArrayBodyContent([0x00, 0x01, 0x02, 0x03]));
+            var response = new MultipartFormDataBodyContent("boundary")
+            {
+                new StringBodyContent("Hello, World!"),
+                new ByteArrayBodyContent([0x00, 0x01, 0x02, 0x03])
+            };
             return HttpResponse.Ok(response);
         });
         
@@ -271,5 +296,55 @@ public class HttpResponseBodyMultipartFormTests : IAsyncLifetime
         Assert.Collection(parts.Contents,
             part => Assert.Equal("text/plain", part.Headers.ContentType?.MediaType),
             part => Assert.Equal("application/octet-stream", part.Headers.ContentType?.MediaType));
+    }
+    
+    [Fact]
+    public async Task HttpResponseBodyMultipartFormData_NestedMultipartContent_ShouldContainNestedParts()
+    {
+        // Arrange
+        _server.MapGet("/test", _ =>
+        {
+            var nestedContent = new MultipartFormDataBodyContent("nested-boundary")
+            {
+                new StringBodyContent("Nested part")
+            };
+            var response = new MultipartFormDataBodyContent("boundary")
+            {
+                nestedContent
+            };
+            return HttpResponse.Ok(response);
+        });
+
+        // Act
+        var response = await _httpClient.GetAsync("/test");
+
+        // Assert
+        var parts = await response.Content.ReadAsMultipartAsync();
+        var nestedParts = await Assert.Single(parts.Contents).ReadAsMultipartAsync();
+        var actual = Assert.Single(nestedParts.Contents);
+        Assert.Equal("Nested part", await actual.ReadAsStringAsync());
+    }
+    
+    [Fact]
+    public async Task HttpResponseBodyMultipartFormData_LargeContent_ShouldContainAllParts()
+    {
+        // Arrange
+        var expected = new string('a', 1000000);
+        _server.MapGet("/test", _ =>
+        {
+            var response = new MultipartFormDataBodyContent("boundary")
+            {
+                new StringBodyContent(expected)
+            };
+            return HttpResponse.Ok(response);
+        });
+
+        // Act
+        var response = await _httpClient.GetAsync("/test");
+
+        // Assert
+        var parts = await response.Content.ReadAsMultipartAsync();
+        var actual = Assert.Single(parts.Contents);
+        Assert.Equal(expected, await actual.ReadAsStringAsync());
     }
 }
