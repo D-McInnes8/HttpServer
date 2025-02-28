@@ -2,7 +2,7 @@ using System.Collections;
 using System.Text;
 using HttpServer.Headers;
 
-namespace HttpServer.Response.Body;
+namespace HttpServer.Body;
 
 /// <summary>
 /// Represents a multipart form data body for a HTTP request or response.

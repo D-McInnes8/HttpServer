@@ -1,8 +1,9 @@
 using System.Collections.Specialized;
 using System.Text;
+using HttpServer.Body;
+using HttpServer.Body.Serializers;
 using HttpServer.Headers;
 using HttpServer.Networking;
-using HttpServer.Response.Body;
 using HttpServer.Routing;
 
 namespace HttpServer.Request.Parser;
@@ -10,14 +11,25 @@ namespace HttpServer.Request.Parser;
 /// <summary>
 /// Static class containing methods to parse a HTTP request.
 /// </summary>
-public static class HttpRequestParser
+public class HttpRequestParser
 {
+    private readonly IHttpBodyContentSerializerProvider _serializerProvider;
+
+    /// <summary>
+    /// Initializes a new instance of <see cref="HttpRequestParser"/>.
+    /// </summary>
+    /// <param name="serializerProvider">The serializer provider to use for deserializing the request body.</param>
+    public HttpRequestParser(IHttpBodyContentSerializerProvider serializerProvider)
+    {
+        _serializerProvider = serializerProvider;
+    }
+
     /// <summary>
     /// Parses a HTTP request from a <see cref="INetworkStreamReader"/>.
     /// </summary>
     /// <param name="networkStreamReader">The network stream reader to parse the request from.</param>
     /// <returns>The parsed HTTP request.</returns>
-    public static async Task<Result<HttpRequest, string>> Parse(INetworkStreamReader networkStreamReader)
+    public async Task<Result<HttpRequest, string>> Parse(INetworkStreamReader networkStreamReader)
     {
         var requestLine = await networkStreamReader.ReadLineAsync();
         
@@ -126,14 +138,17 @@ public static class HttpRequestParser
         return (pathString, parameters);
     }
     
-    private static HttpBodyContent CreateBodyContent(byte[] body, HttpContentType contentType, Encoding encoding)
+    private HttpBodyContent CreateBodyContent(byte[] body, HttpContentType contentType, Encoding encoding)
     {
-        if (HttpContentType.TextPlain.Equals(contentType))
+        var deserializer = _serializerProvider.GetSerializer(contentType);
+        return deserializer.Deserialize(body, contentType, encoding);
+        
+        /*if (HttpContentType.TextPlain.Equals(contentType))
         {
             return new StringBodyContent(encoding.GetString(body), contentType, encoding);
         }
         
-        return new ByteArrayBodyContent(body, contentType, encoding);
+        return new ByteArrayBodyContent(body, contentType, encoding);*/
     }
     
     private static bool TryGetParsedHeader(ReadOnlySpan<char> header, out KeyValuePair<string, string> httpHeader)

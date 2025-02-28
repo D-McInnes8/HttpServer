@@ -1,7 +1,7 @@
 using HttpServer;
+using HttpServer.Body;
 using HttpServer.Request;
 using HttpServer.Response;
-using HttpServer.Response.Body;
 
 namespace Tests.IntegrationTests;
 

@@ -1,7 +1,7 @@
 using System.Text;
 using HttpServer.Headers;
 
-namespace HttpServer.Response.Body;
+namespace HttpServer.Body;
 
 /// <summary>
 /// Represents a string body for a HTTP response.

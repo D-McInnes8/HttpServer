@@ -1,14 +1,25 @@
 using System.Text;
-using HttpServer;
+using HttpServer.Body.Serializers;
 using HttpServer.Headers;
 using HttpServer.Networking;
 using HttpServer.Request;
 using HttpServer.Request.Parser;
+using NSubstitute;
 
 namespace Tests.UnitTests;
 
 public class HttpRequestParserTests
 {
+    private readonly HttpRequestParser _httpRequestParser;
+    
+    public HttpRequestParserTests()
+    {
+        var serializerProvider = NSubstitute.Substitute.For<IHttpBodyContentSerializerProvider>();
+        serializerProvider.GetSerializer(HttpContentType.TextPlain).Returns(new StringBodyContentSerializer());
+        serializerProvider.GetSerializer(HttpContentType.ApplicationJson).Returns(new ByteArrayBodyContentSerializer());
+        _httpRequestParser = new HttpRequestParser(serializerProvider);
+    }
+    
     [Theory]
     [InlineData("GET", "/", false)]
     [InlineData("POST", "/submit", true)]
@@ -28,7 +39,7 @@ public class HttpRequestParserTests
         using var streamReader = new TcpNetworkStreamReader(stream);
         
         // Act
-        var result = await HttpRequestParser.Parse(streamReader);
+        var result = await _httpRequestParser.Parse(streamReader);
 
         // Assert
         var actual = result.Value;
@@ -52,7 +63,7 @@ public class HttpRequestParserTests
         using var streamReader = new TcpNetworkStreamReader(stream);
 
         // Act
-        var result = await HttpRequestParser.Parse(streamReader);
+        var result = await _httpRequestParser.Parse(streamReader);
 
         // Assert
         var actual = result.Value;
@@ -74,7 +85,7 @@ public class HttpRequestParserTests
         using var streamReader = new TcpNetworkStreamReader(stream);
 
         // Act
-        var result = await HttpRequestParser.Parse(streamReader);
+        var result = await _httpRequestParser.Parse(streamReader);
 
         // Assert
         var actual = result.Value;
@@ -90,7 +101,7 @@ public class HttpRequestParserTests
         using var streamReader = new TcpNetworkStreamReader(stream);
         
         // Act
-        var result = await HttpRequestParser.Parse(streamReader);
+        var result = await _httpRequestParser.Parse(streamReader);
 
         // Assert
         var actual = result.Value;
@@ -114,7 +125,7 @@ public class HttpRequestParserTests
         using var streamReader = new TcpNetworkStreamReader(stream);
         
         // Act
-        var result = await HttpRequestParser.Parse(streamReader);
+        var result = await _httpRequestParser.Parse(streamReader);
 
         // Assert
         var actual = result.Value;
@@ -136,7 +147,7 @@ public class HttpRequestParserTests
         using var streamReader = new TcpNetworkStreamReader(stream);
 
         // Act
-        var result = await HttpRequestParser.Parse(streamReader);
+        var result = await _httpRequestParser.Parse(streamReader);
 
         // Assert
         var actual = result.Value;
@@ -154,7 +165,7 @@ public class HttpRequestParserTests
         using var streamReader = new TcpNetworkStreamReader(stream);
         
         // Act
-        var result = await HttpRequestParser.Parse(streamReader);
+        var result = await _httpRequestParser.Parse(streamReader);
 
         // Assert
         var actual = result.Value;
@@ -177,7 +188,7 @@ public class HttpRequestParserTests
         var expected = new HttpContentType("application", "json");
         
         // Act
-        var result = await HttpRequestParser.Parse(streamReader);
+        var result = await _httpRequestParser.Parse(streamReader);
         
         // Assert
         var actual = result.Value;
@@ -194,7 +205,7 @@ public class HttpRequestParserTests
         using var streamReader = new TcpNetworkStreamReader(stream);
         
         // Act
-        var result = await HttpRequestParser.Parse(streamReader);
+        var result = await _httpRequestParser.Parse(streamReader);
         
         // Assert
         var actual = result.Value;
@@ -211,7 +222,7 @@ public class HttpRequestParserTests
         using var streamReader = new TcpNetworkStreamReader(stream);
         
         // Act
-        var result = await HttpRequestParser.Parse(streamReader);
+        var result = await _httpRequestParser.Parse(streamReader);
         
         // Assert
         var actual = result.Value;
@@ -230,7 +241,7 @@ public class HttpRequestParserTests
         using var streamReader = new TcpNetworkStreamReader(stream);
         
         // Act
-        var result = await HttpRequestParser.Parse(streamReader);
+        var result = await _httpRequestParser.Parse(streamReader);
         
         // Assert
         var actual = result.Value;

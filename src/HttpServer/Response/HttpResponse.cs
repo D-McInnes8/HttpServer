@@ -1,6 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
+using HttpServer.Body;
 using HttpServer.Headers;
-using HttpServer.Response.Body;
 
 namespace HttpServer.Response;
 

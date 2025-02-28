@@ -2,7 +2,7 @@ using System.Text;
 using System.Text.Json;
 using HttpServer.Headers;
 
-namespace HttpServer.Response.Body;
+namespace HttpServer.Body;
 
 /// <summary>
 /// Represents a JSON body for a HTTP response.

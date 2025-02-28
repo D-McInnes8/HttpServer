@@ -1,9 +1,9 @@
 using System.Net;
 using System.Text;
 using HttpServer;
+using HttpServer.Body;
 using HttpServer.Request;
 using HttpServer.Response;
-using HttpServer.Response.Body;
 using HttpServer.Routing;
 
 namespace Tests.IntegrationTests;

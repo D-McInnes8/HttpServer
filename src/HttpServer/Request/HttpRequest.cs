@@ -1,9 +1,9 @@
 using System.Collections.Specialized;
 using System.Diagnostics.CodeAnalysis;
 using System.Web;
+using HttpServer.Body;
 using HttpServer.Headers;
 using HttpServer.Request.Parser;
-using HttpServer.Response.Body;
 
 namespace HttpServer.Request;
 

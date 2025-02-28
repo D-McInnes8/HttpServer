@@ -1,12 +1,13 @@
 using System.Text;
+using HttpServer.Body.Serializers;
 using HttpServer.Headers;
 
-namespace HttpServer.Response.Body;
+namespace HttpServer.Body;
 
 /// <summary>
 /// Represents a byte array body for a HTTP response.
 /// </summary>
-public class ByteArrayBodyContent : HttpBodyContent
+public class ByteArrayBodyContent : HttpBodyContent, IHttpBodyContentSerializer
 {
     /// <summary>
     /// Constructs a new <see cref="ByteArrayBodyContent"/> with the specified content.
@@ -46,5 +47,10 @@ public class ByteArrayBodyContent : HttpBodyContent
     public void CopyTo(Span<byte> destination)
     {
         Content.CopyTo(destination);
+    }
+
+    public static HttpBodyContent Deserialize(byte[] content, HttpContentType contentType, Encoding encoding)
+    {
+        return new ByteArrayBodyContent(content, contentType, encoding);
     }
 }

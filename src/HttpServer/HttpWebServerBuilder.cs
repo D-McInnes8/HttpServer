@@ -1,7 +1,9 @@
 using System.Diagnostics;
+using HttpServer.Body.Serializers;
 using HttpServer.Logging;
 using HttpServer.Networking;
 using HttpServer.Pipeline.Registry;
+using HttpServer.Request.Parser;
 using HttpServer.Routing;
 using HttpServer.Routing.Internal;
 using HttpServer.Routing.StaticFiles;
@@ -12,7 +14,7 @@ using Microsoft.Extensions.Logging;
 namespace HttpServer;
 
 /// <summary>
-/// Represents a builder for creating an <see cref="HttpWebWebServer"/>.
+/// Represents a builder for creating an <see cref="HttpWebServer"/>.
 /// </summary>
 public interface IHttpWebServerBuilder
 {
@@ -27,14 +29,14 @@ public interface IHttpWebServerBuilder
     public int Port { get; }
 
     /// <summary>
-    /// Builds the <see cref="HttpWebWebServer"/>.
+    /// Builds the <see cref="HttpWebServer"/>.
     /// </summary>
     /// <returns>The constructed <see cref="IHttpWebServer"/>.</returns>
     public IHttpWebServer Build();
 }
 
 /// <summary>
-/// A builder for creating an <see cref="HttpWebWebServer"/>.
+/// A builder for creating an <see cref="HttpWebServer"/>.
 /// </summary>
 public class HttpWebWebServerBuilder : IHttpWebServerBuilder
 {
@@ -75,6 +77,8 @@ public class HttpWebWebServerBuilder : IHttpWebServerBuilder
                 .AddSingleton<IRouter, DefaultRouter>()
                 .AddSingleton<HttpWebServerOptions>()
                 .AddSingleton<IConnectionPool, TcpConnectionPool>()
+                .AddSingleton<IHttpBodyContentSerializerProvider, HttpBodyContentSerializerProvider>()
+                .AddScoped<HttpRequestParser>()
                 .AddScoped<IFileContentTypeProvider, DefaultContentTypeProvider>();
         Services.TryAddSingleton<TimeProvider>(_ => TimeProvider.System);
     }

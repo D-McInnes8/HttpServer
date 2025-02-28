@@ -1,8 +1,8 @@
 using System.Net;
 using System.Net.Http.Json;
 using HttpServer;
+using HttpServer.Body;
 using HttpServer.Response;
-using HttpServer.Response.Body;
 using HttpServer.Routing;
 
 namespace Tests.IntegrationTests;

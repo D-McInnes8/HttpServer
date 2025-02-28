@@ -1,7 +1,7 @@
 using System.Text;
+using HttpServer.Body;
 using HttpServer.Pipeline;
 using HttpServer.Response;
-using HttpServer.Response.Body;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace HttpServer.Routing.StaticFiles;

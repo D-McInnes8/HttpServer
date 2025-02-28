@@ -124,7 +124,8 @@ public class HttpWebServer : IHttpWebServer
     private HttpResponse HandleRequest(INetworkStreamReader streamReader)
     {
         using var scope = Services.CreateScope();
-        var result = HttpRequestParser.Parse(streamReader).GetAwaiter().GetResult();
+        var httpRequestParser = scope.ServiceProvider.GetRequiredService<HttpRequestParser>();
+        var result = httpRequestParser.Parse(streamReader).GetAwaiter().GetResult();
         if (result.IsError)
         {
             _logger.LogWarning("Failed to parse request: {Error}", result.Error);
