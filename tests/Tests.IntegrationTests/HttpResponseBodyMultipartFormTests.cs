@@ -248,7 +248,7 @@ public class HttpResponseBodyMultipartFormTests : IAsyncLifetime
     }
     
     [Fact]
-    public async Task HttpResponseMultipartFormData_MultipleContents_ShouldContainMultipleParts()
+    public async Task HttpResponseMultipartFormData_MultipleParts_ShouldContainMultipleParts()
     {
         // Arrange
         _server.MapGet("/test", _ =>
@@ -275,7 +275,7 @@ public class HttpResponseBodyMultipartFormTests : IAsyncLifetime
     }
     
     [Fact]
-    public async Task HttpResponseMultipartFormData_MultipleContents_ShouldSetContentTypeHeader()
+    public async Task HttpResponseMultipartFormData_MultipleParts_ShouldSetContentTypeHeader()
     {
         // Arrange
         _server.MapGet("/test", _ =>
@@ -296,6 +296,76 @@ public class HttpResponseBodyMultipartFormTests : IAsyncLifetime
         Assert.Collection(parts.Contents,
             part => Assert.Equal("text/plain", part.Headers.ContentType?.MediaType),
             part => Assert.Equal("application/octet-stream", part.Headers.ContentType?.MediaType));
+    }
+    
+    [Fact]
+    public async Task HttpResponseBodyMultipartFormData_MultipleParts_ShouldSetContentDisposition()
+    {
+        // Arrange
+        _server.MapGet("/test", _ =>
+        {
+            var response = new MultipartFormDataBodyContent("boundary")
+            {
+                new StringBodyContent("Hello, World!"),
+                new ByteArrayBodyContent([0x00, 0x01, 0x02, 0x03])
+            };
+            return HttpResponse.Ok(response);
+        });
+        
+        // Act
+        var response = await _httpClient.GetAsync("/test");
+        
+        // Assert
+        var parts = await response.Content.ReadAsMultipartAsync();
+        Assert.All(parts.Contents, part => Assert.Equal("form-data", part.Headers.ContentDisposition?.DispositionType));
+    }
+
+    [Fact]
+    public async Task HttpResponseBodyMultipartFormData_MultipleParts_ShouldSetPartNameHeader()
+    {
+        // Arrange
+        _server.MapGet("/test", _ =>
+        {
+            var response = new MultipartFormDataBodyContent("boundary")
+            {
+                { "binary", new ByteArrayBodyContent([0x00, 0x01, 0x02, 0x03]) },
+                { "json", new JsonBodyContent<int[]>([1, 2, 3, 4, 5]) }
+            };
+            return HttpResponse.Ok(response);
+        });
+        
+        // Act
+        var response = await _httpClient.GetAsync("/test");
+        
+        // Assert
+        var parts = await response.Content.ReadAsMultipartAsync();
+        Assert.Collection(parts.Contents,
+            part => Assert.Equal("binary", part.Headers.ContentDisposition?.Name),
+            part => Assert.Equal("json", part.Headers.ContentDisposition?.Name));
+    }
+    
+    [Fact]
+    public async Task HttpResponseBodyMultipartFormData_MultipleParts_ShouldSetFilenameHeader()
+    {
+        // Arrange
+        _server.MapGet("/test", _ =>
+        {
+            var response = new MultipartFormDataBodyContent("boundary")
+            {
+                { "binary", "file.bin", new ByteArrayBodyContent([0x00, 0x01, 0x02, 0x03]) },
+                { "json", "data.json", new JsonBodyContent<int[]>([1, 2, 3, 4, 5]) }
+            };
+            return HttpResponse.Ok(response);
+        });
+        
+        // Act
+        var response = await _httpClient.GetAsync("/test");
+        
+        // Assert
+        var parts = await response.Content.ReadAsMultipartAsync();
+        Assert.Collection(parts.Contents,
+            part => Assert.Equal("file.bin", part.Headers.ContentDisposition?.FileName),
+            part => Assert.Equal("data.json", part.Headers.ContentDisposition?.FileName));
     }
     
     [Fact]

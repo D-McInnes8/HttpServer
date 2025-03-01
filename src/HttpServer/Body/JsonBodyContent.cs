@@ -33,6 +33,12 @@ public class JsonBodyContent<T> : HttpBodyContent
         Encoding = encoding;
     }
     
+    /// <summary>
+    /// Deserializes the content to an object of type <typeparamref name="T"/>.
+    /// </summary>
+    /// <returns>The deserialized object.</returns>
+    public T? Deserialize() => JsonSerializer.Deserialize<T>(Content);
+    
     /// <inheritdoc />
     public HttpContentType ContentType { get; }
     

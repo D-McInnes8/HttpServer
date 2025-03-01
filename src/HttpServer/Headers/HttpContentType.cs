@@ -19,6 +19,11 @@ public class HttpContentType : IEquatable<HttpContentType>, ISpanParsable<HttpCo
     public required string SubType { get; init; } = "plain";
     
     /// <summary>
+    /// The media type of the HTTP content.
+    /// </summary>
+    public string MediaType => $"{Type}/{SubType}";
+    
+    /// <summary>
     /// The parameters of the HTTP content.
     /// </summary>
     public required NameValueCollection Parameters { get; init; }
