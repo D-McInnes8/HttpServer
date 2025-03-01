@@ -5,6 +5,7 @@ using HttpServer.Body;
 using HttpServer.Request;
 using HttpServer.Response;
 using HttpServer.Routing;
+using Tests.IntegrationTests.TestExtensions;
 
 namespace Tests.IntegrationTests;
 
@@ -52,27 +53,21 @@ public class HttpRequestBodyMultipartFormTests : IAsyncLifetime
     public async Task HttpRequestBodyMultipartFormData_ContentType_ShouldSetBoundary()
     {
         // Arrange
-        HttpRequest? request = null;
-        _server.MapPost("/test", ctx =>
-        {
-            request = ctx.Request;
-            return HttpResponse.Ok();
-        });
         const string expected = "----WebKitFormBoundary7MA4YWxkTrZu0gW";
+        using var content = new MultipartFormDataContent(boundary: expected);
         
         // Act
-        using var content = new MultipartFormDataContent(boundary: expected);
-        _ = await _httpClient.PostAsync("/test", content);
+        var actual = await _server.PostAsyncAndCaptureRequest("/test", content);
         
         // Assert
-        Assert.Equal(expected, request?.ContentType?.Boundary);
+        Assert.Equal(expected, actual.ContentType?.Boundary);
     }
 
     [Fact]
     public async Task HttpRequestBodyMultipartFormData_EmptyBoundary_ShouldReturnBadRequest()
     {
         // Arrange
-        _server.MapPost("/test", ctx => HttpResponse.Ok());
+        _server.MapPost("/test", _ => HttpResponse.Ok());
         
         // Act
         using var content = new MultipartFormDataContent(boundary: "");
@@ -86,19 +81,13 @@ public class HttpRequestBodyMultipartFormTests : IAsyncLifetime
     public async Task HttpRequestBodyMultipartFormData_EmptyContent_ShouldContainNoParts()
     {
         // Arrange
-        HttpRequest? request = null;
-        _server.MapPost("/test", ctx =>
-        {
-            request = ctx.Request;
-            return HttpResponse.Ok();
-        });
+        using var content = new MultipartFormDataContent();
         
         // Act
-        using var content = new MultipartFormDataContent();
-        _ = await _httpClient.PostAsync("/test", content);
+        var request = await _server.PostAsyncAndCaptureRequest("/test", content);
         
         // Assert
-        var body = Assert.IsType<MultipartFormDataBodyContent>(request?.Body);
+        var body = Assert.IsType<MultipartFormDataBodyContent>(request.Body);
         Assert.Empty(body);
     }
     
@@ -110,20 +99,14 @@ public class HttpRequestBodyMultipartFormTests : IAsyncLifetime
     public async Task HttpRequestBodyMultipartFormData_PlainTextContent_ShouldSetBody(string charset, string expected)
     {
         // Arrange
-        HttpRequest? request = null;
-        _server.MapPost("/test", ctx =>
-        {
-            request = ctx.Request;
-            return HttpResponse.Ok();
-        });
-        
-        // Act
         using var content = new MultipartFormDataContent();
         content.Add(new StringContent(expected, Encoding.GetEncoding(charset)), "text");
-        _ = await _httpClient.PostAsync("/test", content);
+        
+        // Act
+        var request = await _server.PostAsyncAndCaptureRequest("/test", content);
         
         // Assert
-        var body = Assert.IsType<MultipartFormDataBodyContent>(request?.Body);
+        var body = Assert.IsType<MultipartFormDataBodyContent>(request.Body);
         var part = Assert.IsType<StringBodyContent>(body["text"]);
         var actual = part.GetStringContent();
         Assert.Equal(expected, actual);
@@ -137,20 +120,15 @@ public class HttpRequestBodyMultipartFormTests : IAsyncLifetime
     public async Task HttpRequestBodyMultipartFormData_PlainTextContent_ShouldSetPartCharset(string charset, string expected)
     {
         // Arrange
-        HttpRequest? request = null;
-        _server.MapPost("/test", ctx =>
-        {
-            request = ctx.Request;
-            return HttpResponse.Ok();
-        });
-        
-        // Act
         using var content = new MultipartFormDataContent();
         content.Add(new StringContent(expected, Encoding.GetEncoding(charset)), "text");
+        
+        // Act
+        var request = await _server.PostAsyncAndCaptureRequest("/test", content);
         _ = await _httpClient.PostAsync("/test", content);
         
         // Assert
-        var body = Assert.IsType<MultipartFormDataBodyContent>(request?.Body);
+        var body = Assert.IsType<MultipartFormDataBodyContent>(request.Body);
         var part = Assert.IsType<StringBodyContent>(body["text"]);
         Assert.Equal(charset, part.ContentType.Charset);
     }
@@ -159,21 +137,15 @@ public class HttpRequestBodyMultipartFormTests : IAsyncLifetime
     public async Task HttpRequestBodyMultipartFormData_MultipleParts_ShouldSetMultipleParts()
     {
         // Arrange
-        HttpRequest? request = null;
-        _server.MapPost("/test", ctx =>
-        {
-            request = ctx.Request;
-            return HttpResponse.Ok();
-        });
-        
-        // Act
         using var content = new MultipartFormDataContent();
         content.Add(new StringContent("Hello, World!", Encoding.UTF8), "text");
         content.Add(new StringContent("Hello, 世界!", Encoding.UTF8), "text2");
-        _ = await _httpClient.PostAsync("/test", content);
+        
+        // Act
+        var request = await _server.PostAsyncAndCaptureRequest("/test", content);
         
         // Assert
-        var body = Assert.IsType<MultipartFormDataBodyContent>(request?.Body);
+        var body = Assert.IsType<MultipartFormDataBodyContent>(request.Body);
         Assert.Multiple(() =>
         {
             Assert.Equal(2, body.Count);
@@ -192,21 +164,15 @@ public class HttpRequestBodyMultipartFormTests : IAsyncLifetime
     public async Task HttpRequestBodyMultipartFormData_MultipleParts_ShouldSetMultiplePartCharsets()
     {
         // Arrange
-        HttpRequest? request = null;
-        _server.MapPost("/test", ctx =>
-        {
-            request = ctx.Request;
-            return HttpResponse.Ok();
-        });
-        
-        // Act
         using var content = new MultipartFormDataContent();
         content.Add(new StringContent("Hello, World!", Encoding.ASCII), "text");
         content.Add(new StringContent("Hello, 世界!", Encoding.UTF8), "text2");
-        _ = await _httpClient.PostAsync("/test", content);
+        
+        // Act
+        var request = await _server.PostAsyncAndCaptureRequest("/test", content);
         
         // Assert
-        var body = Assert.IsType<MultipartFormDataBodyContent>(request?.Body);
+        var body = Assert.IsType<MultipartFormDataBodyContent>(request.Body);
         
         var part = Assert.IsType<StringBodyContent>(body["text"]);
         Assert.Equal("us-ascii", part.ContentType.Charset);
@@ -219,21 +185,15 @@ public class HttpRequestBodyMultipartFormTests : IAsyncLifetime
     public async Task HttpRequestBodyMultipartFormData_BinaryContent_ShouldSetBody()
     {
         // Arrange
-        HttpRequest? request = null;
-        _server.MapPost("/test", ctx =>
-        {
-            request = ctx.Request;
-            return HttpResponse.Ok();
-        });
+        using var content = new MultipartFormDataContent();
+        content.Add(new ByteArrayContent([0x01, 0x02, 0x03]), "binary");
         var expected = new byte[] { 0x01, 0x02, 0x03 };
         
         // Act
-        using var content = new MultipartFormDataContent();
-        content.Add(new ByteArrayContent([0x01, 0x02, 0x03]), "binary");
-        _ = await _httpClient.PostAsync("/test", content);
+        var request = await _server.PostAsyncAndCaptureRequest("/test", content);
         
         // Assert
-        var body = Assert.IsType<MultipartFormDataBodyContent>(request?.Body);
+        var body = Assert.IsType<MultipartFormDataBodyContent>(request.Body);
         var part = Assert.IsType<ByteArrayBodyContent>(body["binary"]);
         var actual = part.Content;
         Assert.Equal(expected, actual);
@@ -243,20 +203,14 @@ public class HttpRequestBodyMultipartFormTests : IAsyncLifetime
     public async Task HttpRequestBodyMultipartFormData_BinaryContent_ShouldSetPartContentType()
     {
         // Arrange
-        HttpRequest? request = null;
-        _server.MapPost("/test", ctx =>
-        {
-            request = ctx.Request;
-            return HttpResponse.Ok();
-        });
-        
-        // Act
         using var content = new MultipartFormDataContent();
         content.Add(new ByteArrayContent([0x01, 0x02, 0x03]), "binary");
-        _ = await _httpClient.PostAsync("/test", content);
+        
+        // Act
+        var request = await _server.PostAsyncAndCaptureRequest("/test", content);
         
         // Assert
-        var body = Assert.IsType<MultipartFormDataBodyContent>(request?.Body);
+        var body = Assert.IsType<MultipartFormDataBodyContent>(request.Body);
         var part = Assert.IsType<ByteArrayBodyContent>(body["binary"]);
         Assert.Multiple(() =>
         {
@@ -269,20 +223,14 @@ public class HttpRequestBodyMultipartFormTests : IAsyncLifetime
     public async Task HttpRequestBodyMultipartFormData_BinaryContent_ShouldSetPartCharsetToNull()
     {
         // Arrange
-        HttpRequest? request = null;
-        _server.MapPost("/test", ctx =>
-        {
-            request = ctx.Request;
-            return HttpResponse.Ok();
-        });
-        
-        // Act
         using var content = new MultipartFormDataContent();
         content.Add(new ByteArrayContent([0x01, 0x02, 0x03]), "binary");
-        _ = await _httpClient.PostAsync("/test", content);
+        
+        // Act
+        var request = await _server.PostAsyncAndCaptureRequest("/test", content);
         
         // Assert
-        var body = Assert.IsType<MultipartFormDataBodyContent>(request?.Body);
+        var body = Assert.IsType<MultipartFormDataBodyContent>(request.Body);
         var part = Assert.IsType<ByteArrayBodyContent>(body["binary"]);
         Assert.Null(part.ContentType.Charset);
     }
@@ -291,20 +239,14 @@ public class HttpRequestBodyMultipartFormTests : IAsyncLifetime
     public async Task HttpRequestBodyMultipartFormData_BinaryContent_ShouldSetPartContentDisposition()
     {
         // Arrange
-        HttpRequest? request = null;
-        _server.MapPost("/test", ctx =>
-        {
-            request = ctx.Request;
-            return HttpResponse.Ok();
-        });
-        
-        // Act
         using var content = new MultipartFormDataContent();
         content.Add(new ByteArrayContent([0x01, 0x02, 0x03]), "binary");
-        _ = await _httpClient.PostAsync("/test", content);
+        
+        // Act
+        var request = await _server.PostAsyncAndCaptureRequest("/test", content);
         
         // Assert
-        var body = Assert.IsType<MultipartFormDataBodyContent>(request?.Body);
+        var body = Assert.IsType<MultipartFormDataBodyContent>(request.Body);
         var part = Assert.IsType<ByteArrayBodyContent>(body["binary"]);
         Assert.Multiple(() =>
         {
@@ -317,20 +259,14 @@ public class HttpRequestBodyMultipartFormTests : IAsyncLifetime
     public async Task HttpRequestBodyMultipartFormData_BinaryContent_ShouldSetPartContentDispositionFileName()
     {
         // Arrange
-        HttpRequest? request = null;
-        _server.MapPost("/test", ctx =>
-        {
-            request = ctx.Request;
-            return HttpResponse.Ok();
-        });
-        
-        // Act
         using var content = new MultipartFormDataContent();
         content.Add(new ByteArrayContent([0x01, 0x02, 0x03]), "binary", "file.bin");
-        _ = await _httpClient.PostAsync("/test", content);
+        
+        // Act
+        var request = await _server.PostAsyncAndCaptureRequest("/test", content);
         
         // Assert
-        var body = Assert.IsType<MultipartFormDataBodyContent>(request?.Body);
+        var body = Assert.IsType<MultipartFormDataBodyContent>(request.Body);
         var part = Assert.IsType<ByteArrayBodyContent>(body["binary"]);
         Assert.Equal("file.bin", part.ContentDisposition?.FileName);
     }
@@ -339,20 +275,14 @@ public class HttpRequestBodyMultipartFormTests : IAsyncLifetime
     public async Task HttpRequestBodyMultipartFormData_BinaryContent_ShouldSetPartContentDispositionFileNameAndName()
     {
         // Arrange
-        HttpRequest? request = null;
-        _server.MapPost("/test", ctx =>
-        {
-            request = ctx.Request;
-            return HttpResponse.Ok();
-        });
-        
-        // Act
         using var content = new MultipartFormDataContent();
         content.Add(new ByteArrayContent([0x01, 0x02, 0x03]), "binary", "file.bin");
-        _ = await _httpClient.PostAsync("/test", content);
+        
+        // Act
+        var request = await _server.PostAsyncAndCaptureRequest("/test", content);
         
         // Assert
-        var body = Assert.IsType<MultipartFormDataBodyContent>(request?.Body);
+        var body = Assert.IsType<MultipartFormDataBodyContent>(request.Body);
         var part = Assert.IsType<ByteArrayBodyContent>(body["binary"]);
         Assert.Multiple(() =>
         {
@@ -365,26 +295,20 @@ public class HttpRequestBodyMultipartFormTests : IAsyncLifetime
     public async Task HttpRequestBodyMultipartFormData_MultipleParts_ShouldIncludeAllPartsInBody()
     {
         // Arrange
-        HttpRequest? request = null;
-        _server.MapPost("/test", ctx =>
-        {
-            request = ctx.Request;
-            return HttpResponse.Ok();
-        });
-        
-        // Act
         using var content = new MultipartFormDataContent();
         content.Add(new StringContent("Hello, World!", Encoding.UTF8), "text");
         content.Add(new ByteArrayContent([0x01, 0x02, 0x03]), "binary", "file.bin");
-        _ = await _httpClient.PostAsync("/test", content);
+        
+        // Act
+        var request = await _server.PostAsyncAndCaptureRequest("/test", content);
         
         // Assert
-        var body = Assert.IsType<MultipartFormDataBodyContent>(request?.Body);
+        var actual = Assert.IsType<MultipartFormDataBodyContent>(request.Body);
         Assert.Multiple(() =>
         {
-            Assert.Equal(2, body.Count);
-            Assert.True(body.Contains("text"));
-            Assert.True(body.Contains("binary"));
+            Assert.Equal(2, actual.Count);
+            Assert.True(actual.Contains("text"));
+            Assert.True(actual.Contains("binary"));
         });
     }
     
@@ -392,21 +316,15 @@ public class HttpRequestBodyMultipartFormTests : IAsyncLifetime
     public async Task HttpRequestBodyMultipartFormData_MultipleParts_ShouldMatchRequestContent()
     {
         // Arrange
-        HttpRequest? request = null;
-        _server.MapPost("/test", ctx =>
-        {
-            request = ctx.Request;
-            return HttpResponse.Ok();
-        });
-        
-        // Act
         using var content = new MultipartFormDataContent();
         content.Add(new StringContent("Hello, World!", Encoding.UTF8), "text");
         content.Add(new ByteArrayContent([0x01, 0x02, 0x03]), "binary", "file.bin");
-        _ = await _httpClient.PostAsync("/test", content);
+        
+        // Act
+        var request = await _server.PostAsyncAndCaptureRequest("/test", content);
         
         // Assert
-        var body = Assert.IsType<MultipartFormDataBodyContent>(request?.Body);
+        var body = Assert.IsType<MultipartFormDataBodyContent>(request.Body);
         var stringPart = Assert.IsType<StringBodyContent>(body["text"]);
         var binaryPart = Assert.IsType<ByteArrayBodyContent>(body["binary"]);
         Assert.Multiple(() =>
@@ -420,21 +338,15 @@ public class HttpRequestBodyMultipartFormTests : IAsyncLifetime
     public async Task HttpRequestBodyMultipartFormData_MultipleParts_ShouldMatchRequestContentDisposition()
     {
         // Arrange
-        HttpRequest? request = null;
-        _server.MapPost("/test", ctx =>
-        {
-            request = ctx.Request;
-            return HttpResponse.Ok();
-        });
-        
-        // Act
         using var content = new MultipartFormDataContent();
         content.Add(new StringContent("Hello, World!", Encoding.UTF8), "text");
         content.Add(new ByteArrayContent([0x01, 0x02, 0x03]), "binary", "file.bin");
-        _ = await _httpClient.PostAsync("/test", content);
+        
+        // Act
+        var request = await _server.PostAsyncAndCaptureRequest("/test", content);
         
         // Assert
-        var body = Assert.IsType<MultipartFormDataBodyContent>(request?.Body);
+        var body = Assert.IsType<MultipartFormDataBodyContent>(request.Body);
         var stringPart = Assert.IsType<StringBodyContent>(body["text"]);
         var binaryPart = Assert.IsType<ByteArrayBodyContent>(body["binary"]);
         Assert.Multiple(() =>
@@ -450,21 +362,15 @@ public class HttpRequestBodyMultipartFormTests : IAsyncLifetime
     public async Task HttpRequestBodyMultipartFormData_MultipleParts_ShouldMatchRequestContentTypes()
     {
         // Arrange
-        HttpRequest? request = null;
-        _server.MapPost("/test", ctx =>
-        {
-            request = ctx.Request;
-            return HttpResponse.Ok();
-        });
-        
-        // Act
         using var content = new MultipartFormDataContent();
         content.Add(new StringContent("Hello, World!", Encoding.UTF8), "text");
         content.Add(new ByteArrayContent([0x01, 0x02, 0x03]), "binary", "file.bin");
-        _ = await _httpClient.PostAsync("/test", content);
+        
+        // Act
+        var request = await _server.PostAsyncAndCaptureRequest("/test", content);
         
         // Assert
-        var body = Assert.IsType<MultipartFormDataBodyContent>(request?.Body);
+        var body = Assert.IsType<MultipartFormDataBodyContent>(request.Body);
         var stringPart = Assert.IsType<StringBodyContent>(body["text"]);
         var binaryPart = Assert.IsType<ByteArrayBodyContent>(body["binary"]);
         Assert.Multiple(() =>
@@ -481,22 +387,16 @@ public class HttpRequestBodyMultipartFormTests : IAsyncLifetime
     public async Task HttpRequestBodyMultipartFormData_NestedMultipartContent_ShouldSetNestedContent()
     {
         // Arrange
-        HttpRequest? request = null;
-        _server.MapPost("/test", ctx =>
-        {
-            request = ctx.Request;
-            return HttpResponse.Ok();
-        });
-        
-        // Act
         using var content = new MultipartFormDataContent();
         using var nestedContent = new MultipartFormDataContent();
         nestedContent.Add(new StringContent("Hello, World!", Encoding.UTF8), "text");
         content.Add(nestedContent, "nested");
-        _ = await _httpClient.PostAsync("/test", content);
+        
+        // Act
+        var request = await _server.PostAsyncAndCaptureRequest("/test", content);
         
         // Assert
-        var body = Assert.IsType<MultipartFormDataBodyContent>(request?.Body);
+        var body = Assert.IsType<MultipartFormDataBodyContent>(request.Body);
         var nestedPart = Assert.IsType<MultipartFormDataBodyContent>(body["nested"]);
         var stringPart = Assert.IsType<StringBodyContent>(nestedPart["text"]);
         Assert.Equal("Hello, World!", stringPart.GetStringContent());
@@ -506,22 +406,16 @@ public class HttpRequestBodyMultipartFormTests : IAsyncLifetime
     public async Task HttpRequestBodyMultipartFormData_LargeContent_ShouldSetContent()
     {
         // Arrange
-        HttpRequest? request = null;
-        _server.MapPost("/test", ctx =>
-        {
-            request = ctx.Request;
-            return HttpResponse.Ok();
-        });
         var expected = new byte[1024 * 1024];
         new Random().NextBytes(expected);
-        
-        // Act
         using var content = new MultipartFormDataContent();
         content.Add(new ByteArrayContent(expected), "binary");
-        _ = await _httpClient.PostAsync("/test", content);
+        
+        // Act
+        var request = await _server.PostAsyncAndCaptureRequest("/test", content);
         
         // Assert
-        var body = Assert.IsType<MultipartFormDataBodyContent>(request?.Body);
+        var body = Assert.IsType<MultipartFormDataBodyContent>(request.Body);
         var part = Assert.IsType<ByteArrayBodyContent>(body["binary"]);
         var actual = part.Content;
         Assert.Equal(expected, actual);

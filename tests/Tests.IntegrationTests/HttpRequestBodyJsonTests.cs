@@ -5,6 +5,7 @@ using HttpServer.Body;
 using HttpServer.Request;
 using HttpServer.Response;
 using HttpServer.Routing;
+using Tests.IntegrationTests.TestExtensions;
 
 namespace Tests.IntegrationTests;
 
@@ -31,18 +32,13 @@ public class HttpRequestBodyJsonTests: IAsyncLifetime
         // Arrange
         var json = new { };
         var expected = JsonSerializer.Serialize(json);
-        HttpRequest? request = null;
-        _server.MapPost("/test", ctx =>
-        {
-            request = ctx.Request;
-            return HttpResponse.Ok();
-        });
+        var content = new StringContent(expected, Encoding.UTF8, "application/json");
         
         // Act
-        _ = await _httpClient.PostAsJsonAsync("/test", json);
+        var request = await _server.PostAsyncAndCaptureRequest("/test", content);
         
         // Assert
-        var actual = Assert.IsType<JsonBodyContent<dynamic>>(request?.Body);
+        var actual = Assert.IsType<JsonBodyContent<dynamic>>(request.Body);
         Assert.NotNull(actual);
         Assert.Equal(expected, actual.Encoding.GetString(actual.Content));
     }
@@ -52,15 +48,10 @@ public class HttpRequestBodyJsonTests: IAsyncLifetime
     {
         // Arrange
         var json = new byte[] { };
-        HttpRequest? request = null;
-        _server.MapPost("/test", ctx =>
-        {
-            request = ctx.Request;
-            return HttpResponse.Ok();
-        });
+        var content = new StringContent(JsonSerializer.Serialize(json), Encoding.UTF8, "application/json");
         
         // Act
-        _ = await _httpClient.PostAsJsonAsync("/test", json);
+        var request = await _server.PostAsyncAndCaptureRequest("/test", content);
         
         // Assert
         var actual = Assert.IsType<JsonBodyContent<byte[]>>(request?.Body).Deserialize();
@@ -73,18 +64,13 @@ public class HttpRequestBodyJsonTests: IAsyncLifetime
     {
         // Arrange
         var json = (object?)null;
-        HttpRequest? request = null;
-        _server.MapPost("/test", ctx =>
-        {
-            request = ctx.Request;
-            return HttpResponse.Ok();
-        });
+        var content = new StringContent(JsonSerializer.Serialize(json), Encoding.UTF8, "application/json");
         
         // Act
-        _ = await _httpClient.PostAsJsonAsync("/test", json);
+        var request = await _server.PostAsyncAndCaptureRequest("/test", content);
         
         // Assert
-        var actual = Assert.IsType<JsonBodyContent<object?>>(request?.Body).Deserialize();
+        var actual = Assert.IsType<JsonBodyContent<object?>>(request.Body).Deserialize();
         Assert.Null(actual);
     }
     
@@ -118,20 +104,13 @@ public class HttpRequestBodyJsonTests: IAsyncLifetime
         // Arrange
         var encoding = Encoding.GetEncoding(encodingName);
         var expected = new { Message = expectedContent };
-        HttpRequest? request = null;
-        _server.MapPost("/test", ctx =>
-        {
-            request = ctx.Request;
-            return HttpResponse.Ok();
-        });
+        var content = new StringContent(JsonSerializer.Serialize(expected), encoding, "application/json");
         
         // Act
-        _ = await _httpClient.PostAsync(
-            requestUri: "/test",
-            content: new StringContent(JsonSerializer.Serialize(expected), encoding, "application/json"));
+        var request = await _server.PostAsyncAndCaptureRequest("/test", content);
         
         // Assert
-        var actual = Assert.IsType<JsonBodyContent<dynamic>>(request?.Body).Deserialize();
+        var actual = Assert.IsType<JsonBodyContent<dynamic>>(request.Body).Deserialize();
         Assert.NotNull(actual);
         Assert.Equivalent(expected, actual);
     }
@@ -145,17 +124,10 @@ public class HttpRequestBodyJsonTests: IAsyncLifetime
         // Arrange
         var encoding = Encoding.GetEncoding(encodingName);
         var expected = new { Message = "Hello, World!" };
-        HttpRequest? request = null;
-        _server.MapPost("/test", ctx =>
-        {
-            request = ctx.Request;
-            return HttpResponse.Ok();
-        });
+        var content = new StringContent(JsonSerializer.Serialize(expected), encoding, "application/json");
         
         // Act
-        _ = await _httpClient.PostAsync(
-            requestUri: "/test",
-            content: new StringContent(JsonSerializer.Serialize(expected), encoding, "application/json"));
+        var request = await _server.PostAsyncAndCaptureRequest("/test", content);
         
         // Assert
         var actual = Assert.IsType<JsonBodyContent<dynamic>>(request?.Body);
