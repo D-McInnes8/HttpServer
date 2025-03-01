@@ -2,7 +2,6 @@ using System.Net;
 using System.Text;
 using HttpServer;
 using HttpServer.Body;
-using HttpServer.Request;
 using HttpServer.Response;
 using HttpServer.Routing;
 using Tests.IntegrationTests.TestExtensions;
@@ -30,22 +29,16 @@ public class HttpRequestBodyMultipartFormTests : IAsyncLifetime
     public async Task HttpRequestBodyMultipartFormData_ContentType_ShouldSetContentTypeAndSubType()
     {
         // Arrange
-        HttpRequest? request = null;
-        _server.MapPost("/test", ctx =>
-        {
-            request = ctx.Request;
-            return HttpResponse.Ok();
-        });
+        using var content = new MultipartFormDataContent();
         
         // Act
-        using var content = new MultipartFormDataContent();
-        _ = await _httpClient.PostAsync("/test", content);
+        var actual = await _server.PostAsyncAndCaptureRequest("/test", content);
         
         // Assert
         Assert.Multiple(() =>
         {
-            Assert.Equal("multipart", request?.ContentType?.Type);
-            Assert.Equal("form-data", request?.ContentType?.SubType);
+            Assert.Equal("multipart", actual.ContentType?.Type);
+            Assert.Equal("form-data", actual.ContentType?.SubType);
         });
     }
 
@@ -68,9 +61,9 @@ public class HttpRequestBodyMultipartFormTests : IAsyncLifetime
     {
         // Arrange
         _server.MapPost("/test", _ => HttpResponse.Ok());
+        using var content = new MultipartFormDataContent(boundary: "");
         
         // Act
-        using var content = new MultipartFormDataContent(boundary: "");
         var actual = await _httpClient.PostAsync("/test", content);
         
         // Assert
@@ -125,7 +118,6 @@ public class HttpRequestBodyMultipartFormTests : IAsyncLifetime
         
         // Act
         var request = await _server.PostAsyncAndCaptureRequest("/test", content);
-        _ = await _httpClient.PostAsync("/test", content);
         
         // Assert
         var body = Assert.IsType<MultipartFormDataBodyContent>(request.Body);
