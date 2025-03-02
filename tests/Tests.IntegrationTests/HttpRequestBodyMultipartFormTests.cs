@@ -83,6 +83,22 @@ public class HttpRequestBodyMultipartFormTests : IAsyncLifetime
         var body = Assert.IsType<MultipartFormDataBodyContent>(request.Body);
         Assert.Empty(body);
     }
+
+    [Fact]
+    public async Task HttpRequestBodyMultipartFormData_PartNoName()
+    {
+        // Arrange
+        using var content = new MultipartFormDataContent();
+        content.Add(new StringContent("Hello, World!", Encoding.UTF8));
+        
+        // Act
+        var request = await _server.PostAsyncAndCaptureRequest("/test", content);
+        
+        // Assert
+        var body = Assert.IsType<MultipartFormDataBodyContent>(request.Body);
+        var actual = Assert.IsType<StringBodyContent>(Assert.Single(body));
+        Assert.Equal("Hello, World!", actual.GetStringContent());
+    }
     
     [Theory]
     [InlineData("ascii", "Hello, World!")]
@@ -374,6 +390,24 @@ public class HttpRequestBodyMultipartFormTests : IAsyncLifetime
             Assert.Equal("octet-stream", binaryPart.ContentType.SubType);
         });
     }
+
+    [Fact]
+    public async Task HttpRequestBodyMultipartFormData_MultipleParts_ShouldBeAbleToEnumerateParts()
+    {
+        // Arrange
+        using var content = new MultipartFormDataContent();
+        content.Add(new StringContent("Hello, World!", Encoding.UTF8), "text");
+        content.Add(new ByteArrayContent([0x01, 0x02, 0x03]), "binary", "file.bin");
+        
+        // Act
+        var request = await _server.PostAsyncAndCaptureRequest("/test", content);
+        
+        // Assert
+        var body = Assert.IsType<MultipartFormDataBodyContent>(request.Body);
+        Assert.Collection(body,
+            part => Assert.IsType<StringBodyContent>(part),
+            part => Assert.IsType<ByteArrayBodyContent>(part));
+    }
     
     [Fact]
     public async Task HttpRequestBodyMultipartFormData_NestedMultipartContent_ShouldSetNestedContent()
@@ -392,6 +426,39 @@ public class HttpRequestBodyMultipartFormTests : IAsyncLifetime
         var nestedPart = Assert.IsType<MultipartFormDataBodyContent>(body["nested"]);
         var stringPart = Assert.IsType<StringBodyContent>(nestedPart["text"]);
         Assert.Equal("Hello, World!", stringPart.GetStringContent());
+    }
+    
+    [Fact]
+    public async Task HttpRequestBodyMultipartFormData_NestedMultipartContent_ShouldSupportMultipleNestedParts()
+    {
+        // Arrange
+        using var content = new MultipartFormDataContent();
+        using var nestedContent = new MultipartFormDataContent();
+        nestedContent.Add(new StringContent("Hello, World!", Encoding.UTF8), "text");
+        nestedContent.Add(new ByteArrayContent([0x01, 0x02, 0x03]), "binary", "file.bin");
+        content.Add(nestedContent, "nested");
+        content.Add(new StringContent("Hello, World!", Encoding.UTF8), "text");
+        
+        // Act
+        var request = await _server.PostAsyncAndCaptureRequest("/test", content);
+        
+        // Assert
+        var body = Assert.IsType<MultipartFormDataBodyContent>(request.Body);
+        
+        Assert.Equal(2, body.Count);
+        var rootPart = Assert.IsType<StringBodyContent>(body["text"]);
+        Assert.Equal("Hello, World!", rootPart.GetStringContent());
+        
+        var nestedPart = Assert.IsType<MultipartFormDataBodyContent>(body["nested"]);
+        Assert.Multiple(() =>
+        {
+            Assert.Equal(2, nestedPart.Count);
+            var nestedStringPart = Assert.IsType<StringBodyContent>(nestedPart["text"]);
+            Assert.Equal("Hello, World!", nestedStringPart.GetStringContent());
+            
+            var nestedBinaryPart = Assert.IsType<ByteArrayBodyContent>(nestedPart["binary"]);
+            Assert.Equal(new byte[] { 0x01, 0x02, 0x03 }, nestedBinaryPart.Content);
+        });
     }
     
     [Fact]

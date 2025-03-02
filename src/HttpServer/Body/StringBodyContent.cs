@@ -89,7 +89,7 @@ public class StringBodyContent : HttpBodyContent
     public byte[] Content { get; }
 
     /// <inheritdoc />
-    public ContentDisposition? ContentDisposition => throw new NotImplementedException();
+    public ContentDisposition? ContentDisposition { get; set; }
 
     /// <inheritdoc />
     public void CopyTo(Span<byte> destination)

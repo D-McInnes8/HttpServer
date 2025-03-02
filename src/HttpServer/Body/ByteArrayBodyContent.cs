@@ -41,7 +41,7 @@ public class ByteArrayBodyContent : HttpBodyContent, IHttpBodyContentSerializer
     public byte[] Content { get; }
 
     /// <inheritdoc />
-    public ContentDisposition? ContentDisposition => throw new NotImplementedException();
+    public ContentDisposition? ContentDisposition { get; set; }
 
     /// <inheritdoc />
     public void CopyTo(Span<byte> destination)

@@ -31,7 +31,7 @@ public interface HttpBodyContent
     /// <summary>
     /// The content disposition of the body.
     /// </summary>
-    public ContentDisposition? ContentDisposition { get; }
+    public ContentDisposition? ContentDisposition { get; set; }
     
     /// <summary>
     /// Copies the body to a destination span.

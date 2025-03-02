@@ -32,12 +32,20 @@ public class JsonBodyContent<T> : HttpBodyContent
         ContentType = contentType;
         Encoding = encoding;
     }
-    
+
     /// <summary>
     /// Deserializes the content to an object of type <typeparamref name="T"/>.
     /// </summary>
     /// <returns>The deserialized object.</returns>
-    public T? Deserialize() => JsonSerializer.Deserialize<T>(Content);
+    public T? Deserialize()
+    {
+        if (Equals(Encoding, Encoding.UTF8))
+        {
+            return JsonSerializer.Deserialize<T>(Content);
+        }
+        
+        return JsonSerializer.Deserialize<T>(Encoding.GetString(Content));
+    }
     
     /// <inheritdoc />
     public HttpContentType ContentType { get; }
@@ -49,7 +57,7 @@ public class JsonBodyContent<T> : HttpBodyContent
     public byte[] Content { get; }
 
     /// <inheritdoc />
-    public ContentDisposition? ContentDisposition => throw new NotImplementedException();
+    public ContentDisposition? ContentDisposition { get; set; }
 
     /// <inheritdoc />
     public void CopyTo(Span<byte> destination)
