@@ -32,12 +32,8 @@ public class HttpRequestParser
     public async Task<Result<HttpRequest, string>> Parse(INetworkStreamReader networkStreamReader)
     {
         var requestLine = await networkStreamReader.ReadLineAsync();
-        
-        if (string.IsNullOrWhiteSpace(requestLine))
-        {
-            return Result.Error<HttpRequest, string>("Unable to parse request line.");
-        }
-        
+
+        HttpParserException.ThrowIfNullOrWhiteSpace(requestLine, HttpParserExceptionErrorCode.InvalidRequestLine);
         var tokenizer = new StringTokenizer(requestLine, [' ']);
         var method = ParseMethod(tokenizer.GetNextToken());
         var path = tokenizer.GetNextToken();
@@ -45,18 +41,10 @@ public class HttpRequestParser
         
         if (method == HttpRequestMethod.UNKNOWN)
         {
-            return Result.Error<HttpRequest, string>("Unknown HTTP method.");
+            throw new HttpParserException(HttpParserExceptionErrorCode.InvalidMethod);
         }
-
-        if (string.IsNullOrWhiteSpace(path))
-        {
-            return Result.Error<HttpRequest, string>("Invalid path.");
-        }
-
-        if (string.IsNullOrWhiteSpace(httpVersion))
-        {
-            return Result.Error<HttpRequest, string>("Invalid HTTP version.");
-        }
+        HttpParserException.ThrowIfNullOrWhiteSpace(path, HttpParserExceptionErrorCode.InvalidUri);
+        HttpParserException.ThrowIfNullOrWhiteSpace(httpVersion, HttpParserExceptionErrorCode.InvalidHttpVersion);
         
         var headers = new NameValueCollection();
         string? line;
@@ -87,10 +75,7 @@ public class HttpRequestParser
             };
         }
 
-        if (httpContentType is null)
-        {
-            return Result.Error<HttpRequest, string>("Content-Type header is required.");
-        }
+        HttpParserException.ThrowIfNull(httpContentType, HttpParserExceptionErrorCode.InvalidContentType);
         var encoding = httpContentType.Charset is not null ? Encoding.GetEncoding(httpContentType.Charset) : Encoding.ASCII;
         return new HttpRequest(method, path)
         {

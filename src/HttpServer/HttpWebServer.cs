@@ -125,14 +125,25 @@ public class HttpWebServer : IHttpWebServer
     {
         using var scope = Services.CreateScope();
         var httpRequestParser = scope.ServiceProvider.GetRequiredService<HttpRequestParser>();
-        var result = httpRequestParser.Parse(streamReader).GetAwaiter().GetResult();
-        if (result.IsError)
+
+        HttpRequest? httpRequest;
+        try
         {
-            _logger.LogWarning("Failed to parse request: {Error}", result.Error);
-            return HttpResponse.BadRequest();
+            var result = httpRequestParser.Parse(streamReader).GetAwaiter().GetResult();
+            httpRequest = result.Value;
+        }
+        catch (HttpParserException ex) when (!ex.InternalServerError)
+        {
+            return ex.ResponseMessage is not null 
+                ? HttpResponse.BadRequest(ex.ResponseMessage) 
+                : HttpResponse.BadRequest();
         }
 
-        var httpRequest = result.Value;
+        return ExecuteRequestPipeline(httpRequest, scope);
+    }
+
+    private HttpResponse ExecuteRequestPipeline(HttpRequest httpRequest, IServiceScope scope)
+    {
         var ctx = new RequestPipelineContext(httpRequest, scope.ServiceProvider, _pipelineRegistry.GlobalPipeline.Options);
         var logState = new List<KeyValuePair<string, object?>>
         {

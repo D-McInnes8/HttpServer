@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Text;
 using HttpServer.Headers;
+using HttpServer.Request.Parser;
 
 namespace HttpServer.Body;
 
@@ -192,7 +193,7 @@ public ref struct MultipartContentReader
     /// <param name="content">The content to read.</param>
     /// <param name="encoding">The encoding of the content.</param>
     /// <param name="boundary">The boundary of the parts.</param>
-    /// <exception cref="InvalidOperationException"></exception>
+    /// <exception cref="HttpParserException">Thrown when the boundary is invalid or the final boundary is missing.</exception>
     public MultipartContentReader(ReadOnlySpan<byte> content, Encoding encoding, string boundary)
     {
         _content = content;
@@ -202,7 +203,7 @@ public ref struct MultipartContentReader
         var firstBoundaryIndex = _content.IndexOf(_boundary);
         if (firstBoundaryIndex == -1)
         {
-            throw new InvalidOperationException("Invalid boundary");
+            throw new MultipartParserException("Invalid boundary");
         }
         
         _position = firstBoundaryIndex + _boundary.Length;
@@ -218,7 +219,7 @@ public ref struct MultipartContentReader
         _finalBoundaryIndex = _content.IndexOf(_encoding.GetBytes($"\n--{boundary}--"));
         if (_finalBoundaryIndex == -1)
         {
-            throw new InvalidOperationException("No final boundary found");
+            throw new MultipartParserException("No final boundary found");
         }
     }
     
@@ -251,18 +252,18 @@ public ref struct MultipartContentReader
     /// Reads to the next boundary.
     /// </summary>
     /// <returns>The content up to the next boundary.</returns>
-    /// <exception cref="InvalidOperationException"></exception>
+    /// <exception cref="HttpParserException">Thrown when the final boundary is reached or the boundary is not found.</exception>
     public ReadOnlySpan<byte> ReadToNextBoundary()
     {
         if (_position >= _finalBoundaryIndex)
         {
-            throw new InvalidOperationException("Have reached the final boundary");
+            throw new MultipartParserException("Have reached the final boundary");
         }
         
         var boundaryIndex = _content[_position..].IndexOf(_boundary);
         if (boundaryIndex == -1)
         {
-            throw new InvalidOperationException("Unable to find boundary");
+            throw new MultipartParserException("No boundary found");
         }
 
         var result = _content.Slice(_position, boundaryIndex);
