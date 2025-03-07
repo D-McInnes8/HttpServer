@@ -48,6 +48,7 @@ internal class HttpBodyContentSerializerProvider : IHttpBodyContentSerializerPro
         _serviceProvider = serviceProvider;
         _deserializers = new Dictionary<HttpContentType, Type>();
         AddSerializer<StringBodyContentSerializer>(HttpContentType.TextPlain);
+        AddSerializer<MultipartFormDataBodyContentSerializer>(HttpContentType.MultipartFormData);
     }
     
     public void AddSerializer<TDeserializer>(HttpContentType contentType) where TDeserializer : IHttpContentDeserializer

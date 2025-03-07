@@ -50,7 +50,7 @@ public class MultipartFormDataBodyContent : HttpBodyContent, IReadOnlyCollection
     /// <param name="content">The content of the body.</param>
     /// <param name="contentType">The content type of the body.</param>
     /// <param name="encoding">The encoding of the body.</param>
-    private MultipartFormDataBodyContent(byte[] content, HttpContentType contentType, Encoding encoding)
+    public MultipartFormDataBodyContent(byte[] content, HttpContentType contentType, Encoding encoding)
     {
         ArgumentNullException.ThrowIfNull(contentType);
         ArgumentNullException.ThrowIfNull(encoding);
@@ -155,5 +155,148 @@ public class MultipartFormDataBodyContent : HttpBodyContent, IReadOnlyCollection
     public void Remove(HttpBodyContent content)
     {
         _parts.Remove(content);
+    }
+    
+    public static MultipartFormDataBodyContent Parse(byte[] content, HttpContentType contentType, Encoding encoding)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(contentType.Boundary, nameof(contentType.Boundary));
+        var original = encoding.GetString(content);
+        ReadOnlySpan<byte> span = content.AsSpan();
+        byte[] boundary = encoding.GetBytes(contentType.Boundary);
+        
+        var reader = new MultipartContentReader(content, encoding, contentType.Boundary);
+        while (!reader.IsFinalBoundary())
+        {
+            var partContent = reader.ReadToNextBoundary();
+        }
+        
+        return new MultipartFormDataBodyContent(content, contentType, encoding);
+    }
+}
+
+/// <summary>
+/// Represents a reader for a multipart form data content.
+/// </summary>
+public ref struct MultipartContentReader
+{
+    private readonly ReadOnlySpan<byte> _content;
+    private readonly Encoding _encoding;
+    private readonly ReadOnlySpan<byte> _boundary;
+    
+    private int _position;
+    private readonly int _finalBoundaryIndex;
+    
+    /// <summary>
+    /// Constructs a new <see cref="MultipartContentReader"/> with the specified content, encoding, and boundary.
+    /// </summary>
+    /// <param name="content">The content to read.</param>
+    /// <param name="encoding">The encoding of the content.</param>
+    /// <param name="boundary">The boundary of the parts.</param>
+    /// <exception cref="InvalidOperationException"></exception>
+    public MultipartContentReader(ReadOnlySpan<byte> content, Encoding encoding, string boundary)
+    {
+        _content = content;
+        _encoding = encoding;
+        _boundary = _encoding.GetBytes($"--{boundary}");
+        
+        var firstBoundaryIndex = _content.IndexOf(_boundary);
+        if (firstBoundaryIndex == -1)
+        {
+            throw new InvalidOperationException("Invalid boundary");
+        }
+        
+        _position = firstBoundaryIndex + _boundary.Length;
+        if (content[_position] == '\r' && content[_position + 1] == '\n')
+        {
+            _position += 2;
+        }
+        else if (content[_position] == '\n')
+        {
+            _position += 1;
+        }
+        
+        _finalBoundaryIndex = _content.IndexOf(_encoding.GetBytes($"\n--{boundary}--"));
+        if (_finalBoundaryIndex == -1)
+        {
+            throw new InvalidOperationException("No final boundary found");
+        }
+    }
+    
+    /// <summary>
+    /// Reads the next line of the content.
+    /// </summary>
+    /// <returns>The read line.</returns>
+    public string ReadLine()
+    {
+        var newLineIndex = _content[_position..].IndexOfAny((byte)'\r', (byte)'\n');
+        if (newLineIndex == -1)
+        {
+            return _encoding.GetString(_content[_position..]);
+        }
+        
+        var result = _content.Slice(_position, newLineIndex);
+        _position += newLineIndex + 1;
+        
+        if (_position < _content.Length
+            && _content[_position - 1] == '\r'
+            && _content[_position] == '\n')
+        {
+            _position++;
+        }
+        
+        return _encoding.GetString(result);
+    }
+
+    /// <summary>
+    /// Reads to the next boundary.
+    /// </summary>
+    /// <returns>The content up to the next boundary.</returns>
+    /// <exception cref="InvalidOperationException"></exception>
+    public ReadOnlySpan<byte> ReadToNextBoundary()
+    {
+        if (_position >= _finalBoundaryIndex)
+        {
+            throw new InvalidOperationException("Have reached the final boundary");
+        }
+        
+        var boundaryIndex = _content[_position..].IndexOf(_boundary);
+        if (boundaryIndex == -1)
+        {
+            throw new InvalidOperationException("Unable to find boundary");
+        }
+
+        var result = _content.Slice(_position, boundaryIndex);
+        _position += boundaryIndex + _boundary.Length;
+        
+        // Strip the newline characters from the start of the result.
+        if (result[0] == '\r' && result[1] == '\n')
+        {
+            result = result[2..];
+        }
+        else if (result[0] == '\n')
+        {
+            result = result[1..];
+        }
+        
+        // Strip the newline characters from the end of the result.
+        if (result[^2] == '\r' && result[^1] == '\n')
+        {
+            result = result[..^2];
+        }
+        else if (result[^1] == '\n')
+        {
+            result = result[..^1];
+        }
+        
+        return result;
+    }
+    
+    /// <summary>
+    /// Checks if the current position is at the final boundary.
+    /// </summary>
+    /// <returns><see langword="true"/> if the current position is at the final boundary; otherwise, <see langword="false"/>.</returns>
+    public bool IsFinalBoundary()
+    {
+        return _position >= _finalBoundaryIndex;
     }
 }

@@ -240,6 +240,11 @@ public class HttpContentType : IEquatable<HttpContentType>, ISpanParsable<HttpCo
             {
                 var parameterKey = parameterSlice.Slice(0, parameterDelimiter).Trim();
                 var parameterValue = parameterSlice[(parameterDelimiter + 1)..].Trim();
+                if (parameterValue[0] == '"' && parameterValue[^1] == '"')
+                {
+                    parameterValue = parameterValue[1..^1];
+                }
+                
                 parametersCollection.Add(parameterKey.ToString(), parameterValue.ToString());
             }
         }
