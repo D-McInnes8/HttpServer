@@ -134,9 +134,15 @@ public class HttpWebServer : IHttpWebServer
         }
         catch (HttpParserException ex) when (!ex.InternalServerError)
         {
-            return ex.ResponseMessage is not null 
-                ? HttpResponse.BadRequest(ex.ResponseMessage) 
+            _logger.LogWarning(ex, "Unable to parse HTTP request due to a client error");
+            return ex.ResponseMessage is not null
+                ? HttpResponse.BadRequest(ex.ResponseMessage)
                 : HttpResponse.BadRequest();
+        }
+        catch (HttpParserException ex) when (ex.InternalServerError)
+        {
+            _logger.LogError(ex, "Unable to parse HTTP request due to an internal server error");
+            return HttpResponse.InternalServerError();
         }
 
         return ExecuteRequestPipeline(httpRequest, scope);
