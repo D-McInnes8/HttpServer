@@ -122,7 +122,7 @@ public class HttpRequestBodyMultipartFormTests : IAsyncLifetime
     }
     
     [Theory]
-    [InlineData("ascii", "Hello, World!")]
+    [InlineData("us-ascii", "Hello, World!")]
     [InlineData("utf-8", "Hello, World!")]
     [InlineData("utf-16", "Hello, World!")]
     [InlineData("utf-32", "Hello, World!")]
