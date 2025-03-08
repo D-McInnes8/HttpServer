@@ -41,8 +41,8 @@ public class MultipartFormDataBodyContentSerializer : IHttpContentDeserializer
                     headers.Add(parsedHeader.Key, parsedHeader.Value);
                 }
             }
-            
-            HttpContentType? httpContentType = null;
+
+            var httpContentType = HttpContentType.ApplicationOctetStream;
             if (headers["Content-Type"] is not null
                 && HttpContentType.TryParse(headers["Content-Type"], out var partContentType))
             {
@@ -55,8 +55,6 @@ public class MultipartFormDataBodyContentSerializer : IHttpContentDeserializer
             {
                 contentDisposition = partDisposition;
             }
-            
-            HttpParserException.ThrowIfNull(httpContentType, HttpParserExceptionErrorCode.InvalidContentType);
             
             var partBody = partReader.ReadToEnd();
             var partEncoding = httpContentType.Charset is not null ? Encoding.GetEncoding(httpContentType.Charset) : Encoding.ASCII;

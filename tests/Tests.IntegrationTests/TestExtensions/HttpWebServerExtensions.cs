@@ -51,7 +51,7 @@ public static class HttpWebServerExtensions
         
         using var httpClient = new HttpClient();
         httpClient.BaseAddress = new Uri($"http://localhost:{server.Port}");
-        _ = await httpClient.PostAsync(route, content);
+        using var response = await httpClient.PostAsync(route, content);
         
         Assert.NotNull(request);
         return request;
