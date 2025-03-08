@@ -136,7 +136,7 @@ public class HttpRequestParser
         return new ByteArrayBodyContent(body, contentType, encoding);*/
     }
     
-    private static bool TryGetParsedHeader(ReadOnlySpan<char> header, out KeyValuePair<string, string> httpHeader)
+    public static bool TryGetParsedHeader(ReadOnlySpan<char> header, out KeyValuePair<string, string> httpHeader)
     {
         var delimiterIndex = header.IndexOf(':');
         if (delimiterIndex != -1)

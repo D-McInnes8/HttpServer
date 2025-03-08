@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Collections.Specialized;
 using System.Text;
 using HttpServer.Headers;
 using HttpServer.Request.Parser;
@@ -169,7 +170,28 @@ public class MultipartFormDataBodyContent : HttpBodyContent, IReadOnlyCollection
         while (!reader.IsFinalBoundary())
         {
             var partContent = reader.ReadToNextBoundary();
+            var partReader = new MultipartContentPartReader(partContent, System.Text.Encoding.ASCII);
+
+            var headers = new NameValueCollection();
+            while (partReader.HasRemainingHeaders())
+            {
+                var header = partReader.ReadNextHeader();
+                if (HttpRequestParser.TryGetParsedHeader(header, out var parsedHeader))
+                {
+                    headers.Add(parsedHeader.Key, parsedHeader.Value);
+                }
+            }
+            
+            HttpContentType? httpContentType = null;
+            if (headers["Content-Type"] is not null
+                && HttpContentType.TryParse(headers["Content-Type"], out var partContentType))
+            {
+                httpContentType = partContentType;
+            }
+            
+            var partBody = partReader.ReadToEnd();
         }
+        
         
         return new MultipartFormDataBodyContent(content, contentType, encoding);
     }
@@ -299,5 +321,67 @@ public ref struct MultipartContentReader
     public bool IsFinalBoundary()
     {
         return _position >= _finalBoundaryIndex;
+    }
+}
+
+public ref struct MultipartContentPartReader
+{
+    private readonly ReadOnlySpan<byte> _content;
+    private readonly Encoding _headerEncoding;
+
+    private int _position;
+    private bool _hasReadFinalHeader;
+
+    public MultipartContentPartReader(ReadOnlySpan<byte> content, Encoding headerEncoding)
+    {
+        _content = content;
+        _headerEncoding = headerEncoding;
+        _position = 0;
+    }
+
+    public bool HasRemainingHeaders() => !_hasReadFinalHeader;
+    
+    /// <summary>
+    /// Reads the next line of the content.
+    /// </summary>
+    /// <returns>The read line.</returns>
+    public string ReadNextHeader()
+    {
+        var newLineIndex = _content[_position..].IndexOfAny((byte)'\r', (byte)'\n');
+        if (newLineIndex == -1)
+        {
+            return _headerEncoding.GetString(_content[_position..]);
+        }
+        
+        var result = _content.Slice(_position, newLineIndex);
+        _position += newLineIndex + 1;
+        
+        if (_position < _content.Length
+            && _content[_position - 1] == '\r'
+            && _content[_position] == '\n')
+        {
+            _position++;
+        }
+
+        if (_position + _content[_position..].IndexOfAny((byte)'\r', (byte)'\n') == _position)
+        {
+            _hasReadFinalHeader = true;
+            _position += 1;
+            if (_position < _content.Length
+                && _content[_position - 1] == '\r'
+                && _content[_position] == '\n')
+            {
+                _position++;
+            }
+        }
+        
+        return _headerEncoding.GetString(result);
+    }
+
+    public ReadOnlySpan<byte> ReadToEnd()
+    {
+        var slice = _content[_position..];
+        _position += slice.Length;
+        return slice;
     }
 }
