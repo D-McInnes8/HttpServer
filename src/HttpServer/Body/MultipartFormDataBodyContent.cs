@@ -113,7 +113,7 @@ public class MultipartFormDataBodyContent : HttpBodyContent, IReadOnlyCollection
     /// Adds a part to the multipart form data.
     /// </summary>
     /// <param name="content">The part to add.</param>
-    public void Add(HttpBodyContent content) => throw new NotImplementedException();
+    public void Add(HttpBodyContent content) => _parts.Add(content);
 
     /// <summary>
     /// Adds a part to the multipart form data with the specified name.

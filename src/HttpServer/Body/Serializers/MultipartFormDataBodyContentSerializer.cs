@@ -49,12 +49,20 @@ public class MultipartFormDataBodyContentSerializer : IHttpContentDeserializer
                 httpContentType = partContentType;
             }
             
+            ContentDisposition? contentDisposition = null;
+            if (headers["Content-Disposition"] is not null
+                && ContentDisposition.TryParse(headers["Content-Disposition"], null, out var partDisposition))
+            {
+                contentDisposition = partDisposition;
+            }
+            
             HttpParserException.ThrowIfNull(httpContentType, HttpParserExceptionErrorCode.InvalidContentType);
             
             var partBody = partReader.ReadToEnd();
             var partEncoding = httpContentType.Charset is not null ? Encoding.GetEncoding(httpContentType.Charset) : Encoding.ASCII;
             var deserializer = _serializerProvider.GetSerializer(httpContentType);
-            var partBodyContent = deserializer.Deserialize(partBody.ToArray(), contentType, partEncoding);
+            var partBodyContent = deserializer.Deserialize(partBody.ToArray(), httpContentType, partEncoding);
+            partBodyContent.ContentDisposition = contentDisposition;
             result.Add(partBodyContent);
         }
         
