@@ -94,7 +94,7 @@ public class MultipartFormDataBodyContent : HttpBodyContent, IReadOnlyCollection
 
     public IEnumerator<HttpBodyContent> GetEnumerator()
     {
-        throw new NotImplementedException();
+        return _parts.GetEnumerator();
     }
 
     IEnumerator IEnumerable.GetEnumerator()
@@ -292,21 +292,21 @@ public ref struct MultipartContentReader
         _position += boundaryIndex + _boundary.Length;
         
         // Strip the newline characters from the start of the result.
-        if (result[0] == '\r' && result[1] == '\n')
+        if (result.Length >= 2 && result[0] == '\r' && result[1] == '\n')
         {
             result = result[2..];
         }
-        else if (result[0] == '\n')
+        else if (result.Length >= 1 && result[0] == '\n')
         {
             result = result[1..];
         }
         
         // Strip the newline characters from the end of the result.
-        if (result[^2] == '\r' && result[^1] == '\n')
+        if (result.Length >= 2 && result[^2] == '\r' && result[^1] == '\n')
         {
             result = result[..^2];
         }
-        else if (result[^1] == '\n')
+        else if (result.Length >= 1 && result[^1] == '\n')
         {
             result = result[..^1];
         }

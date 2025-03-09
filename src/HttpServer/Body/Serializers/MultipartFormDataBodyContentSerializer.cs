@@ -30,6 +30,11 @@ public class MultipartFormDataBodyContentSerializer : IHttpContentDeserializer
         while (!reader.IsFinalBoundary())
         {
             var partContent = reader.ReadToNextBoundary();
+            if (partContent.IsEmpty)
+            {
+                continue;
+            }
+            
             var partReader = new MultipartContentPartReader(partContent, System.Text.Encoding.ASCII);
 
             var headers = new NameValueCollection();

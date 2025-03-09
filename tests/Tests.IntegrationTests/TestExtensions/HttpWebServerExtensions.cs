@@ -1,3 +1,4 @@
+using System.Net;
 using HttpServer;
 using HttpServer.Request;
 using HttpServer.Response;
@@ -53,6 +54,7 @@ public static class HttpWebServerExtensions
         httpClient.BaseAddress = new Uri($"http://localhost:{server.Port}");
         using var response = await httpClient.PostAsync(route, content);
         
+        Assert.NotEqual(HttpStatusCode.BadRequest, response.StatusCode);
         Assert.NotNull(request);
         return request;
     }

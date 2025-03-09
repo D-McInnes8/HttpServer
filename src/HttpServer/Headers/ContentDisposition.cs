@@ -4,8 +4,12 @@ namespace HttpServer.Headers;
 
 public class ContentDisposition : ISpanParsable<ContentDisposition>
 {
-    public string? FileName { get; }
-    public string? Name { get; }
+    public string? FileName { get; internal set; }
+    public string? Name { get; internal set; }
+
+    public ContentDisposition()
+    {
+    }
 
     public ContentDisposition(string name)
     {
@@ -42,8 +46,10 @@ public class ContentDisposition : ISpanParsable<ContentDisposition>
         var delimiterIndex = s.IndexOf(';');
         var type = s.Slice(0, delimiterIndex);
         var parameters = s.Slice(delimiterIndex + 1);
+        
         string? name = null;
         string? fileName = null;
+        result = new ContentDisposition();
         
         var parameterPairs = parameters.Split(';');
         foreach (var parameterPair in parameterPairs)
@@ -57,12 +63,16 @@ public class ContentDisposition : ISpanParsable<ContentDisposition>
                 var paramValue = slice[(parameterDelimiterIndex + 1)..];
                 if (paramName.Equals("name", StringComparison.OrdinalIgnoreCase))
                 {
-                    name = paramValue.ToString();
+                    result.Name = paramValue.ToString();
+                }
+
+                if (paramName.Equals("filename", StringComparison.OrdinalIgnoreCase))
+                {
+                    result.FileName = paramValue.ToString();
                 }
             }
         }
-
-        result = new ContentDisposition(name);
+        
         return true;
     }
 }
