@@ -43,14 +43,18 @@ public class ContentDisposition : ISpanParsable<ContentDisposition>
 
     public static bool TryParse(ReadOnlySpan<char> s, IFormatProvider? provider, [MaybeNullWhen(false)] out ContentDisposition result)
     {
-        var delimiterIndex = s.IndexOf(';');
-        var type = s.Slice(0, delimiterIndex);
-        var parameters = s.Slice(delimiterIndex + 1);
-        
-        string? name = null;
-        string? fileName = null;
         result = new ContentDisposition();
         
+        var delimiterIndex = s.IndexOf(';');
+        if (delimiterIndex == -1)
+        {
+            return true;
+        }
+        
+        var type = s.Slice(0, delimiterIndex);
+        
+        // Parse header parameters
+        var parameters = s.Slice(delimiterIndex + 1);
         var parameterPairs = parameters.Split(';');
         foreach (var parameterPair in parameterPairs)
         {
