@@ -1,4 +1,3 @@
-using System.Net;
 using System.Net.Http.Json;
 using HttpServer;
 using HttpServer.Body;
@@ -111,8 +110,8 @@ public class HttpResponseBodyMultipartFormTests : IAsyncLifetime
         var parts = await response.Content.ReadAsMultipartAsync();
         Assert.Collection(parts.Contents,
             part => Assert.Equal("Hello, World!", part.ReadAsStringAsync().Result),
-            part => Assert.Equal("Hello, 世界!", part.ReadAsStringAsync().Result),
-            part => Assert.Equal("こんにちは世界", part.ReadAsStringAsync().Result));
+            part => Assert.Equal("Hello, 世界!", part.ReadAsStringAsync().GetAwaiter().GetResult()),
+            part => Assert.Equal("こんにちは世界", part.ReadAsStringAsync().GetAwaiter().GetResult()));
     }
 
     [Fact]

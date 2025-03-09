@@ -26,7 +26,7 @@ public interface HttpBodyContent
     /// <summary>
     /// The length of the content.
     /// </summary>
-    public int Length => Content.Length;
+    public int Length { get; }
     
     /// <summary>
     /// The content disposition of the body.

@@ -39,6 +39,9 @@ public class ByteArrayBodyContent : HttpBodyContent, IHttpBodyContentSerializer
     
     /// <inheritdoc />
     public byte[] Content { get; }
+    
+    /// <inheritdoc />
+    public int Length => Content.Length;
 
     /// <inheritdoc />
     public ContentDisposition? ContentDisposition { get; set; }

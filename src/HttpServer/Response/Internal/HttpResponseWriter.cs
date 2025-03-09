@@ -27,9 +27,9 @@ public static class HttpResponseWriter
             return metadata;
         }
         
-        var httpResponseBytes = new byte[metadata.Length + response.Body.Content.Length];
+        var httpResponseBytes = new byte[metadata.Length + response.Body.Length];
         metadata.CopyTo(httpResponseBytes, 0);
-        response.Body.Content.CopyTo(httpResponseBytes, metadata.Length);
+        response.Body.CopyTo(httpResponseBytes.AsSpan(metadata.Length));
         return httpResponseBytes;
     }
 

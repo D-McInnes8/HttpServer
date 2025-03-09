@@ -12,6 +12,7 @@ namespace HttpServer.Body;
 public class MultipartFormDataBodyContent : HttpBodyContent, IReadOnlyCollection<HttpBodyContent>
 {
     private readonly List<HttpBodyContent> _parts = new List<HttpBodyContent>();
+    private const string DefaultBoundary = "boundarys";
     
     public HttpContentType ContentType { get; }
     public Encoding Encoding { get; }
@@ -21,12 +22,17 @@ public class MultipartFormDataBodyContent : HttpBodyContent, IReadOnlyCollection
     /// The boundary of the multipart form data.
     /// </summary>
     /// <exception cref="InvalidOperationException">Thrown when the boundary is missing.</exception>
-    public string Boundary => ContentType.Parameters["boundary"] ?? throw new InvalidOperationException("Missing boundary");
+    public string Boundary => ContentType.Parameters["boundary"] ?? DefaultBoundary;
 
     /// <summary>
     /// The number of parts in the multipart form data.
     /// </summary>
     public int Count => _parts.Count;
+
+    /// <summary>
+    /// The combined content length of the multipart content.
+    /// </summary>
+    public int Length => CalculateContentLength();
     
     /// <summary>
     /// Constructs a new <see cref="MultipartFormDataBodyContent"/> with the specified boundary.
@@ -89,7 +95,35 @@ public class MultipartFormDataBodyContent : HttpBodyContent, IReadOnlyCollection
 
     public void CopyTo(Span<byte> destination)
     {
-        Content.CopyTo(destination);
+        var boundary = Encoding.GetBytes($"--{Boundary}\r\n");
+        var boundaryEnd = Encoding.GetBytes($"\r\n--{Boundary}--\r\n");
+        
+        var content = new byte[CalculateContentLength()];
+        var contentPos = 0;
+
+        foreach (var part in _parts)
+        {
+            boundary.CopyTo(content, contentPos);
+            contentPos += boundary.Length;
+            
+            part.CopyTo(content.AsSpan(contentPos, part.Length));
+            contentPos += part.Length;
+        }
+        
+        boundaryEnd.CopyTo(content.AsSpan(contentPos, boundaryEnd.Length));
+        content.CopyTo(destination);
+    }
+
+    private int CalculateContentLength()
+    {
+        var contentLength = _parts.Sum(x => x.Length);
+        var numBoundaries = _parts.Count > 0 ? _parts.Count : 1;
+        
+        var boundary = Encoding.GetBytes($"--{Boundary}\r\n");
+        var boundaryEnd = Encoding.GetBytes($"\r\n--{Boundary}--\r\n");
+        var boundaryLength = (boundary.Length * numBoundaries) + boundaryEnd.Length;
+
+        return contentLength + boundaryLength;
     }
 
     public IEnumerator<HttpBodyContent> GetEnumerator()
