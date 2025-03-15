@@ -156,4 +156,20 @@ public class HttpResponseBodyJsonTests : IAsyncLifetime
         Assert.Equal("application/json", response.Content.Headers.ContentType.MediaType);
         Assert.Equal(encoding.WebName, response.Content.Headers.ContentType.CharSet);
     }
+    
+    [Fact]
+    public async Task HttpResponseBodyJson_ShouldSetContentLengthHeader()
+    {
+        // Arrange
+        var json = new { Message = "Hello, World!" };
+        var expected = Encoding.UTF8.GetBytes(JsonSerializer.Serialize(json)).Length;
+        _server.MapGet("/test", _ => HttpResponse.Json(HttpResponseStatusCode.OK, json));
+        
+        // Act
+        var response = await _httpClient.GetAsync("/test");
+        var actual = response.Content.Headers.ContentLength;
+        
+        // Assert
+        Assert.Equal(expected, actual);
+    }
 }

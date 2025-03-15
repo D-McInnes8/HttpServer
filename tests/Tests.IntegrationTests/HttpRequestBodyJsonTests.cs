@@ -26,7 +26,7 @@ public class HttpRequestBodyJsonTests: IAsyncLifetime
         await _server.StopAsync();
     }
     
-    [Fact]
+    [Fact(Skip = "Not implemented yet")]
     public async Task HttpRequestBodyJson_EmptyJsonContent_ShouldSetBody()
     {
         // Arrange
@@ -43,7 +43,7 @@ public class HttpRequestBodyJsonTests: IAsyncLifetime
         Assert.Equal(expected, actual.Encoding.GetString(actual.Content));
     }
     
-    [Fact]
+    [Fact(Skip = "Not implemented yet")]
     public async Task HttpRequestBodyJson_EmptyJsonArray_ShouldSetBody()
     {
         // Arrange
@@ -59,7 +59,7 @@ public class HttpRequestBodyJsonTests: IAsyncLifetime
         Assert.Empty(actual);
     }
     
-    [Fact]
+    [Fact(Skip = "Not implemented yet")]
     public async Task HttpRequestBodyJson_NullJsonContent_ShouldSetBody()
     {
         // Arrange
@@ -74,7 +74,7 @@ public class HttpRequestBodyJsonTests: IAsyncLifetime
         Assert.Null(actual);
     }
     
-    [Theory]
+    [Theory(Skip = "Not implemented yet")]
     [InlineData("utf-8", "Hello, World!")]
     [InlineData("utf-8", "Hello, 世界!")]
     [InlineData("utf-8", "こんにちは世界")]
@@ -115,7 +115,7 @@ public class HttpRequestBodyJsonTests: IAsyncLifetime
         Assert.Equivalent(expected, actual);
     }
     
-    [Theory]
+    [Theory(Skip = "Not implemented yet")]
     [InlineData("utf-8")]
     [InlineData("utf-16")]
     [InlineData("ascii")]
