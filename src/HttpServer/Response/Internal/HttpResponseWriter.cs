@@ -30,6 +30,8 @@ public static class HttpResponseWriter
         var httpResponseBytes = new byte[metadata.Length + response.Body.Length];
         metadata.CopyTo(httpResponseBytes, 0);
         response.Body.CopyTo(httpResponseBytes.AsSpan(metadata.Length));
+        
+        var responseText = Encoding.ASCII.GetString(httpResponseBytes);
         return httpResponseBytes;
     }
 

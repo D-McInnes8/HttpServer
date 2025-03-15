@@ -2,7 +2,7 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace HttpServer.Headers;
 
-public class ContentDisposition : ISpanParsable<ContentDisposition>
+public class ContentDisposition : IHttpHeader, ISpanParsable<ContentDisposition>
 {
     public string? FileName { get; internal set; }
     public string? Name { get; internal set; }
@@ -78,5 +78,10 @@ public class ContentDisposition : ISpanParsable<ContentDisposition>
         }
         
         return true;
+    }
+
+    public string Render()
+    {
+        return $"form-data; name={Name}; filename={FileName}";
     }
 }
