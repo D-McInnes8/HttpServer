@@ -9,7 +9,7 @@ using Tests.IntegrationTests.TestExtensions;
 
 namespace Tests.IntegrationTests;
 
-public class HttpRequestBodyJsonTests: IAsyncLifetime
+public class HttpRequestBodyJsonTests : IAsyncLifetime
 {
     private readonly IHttpWebServer _server = HttpWebServer.CreateBuilder(0).Build();
     private readonly HttpClient _httpClient = new HttpClient();

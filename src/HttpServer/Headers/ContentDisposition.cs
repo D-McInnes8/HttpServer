@@ -4,8 +4,8 @@ namespace HttpServer.Headers;
 
 public class ContentDisposition : IHttpHeader, ISpanParsable<ContentDisposition>
 {
-    public string? FileName { get; internal set; }
-    public string? Name { get; internal set; }
+    public string? FileName { get; private set; }
+    public string? Name { get; private set; }
 
     public ContentDisposition()
     {

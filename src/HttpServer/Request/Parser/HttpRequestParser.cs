@@ -63,6 +63,13 @@ public class HttpRequestParser
             httpContentType = contentType;
         }
         
+        AcceptEncoding? acceptEncoding = null;
+        if (headers["Accept-Encoding"] is not null
+            && AcceptEncoding.TryParse(headers["Accept-Encoding"], null, out var acceptEncodingHeader))
+        {
+            acceptEncoding = acceptEncodingHeader;
+        }
+        
         var contentLength = headers["Content-Length"];
         var body = contentLength is not null ? await networkStreamReader.ReadBytesAsync(int.Parse(contentLength)) : null;
         if (body is null || (body.Length == 0 && httpContentType is null))
@@ -72,6 +79,7 @@ public class HttpRequestParser
                 Headers = headers,
                 HttpVersion = httpVersion,
                 ContentType = httpContentType,
+                AcceptEncoding = acceptEncoding,
             };
         }
 
@@ -83,6 +91,7 @@ public class HttpRequestParser
             Body = CreateBodyContent(body, httpContentType, encoding),
             HttpVersion = httpVersion,
             ContentType = httpContentType,
+            AcceptEncoding = acceptEncoding,
         };
     }
     

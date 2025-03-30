@@ -53,6 +53,11 @@ public class HttpRequest
     public HttpContentType? ContentType { get; init; }
     
     /// <summary>
+    /// The accept encoding of the request. Populated from the Accept-Encoding header.
+    /// </summary>
+    public AcceptEncoding? AcceptEncoding { get; init; }
+    
+    /// <summary>
     /// The query parameters of the request.
     /// </summary>
     public NameValueCollection QueryParameters { get; init; }

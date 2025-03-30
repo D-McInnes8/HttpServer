@@ -35,6 +35,29 @@ public static class HttpWebServerExtensions
     }
 
     /// <summary>
+    /// Sends a GET request to the server and captures the request.
+    /// </summary>
+    /// <param name="server">The <see cref="IHttpWebServer"/> to send the request to.</param>
+    /// <param name="request">The <see cref="HttpRequestMessage"/> to send.</param>
+    /// <returns>The captured <see cref="HttpRequest"/>.</returns>
+    public static async Task<HttpRequest> GetAsyncAndCaptureRequest(this IHttpWebServer server, HttpRequestMessage request)
+    {
+        HttpRequest? capturedRequest = null;
+        server.MapGet(request.RequestUri?.ToString()!, ctx =>
+        {
+            capturedRequest = ctx.Request;
+            return HttpResponse.Ok();
+        });
+
+        using var httpClient = new HttpClient();
+        httpClient.BaseAddress = new Uri($"http://localhost:{server.Port}");
+        _ = await httpClient.SendAsync(request);
+
+        Assert.NotNull(capturedRequest);
+        return capturedRequest;
+    }
+
+    /// <summary>
     /// Sends a POST request to the server and captures the request.
     /// </summary>
     /// <param name="server">The <see cref="IHttpWebServer"/> to send the request to.</param>
