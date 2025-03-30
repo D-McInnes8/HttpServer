@@ -4,7 +4,6 @@ using HttpServer.Pipeline.Registry;
 using HttpServer.Request;
 using HttpServer.Request.Parser;
 using HttpServer.Response;
-using HttpServer.Response.Internal;
 using HttpServer.Routing;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -47,6 +46,13 @@ public interface IHttpWebServer
     /// </summary>
     /// <returns></returns>
     Task StopAsync();
+
+    /// <summary>
+    /// Configure the global request pipeline for the web server.
+    /// </summary>
+    /// <param name="configure">Used to configure the global pipeline.</param>
+    /// <returns>The <see cref="IHttpWebServer"/> instance.</returns>
+    public IHttpWebServer ConfigureGlobalPipeline(Action<RequestPipelineBuilderOptions> configure);
 
     /// <summary>
     /// Adds a request pipeline to the web server.
@@ -171,6 +177,13 @@ public class HttpWebServer : IHttpWebServer
     /// <param name="port">The port the web server will listen on.</param>
     /// <returns></returns>
     public static IHttpWebServerBuilder CreateBuilder(int port) => new HttpWebWebServerBuilder(port);
+    
+    
+    public IHttpWebServer ConfigureGlobalPipeline(Action<RequestPipelineBuilderOptions> configure)
+    {
+        configure(_pipelineRegistry.GlobalPipeline.Options);
+        return this;
+    }
     
     public IHttpWebServer AddPipeline(Action<RequestPipelineBuilderOptions> configure)
     {
