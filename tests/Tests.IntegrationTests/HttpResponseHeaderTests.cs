@@ -6,7 +6,7 @@ using HttpServer.Routing;
 
 namespace Tests.IntegrationTests;
 
-public class HttpResponseHeaderTests: IAsyncLifetime
+public class HttpResponseHeaderTestsv: IAsyncLifetime
 {
     private readonly IHttpWebServer _server = HttpWebServer.CreateBuilder(0).Build();
     private readonly HttpClient _httpClient = new HttpClient();

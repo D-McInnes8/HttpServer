@@ -164,4 +164,30 @@ public class HttpResponse
     /// <typeparam name="T"></typeparam>
     /// <returns></returns>
     public static HttpResponse Json<T>(HttpResponseStatusCode statusCode, T value) => new HttpResponse(statusCode, new JsonBodyContent<T>(value));
+    
+    /// <summary>
+    /// Creates a new <see cref="HttpResponse"/> indicating that the resource has been moved temporarily.
+    /// </summary>
+    /// <param name="location">The url to which the resource has been moved.</param>
+    /// <returns>The <see cref="HttpResponse"/> indicating that the resource has been moved temporarily.</returns>
+    public static HttpResponse Redirect(string location) => new HttpResponse(HttpResponseStatusCode.Found)
+    {
+        Headers =
+        {
+            { "Location", location },
+        },
+    };
+    
+    /// <summary>
+    /// Creates a new <see cref="HttpResponse"/> indicating that the resource has been moved permanently.
+    /// </summary>
+    /// <param name="location">The url to which the resource has been moved.</param>
+    /// <returns>The <see cref="HttpResponse"/> indicating that the resource has been moved permanently.</returns>
+    public static HttpResponse MovePermanently(string location) => new HttpResponse(HttpResponseStatusCode.MovePermanently)
+    {
+        Headers =
+        {
+            { "Location", location },
+        },
+    };
 }

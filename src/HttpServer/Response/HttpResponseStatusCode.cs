@@ -11,6 +11,16 @@ public enum HttpResponseStatusCode
     OK = 200,
     
     /// <summary>
+    /// The resource is temporarily moved.
+    /// </summary>
+    Found = 302,
+    
+    /// <summary>
+    /// The resource is permanently moved.
+    /// </summary>
+    MovePermanently = 301,
+    
+    /// <summary>
     /// The request was not acceptable.
     /// </summary>
     BadRequest = 400,
