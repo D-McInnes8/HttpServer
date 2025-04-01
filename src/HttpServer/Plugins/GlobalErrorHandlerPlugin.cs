@@ -1,7 +1,8 @@
+using HttpServer.Pipeline;
 using HttpServer.Response;
 using Microsoft.Extensions.Logging;
 
-namespace HttpServer.Pipeline.Plugins;
+namespace HttpServer.Plugins;
 
 /// <summary>
 /// A global error handler plugin that catches exceptions thrown by the request pipeline.

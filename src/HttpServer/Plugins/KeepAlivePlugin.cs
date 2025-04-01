@@ -1,7 +1,8 @@
 using HttpServer.Headers;
+using HttpServer.Pipeline;
 using HttpServer.Response;
 
-namespace HttpServer.Pipeline.Plugins;
+namespace HttpServer.Plugins;
 
 /// <summary>
 /// A plugin that adds keep-alive settings to the response.

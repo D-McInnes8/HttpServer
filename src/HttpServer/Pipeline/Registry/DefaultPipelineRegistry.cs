@@ -1,6 +1,6 @@
 using System.Collections;
 using System.Diagnostics.CodeAnalysis;
-using HttpServer.Pipeline.Plugins;
+using HttpServer.Plugins;
 using HttpServer.Routing;
 
 namespace HttpServer.Pipeline.Registry;
