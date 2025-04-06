@@ -30,14 +30,9 @@ public static class HttpResponseWriter
             return metadata;
         }
         
-        response.BodyStream.Write(response.Body.Content, 0, response.Body.Length);
-        response.BodyStream.Flush();
-        
-        var httpResponseBytes = new byte[metadata.Length + response.BodyStream.Length];
+        var httpResponseBytes = new byte[metadata.Length + response.Body.Length];
         metadata.CopyTo(httpResponseBytes, 0);
-        //response.Body.CopyTo(httpResponseBytes.AsSpan(metadata.Length));
-        response.BodyStream.Position = 0;
-        var bytesRead = response.BodyStream.Read(httpResponseBytes.AsSpan(metadata.Length));
+        response.Body.CopyTo(httpResponseBytes.AsSpan(metadata.Length));
         return httpResponseBytes;
     }
     
