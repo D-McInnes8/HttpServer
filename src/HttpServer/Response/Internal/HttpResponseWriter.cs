@@ -1,4 +1,7 @@
+using System.IO.Pipelines;
+using System.Net.Sockets;
 using System.Text;
+using HttpServer.Networking;
 
 namespace HttpServer.Response.Internal;
 
@@ -27,10 +30,45 @@ public static class HttpResponseWriter
             return metadata;
         }
         
-        var httpResponseBytes = new byte[metadata.Length + response.Body.Length];
+        response.BodyStream.Write(response.Body.Content, 0, response.Body.Length);
+        response.BodyStream.Flush();
+        
+        var httpResponseBytes = new byte[metadata.Length + response.BodyStream.Length];
         metadata.CopyTo(httpResponseBytes, 0);
-        response.Body.CopyTo(httpResponseBytes.AsSpan(metadata.Length));
+        //response.Body.CopyTo(httpResponseBytes.AsSpan(metadata.Length));
+        response.BodyStream.Position = 0;
+        var bytesRead = response.BodyStream.Read(httpResponseBytes.AsSpan(metadata.Length));
         return httpResponseBytes;
+    }
+    
+    public static async Task WriteResponseAsync(HttpResponse response, PipeWriter pipeWriter)
+    {
+        if (response.Body is not null)
+        {
+            response.Body.ContentType.Charset = response.Body.Encoding.WebName;
+            response.Headers["Content-Type"] = response.Body.ContentType.Render();
+            response.Headers["Content-Length"] = response.Body.Content.Length.ToString();
+        }
+        
+        var metadata = WriteMetadata(response);
+        var metadataMemory = pipeWriter.GetMemory(metadata.Length);
+        metadata.CopyTo(metadataMemory);
+        pipeWriter.Advance(metadata.Length);
+        
+        if (response.Body is not null)
+        {
+            var responseLength = response.Body.Length;
+            var bodySpan = pipeWriter.GetSpan(responseLength);
+            response.Body.CopyTo(bodySpan);
+            pipeWriter.Advance(responseLength);
+        }
+        
+        _ = await pipeWriter.FlushAsync();
+    }
+    
+    public static void CopyTo(NetworkStream destination)
+    {
+        
     }
 
     private static byte[] WriteMetadata(HttpResponse response)

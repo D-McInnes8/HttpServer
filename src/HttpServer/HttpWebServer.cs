@@ -127,7 +127,7 @@ public class HttpWebServer : IHttpWebServer
         await _tcpServer.StopAsync();
     }
 
-    private HttpResponse HandleRequest(INetworkStreamReader streamReader)
+    private HttpResponse HandleRequest(INetworkStreamReader streamReader, INetworkStreamWriter streamWriter)
     {
         using var scope = Services.CreateScope();
         var httpRequestParser = scope.ServiceProvider.GetRequiredService<HttpRequestParser>();
@@ -151,12 +151,12 @@ public class HttpWebServer : IHttpWebServer
             return HttpResponse.InternalServerError();
         }
 
-        return ExecuteRequestPipeline(httpRequest, scope);
+        return ExecuteRequestPipeline(httpRequest, scope, streamWriter);
     }
 
-    private HttpResponse ExecuteRequestPipeline(HttpRequest httpRequest, IServiceScope scope)
+    private HttpResponse ExecuteRequestPipeline(HttpRequest httpRequest, IServiceScope scope, INetworkStreamWriter streamWriter)
     {
-        var ctx = new RequestPipelineContext(httpRequest, scope.ServiceProvider, _pipelineRegistry.GlobalPipeline.Options);
+        var ctx = new RequestPipelineContext(httpRequest, scope.ServiceProvider, _pipelineRegistry.GlobalPipeline.Options, streamWriter);
         var logState = new List<KeyValuePair<string, object?>>
         {
             new("RequestId", ctx.RequestId),

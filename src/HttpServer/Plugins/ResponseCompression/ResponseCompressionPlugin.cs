@@ -11,6 +11,31 @@ public class ResponseCompressionPlugin : IRequestPipelinePlugin
     public async Task<HttpResponse> InvokeAsync(RequestPipelineContext ctx, Func<RequestPipelineContext, Task<HttpResponse>> next)
     {
         var response = await next(ctx);
+        if (ctx.Request.AcceptEncoding is null)
+        {
+            return response;
+        }
+
+        var acceptedEncodings = ctx.Request.AcceptEncoding.Encodings;
+        foreach (var encoding in acceptedEncodings)
+        {
+            ICompressionProvider? compressionProvider = encoding switch
+            {
+                "gzip" => new GZipCompressionProvider(),
+                "br" => new BrotliCompressionProvider(),
+                "deflate" => new DeflateCompressionProvider(),
+                _ => null
+            };
+            
+            if (compressionProvider is not null)
+            {
+                response.Headers.Add("Content-Encoding", compressionProvider.EncodingName);
+                response.Headers.Add("Vary", "Accept-Encoding");
+                ctx.ResponseWriter = new ResponseCompressionWriter(ctx.ResponseWriter, compressionProvider);
+                break;
+            }
+        }
+        
         return response;
     }
 }

@@ -40,7 +40,7 @@ internal class TcpServer
     private HttpWebServerOptions _options;
     private readonly ILogger<TcpServer> _logger;
 
-    private readonly Func<INetworkStreamReader, HttpResponse> _requestHandler;
+    private readonly Func<INetworkStreamReader, INetworkStreamWriter, HttpResponse> _requestHandler;
     private readonly IConnectionPool _connectionPool;
 
     /// <summary>
@@ -51,7 +51,7 @@ internal class TcpServer
     /// <param name="logger">The <see cref="ILogger"/> object to be logged to.</param>
     /// <param name="connectionPool">The <see cref="IConnectionPool"/> object to manage connections.</param>
     /// <param name="options">The <see cref="HttpWebServerOptions"/> object containing the server options.</param>
-    public TcpServer(int port, Func<INetworkStreamReader, HttpResponse> requestHandler, ILogger<TcpServer> logger, IConnectionPool connectionPool, HttpWebServerOptions options)
+    public TcpServer(int port, Func<INetworkStreamReader, INetworkStreamWriter, HttpResponse> requestHandler, ILogger<TcpServer> logger, IConnectionPool connectionPool, HttpWebServerOptions options)
     {
         _requestHandler = requestHandler;
         _logger = logger;
@@ -130,10 +130,11 @@ internal class TcpServer
         {
             var stream = connection.Client.GetStream();
             using var streamReader = new TcpNetworkStreamReader(stream);
+            var streamWriter = new TcpNetworkStreamWriter(stream);
 
             while (!connection.IsDisposed)
             {
-                var response = _requestHandler(streamReader);
+                var response = _requestHandler(streamReader, streamWriter);
                 
                 connection.RequestCount += 1;
                 if (connection.RequestCount >= _options.KeepAlive.MaxRequests)
@@ -141,15 +142,18 @@ internal class TcpServer
                     response.KeepAlive.Connection = HttpConnectionType.Close;
                     _logger.LogDebug("Closing connection to {RemoteEndpoint} due to reaching maximum request count", connection.Client.Client.RemoteEndPoint);
                 }
-                var buffer = HttpResponseWriter.WriteResponse(response);
-                Debug.Assert(buffer.Length > 0);
 
-                _logger.LogDebug("Sending response: Writing {ResponseBytes} bytes to buffer", buffer.Length);
-                stream.Write(buffer);
+                HttpResponseWriter.WriteResponseAsync(response, streamWriter.PipeWriter).GetAwaiter().GetResult();
+                //var buffer = HttpResponseWriter.WriteResponse(response);
+                //Debug.Assert(buffer.Length > 0);
+
+                //_logger.LogDebug("Sending response: Writing {ResponseBytes} bytes to buffer", buffer.Length);
+                //stream.Write(buffer);
 
                 if (response.KeepAlive.Connection == HttpConnectionType.Close)
                 {
                     _logger.LogDebug("Closing connection to {RemoteEndpoint}", connection.Client.Client.RemoteEndPoint);
+                    streamWriter.PipeWriter.Complete();
                     _connectionPool.CloseConnection(connection);
                     return;
                 }

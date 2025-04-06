@@ -1,6 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
-using System.Security.Cryptography;
-using System.Text;
+using HttpServer.Networking;
 using HttpServer.Request;
 using HttpServer.Routing;
 
@@ -53,6 +52,11 @@ public class RequestPipelineContext
     /// The unique identifier for this request.
     /// </summary>
     public string RequestId { get; init; }
+    
+    /// <summary>
+    /// The writer to be used to write the response to the network stream.
+    /// </summary>
+    public INetworkStreamWriter ResponseWriter { get; set; }
 
     /// <summary>
     /// Construct a new <see cref="RequestPipelineContext"/> for the provided <see cref="HttpRequest"/>.
@@ -60,11 +64,12 @@ public class RequestPipelineContext
     /// <param name="request">The HTTP request associated with this context.</param>
     /// <param name="serviceProvider">The <see cref="IServiceProvider"/> scoped to this request.</param>
     /// <param name="options">The <see cref="RequestPipelineBuilderOptions"/> associated with the current pipeline.</param>
+    /// <param name="responseWriter">The writer to be used to write the response to the underlying network stream.</param>
     /// <exception cref="ArgumentNullException">
     /// If either the <paramref name="request"/> or <paramref name="serviceProvider"/> is <see langword="null"/>.
     /// </exception>
     [SetsRequiredMembers]
-    public RequestPipelineContext(HttpRequest request, IServiceProvider serviceProvider, RequestPipelineBuilderOptions options)
+    public RequestPipelineContext(HttpRequest request, IServiceProvider serviceProvider, RequestPipelineBuilderOptions options, INetworkStreamWriter responseWriter)
     {
         ArgumentNullException.ThrowIfNull(request);
         ArgumentNullException.ThrowIfNull(serviceProvider);
@@ -72,6 +77,7 @@ public class RequestPipelineContext
         Services = serviceProvider;
         Options = options;
         RequestId = Guid.CreateVersion7().ToString("N");
+        ResponseWriter = responseWriter;
     }
     
     /// <summary>

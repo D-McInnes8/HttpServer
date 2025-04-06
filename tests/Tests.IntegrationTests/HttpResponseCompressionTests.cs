@@ -147,4 +147,20 @@ public class HttpResponseCompressionTests : IAsyncLifetime
         var actual = await response.Content.ReadAsStringAsync();
         Assert.Equal("Compressed!", actual);
     }
+    
+    [Fact]
+    public async Task HttpResponseCompression_WithGzipCompression_ShouldCorrectlySetContentLengthHeader()
+    {
+        // Arrange
+        _server.MapGet("/test", _ => HttpResponse.Ok("Compressed!"));
+        var request = new HttpRequestMessage(HttpMethod.Get, "/test");
+        request.Headers.AcceptEncoding.Add(new StringWithQualityHeaderValue("gzip"));
+        
+        // Act
+        using var response = await _httpClient.SendAsync(request);
+        
+        // Assert
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Equal(10, response.Content.Headers.ContentLength);
+    }
 }

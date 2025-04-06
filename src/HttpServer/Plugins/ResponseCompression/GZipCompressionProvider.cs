@@ -2,6 +2,9 @@ using System.IO.Compression;
 
 namespace HttpServer.Plugins.ResponseCompression;
 
+/// <summary>
+/// A compression provider for GZip.
+/// </summary>
 public class GZipCompressionProvider : ICompressionProvider
 {
     public string EncodingName => "gzip";

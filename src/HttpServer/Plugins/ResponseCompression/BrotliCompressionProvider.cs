@@ -2,6 +2,9 @@ using System.IO.Compression;
 
 namespace HttpServer.Plugins.ResponseCompression;
 
+/// <summary>
+/// A compression provider for the brotli algorithm.
+/// </summary>
 public class BrotliCompressionProvider : ICompressionProvider
 {
     public string EncodingName => "br";
