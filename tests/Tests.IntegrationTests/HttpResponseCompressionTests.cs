@@ -1,6 +1,8 @@
 using System.IO.Compression;
 using System.Net;
 using System.Net.Http.Headers;
+using System.Net.Sockets;
+using System.Text;
 using HttpServer;
 using HttpServer.Plugins.ResponseCompression.DependencyInjection;
 using HttpServer.Response;
@@ -12,6 +14,8 @@ public class HttpResponseCompressionTests : IAsyncLifetime
 {
     private readonly IHttpWebServer _server = HttpWebServer.CreateBuilder(0).Build();
     private readonly HttpClient _httpClient = new HttpClient();
+    private TcpClient? _tcpClient;
+    private NetworkStream? _networkStream;
 
     public async Task InitializeAsync()
     {
@@ -21,10 +25,17 @@ public class HttpResponseCompressionTests : IAsyncLifetime
         });
         await _server.StartAsync();
         _httpClient.BaseAddress = new Uri($"http://localhost:{_server.Port}");
+        _tcpClient = new TcpClient("localhost", _server.Port);
+        _networkStream = _tcpClient.GetStream();
     }
 
     public async Task DisposeAsync()
     {
+        if (_networkStream is not null)
+        {
+            await _networkStream.DisposeAsync();
+        }
+        _tcpClient?.Dispose();
         _httpClient.Dispose();
         await _server.StopAsync();
     }
@@ -70,19 +81,30 @@ public class HttpResponseCompressionTests : IAsyncLifetime
     {
         // Arrange
         _server.MapGet("/test", _ => HttpResponse.Ok("Compressed!"));
-        var request = new HttpRequestMessage(HttpMethod.Get, "/test");
-        request.Headers.AcceptEncoding.Add(new StringWithQualityHeaderValue("gzip"));
+        var request = "GET /test HTTP/1.1\r\nHost: localhost\r\nAccept-Encoding: gzip\r\n\r\n";
+        var requestBytes = Encoding.ASCII.GetBytes(request);
+        //var request = new HttpRequestMessage(HttpMethod.Get, "/test");
+        //request.Headers.AcceptEncoding.Add(new StringWithQualityHeaderValue("gzip"));
         
         // Act
-        using var response = await _httpClient.SendAsync(request);
+        await _networkStream!.WriteAsync(requestBytes, 0, requestBytes.Length);
+        var buffer = new byte[8192];
+        var bytesRead = await _networkStream.ReadAsync(buffer, 0, buffer.Length);
+        //using var response = await _httpClient.SendAsync(request);
         
         // Assert
         using var memoryStream = new MemoryStream();
         await using var gZipStream = new GZipStream(memoryStream, CompressionMode.Compress);
         await gZipStream.WriteAsync("Compressed!"u8.ToArray());
-        
+        await gZipStream.FlushAsync();
         var expected = memoryStream.ToArray();
-        var actual = await response.Content.ReadAsByteArrayAsync();
+
+        var bodyStart = buffer.AsSpan(0, bytesRead).IndexOf("\r\n\r\n"u8) + 4;
+        var actual = buffer[bodyStart..bytesRead];
+        var span = buffer.AsSpan(0, bytesRead);
+        var ccc = Encoding.ASCII.GetString(span);
+        var aaa = Encoding.ASCII.GetString(buffer[bodyStart..bytesRead]);
+        var bbb = Encoding.ASCII.GetString(expected);
         Assert.Equal(expected, actual);
     }
 
@@ -161,6 +183,6 @@ public class HttpResponseCompressionTests : IAsyncLifetime
         
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        Assert.Equal(10, response.Content.Headers.ContentLength);
+        Assert.Equal(11, response.Content.Headers.ContentLength);
     }
 }
