@@ -127,7 +127,7 @@ public class HttpWebServer : IHttpWebServer
         await _tcpServer.StopAsync();
     }
 
-    private HttpResponse HandleRequest(INetworkStreamReader streamReader, INetworkStreamWriter streamWriter)
+    private HttpResponse HandleRequest(ClientConnectionContext connection)
     {
         using var scope = Services.CreateScope();
         var httpRequestParser = scope.ServiceProvider.GetRequiredService<HttpRequestParser>();
@@ -135,7 +135,7 @@ public class HttpWebServer : IHttpWebServer
         HttpRequest? httpRequest;
         try
         {
-            var result = httpRequestParser.Parse(streamReader).GetAwaiter().GetResult();
+            var result = httpRequestParser.Parse(connection.RequestReader).GetAwaiter().GetResult();
             httpRequest = result.Value;
         }
         catch (HttpParserException ex) when (!ex.InternalServerError)
@@ -151,12 +151,12 @@ public class HttpWebServer : IHttpWebServer
             return HttpResponse.InternalServerError();
         }
 
-        return ExecuteRequestPipeline(httpRequest, scope, streamWriter);
+        return ExecuteRequestPipeline(httpRequest, scope, connection);
     }
 
-    private HttpResponse ExecuteRequestPipeline(HttpRequest httpRequest, IServiceScope scope, INetworkStreamWriter streamWriter)
+    private HttpResponse ExecuteRequestPipeline(HttpRequest httpRequest, IServiceScope scope, ClientConnectionContext connection)
     {
-        var ctx = new RequestPipelineContext(httpRequest, scope.ServiceProvider, _pipelineRegistry.GlobalPipeline.Options, streamWriter);
+        var ctx = new RequestPipelineContext(httpRequest, scope.ServiceProvider, _pipelineRegistry.GlobalPipeline.Options, connection.ResponseBodyWriter);
         var logState = new List<KeyValuePair<string, object?>>
         {
             new("RequestId", ctx.RequestId),
@@ -167,6 +167,10 @@ public class HttpWebServer : IHttpWebServer
             var httpResponse = _pipelineRegistry.GlobalPipeline.ExecuteAsync(ctx).GetAwaiter().GetResult();
             
             _logger.LogInformation("Sending response: {StatusCode}", httpResponse.StatusCode);
+            if (connection.ResponseBodyWriter != ctx.ResponseWriter)
+            {
+                connection.ResponseBodyWriter = ctx.ResponseWriter;
+            }
             return httpResponse;
         }
     }

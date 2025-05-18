@@ -15,7 +15,7 @@ public static class HttpResponseWriter
     /// </summary>
     /// <param name="response">The <see cref="HttpResponse"/> object to write.</param>
     /// <returns>The <see cref="HttpResponse"/> object serialised into a proper HTTP response.</returns>
-    public static byte[] WriteResponse(HttpResponse response)
+    public static byte[] WriteResponse(HttpResponse response, INetworkStreamWriter responseBodyWriter)
     {
         if (response.Body is not null)
         {
@@ -36,7 +36,7 @@ public static class HttpResponseWriter
         return httpResponseBytes;
     }
     
-    public static async Task WriteResponseAsync(HttpResponse response, PipeWriter pipeWriter)
+    public static async Task WriteResponseAsync(HttpResponse response, ClientConnectionContext ctx)
     {
         if (response.Body is not null)
         {
@@ -46,19 +46,19 @@ public static class HttpResponseWriter
         }
         
         var metadata = WriteMetadata(response);
-        var metadataMemory = pipeWriter.GetMemory(metadata.Length);
+        var metadataMemory = ctx.ResponseWriter.PipeWriter.GetMemory(metadata.Length);
         metadata.CopyTo(metadataMemory);
-        pipeWriter.Advance(metadata.Length);
+        ctx.ResponseWriter.PipeWriter.Advance(metadata.Length);
         
         if (response.Body is not null)
         {
             var responseLength = response.Body.Length;
-            var bodySpan = pipeWriter.GetSpan(responseLength);
+            var bodySpan = ctx.ResponseWriter.PipeWriter.GetSpan(responseLength);
             response.Body.CopyTo(bodySpan);
-            pipeWriter.Advance(responseLength);
+            ctx.ResponseWriter.PipeWriter.Advance(responseLength);
         }
         
-        _ = await pipeWriter.FlushAsync();
+        _ = await ctx.ResponseWriter.PipeWriter.FlushAsync();
     }
     
     public static void CopyTo(NetworkStream destination)
