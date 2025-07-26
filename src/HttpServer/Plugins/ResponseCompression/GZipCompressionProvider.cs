@@ -11,6 +11,6 @@ public class GZipCompressionProvider : ICompressionProvider
 
     public Stream GetCompressionStream(Stream responseStream)
     {
-        return new GZipStream(responseStream, CompressionMode.Compress, leaveOpen: true);
+        return new GZipStream(responseStream, CompressionMode.Compress, leaveOpen: false);
     }
 }

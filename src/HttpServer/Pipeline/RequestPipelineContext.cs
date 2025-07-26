@@ -17,7 +17,7 @@ public interface IPipelineData
 /// different plugins in the pipeline. A single context may be used in multiple pipelines, if the server is configured
 /// to use nested request pipelines.
 /// </summary>
-public class RequestPipelineContext
+public class RequestPipelineContext : IAsyncDisposable
 {
     private readonly Dictionary<Type, object> _data = new();
     
@@ -57,6 +57,12 @@ public class RequestPipelineContext
     /// The writer to be used to write the response to the network stream.
     /// </summary>
     public INetworkStreamWriter ResponseWriter { get; set; }
+    
+    /// <summary>
+    /// The inner memory stream used to write the response body.
+    /// This stream is used to buffer the response body before it is written to the network stream
+    /// </summary>
+    public Stream ResponseBodyWriter { get; set; }
 
     /// <summary>
     /// Construct a new <see cref="RequestPipelineContext"/> for the provided <see cref="HttpRequest"/>.
@@ -78,6 +84,7 @@ public class RequestPipelineContext
         Options = options;
         RequestId = Guid.CreateVersion7().ToString("N");
         ResponseWriter = responseWriter;
+        ResponseBodyWriter = new MemoryStream();
     }
     
     /// <summary>
@@ -113,5 +120,14 @@ public class RequestPipelineContext
     public TOptions? GetOptions<TOptions>() where TOptions : RequestPipelineBuilderOptions
     {
         return Options as TOptions;
+    }
+
+    /// <summary>
+    /// Disposes the <see cref="RequestPipelineContext"/> and releases any resources it holds.
+    /// This includes disposing the <see cref="ResponseBodyWriter"/> stream.
+    /// </summary>
+    public async ValueTask DisposeAsync()
+    {
+        await ResponseBodyWriter.DisposeAsync();
     }
 }

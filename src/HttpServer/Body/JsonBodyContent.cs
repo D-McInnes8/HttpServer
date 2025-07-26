@@ -67,4 +67,9 @@ public class JsonBodyContent<T> : HttpBodyContent
     {
         Content.CopyTo(destination);
     }
+    
+    public ReadOnlySpan<byte> AsReadOnlySpan()
+    {
+        return Content.AsSpan();
+    }
 }

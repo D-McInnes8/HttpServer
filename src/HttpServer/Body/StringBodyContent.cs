@@ -99,4 +99,9 @@ public class StringBodyContent : HttpBodyContent
     {
         Content.CopyTo(destination);
     }
+    
+    public ReadOnlySpan<byte> AsReadOnlySpan()
+    {
+        return Content.AsSpan();
+    }
 }

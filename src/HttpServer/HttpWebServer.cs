@@ -4,6 +4,7 @@ using HttpServer.Pipeline.Registry;
 using HttpServer.Request;
 using HttpServer.Request.Parser;
 using HttpServer.Response;
+using HttpServer.Response.Internal;
 using HttpServer.Routing;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -127,7 +128,7 @@ public class HttpWebServer : IHttpWebServer
         await _tcpServer.StopAsync();
     }
 
-    private HttpResponse HandleRequest(ClientConnectionContext connection)
+    private async Task<HttpResponse> HandleRequest(ClientConnectionContext connection)
     {
         using var scope = Services.CreateScope();
         var httpRequestParser = scope.ServiceProvider.GetRequiredService<HttpRequestParser>();
@@ -151,12 +152,13 @@ public class HttpWebServer : IHttpWebServer
             return HttpResponse.InternalServerError();
         }
 
-        return ExecuteRequestPipeline(httpRequest, scope, connection);
+        await using var ctx = new RequestPipelineContext(httpRequest, scope.ServiceProvider, _pipelineRegistry.GlobalPipeline.Options, connection.ResponseBodyWriter);
+        var response = await ExecuteRequestPipeline(httpRequest, ctx);
+        return response;
     }
 
-    private HttpResponse ExecuteRequestPipeline(HttpRequest httpRequest, IServiceScope scope, ClientConnectionContext connection)
+    private async Task<HttpResponse> ExecuteRequestPipeline(HttpRequest httpRequest, RequestPipelineContext ctx)
     {
-        var ctx = new RequestPipelineContext(httpRequest, scope.ServiceProvider, _pipelineRegistry.GlobalPipeline.Options, connection.ResponseBodyWriter);
         var logState = new List<KeyValuePair<string, object?>>
         {
             new("RequestId", ctx.RequestId),
@@ -164,13 +166,13 @@ public class HttpWebServer : IHttpWebServer
         using (_logger.BeginScope(logState))
         {
             _logger.LogInformation("Received request: {Method} {Path}", httpRequest.Method, httpRequest.Path);
-            var httpResponse = _pipelineRegistry.GlobalPipeline.ExecuteAsync(ctx).GetAwaiter().GetResult();
+            var httpResponse = await _pipelineRegistry.GlobalPipeline.ExecuteAsync(ctx);
             
             _logger.LogInformation("Sending response: {StatusCode}", httpResponse.StatusCode);
-            if (connection.ResponseBodyWriter != ctx.ResponseWriter)
-            {
-                connection.ResponseBodyWriter = ctx.ResponseWriter;
-            }
+            // if (connection.ResponseBodyWriter != ctx.ResponseWriter)
+            // {
+            //     connection.ResponseBodyWriter = ctx.ResponseWriter;
+            // }
             return httpResponse;
         }
     }

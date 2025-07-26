@@ -11,6 +11,6 @@ public class BrotliCompressionProvider : ICompressionProvider
     
     public Stream GetCompressionStream(Stream responseStream)
     {
-        return new BrotliStream(responseStream, CompressionMode.Compress);
+        return new BrotliStream(responseStream, CompressionMode.Compress, leaveOpen: false);
     }
 }

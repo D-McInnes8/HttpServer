@@ -1,7 +1,9 @@
+using System.Buffers;
 using System.IO.Pipelines;
 using System.Net.Sockets;
 using System.Text;
 using HttpServer.Networking;
+using HttpServer.Pipeline;
 
 namespace HttpServer.Response.Internal;
 
@@ -35,30 +37,54 @@ public static class HttpResponseWriter
         response.Body.CopyTo(httpResponseBytes.AsSpan(metadata.Length));
         return httpResponseBytes;
     }
-    
-    public static async Task WriteResponseAsync(HttpResponse response, ClientConnectionContext ctx)
+
+    private static async Task WriteResponseWithBodyAsync(HttpResponse response, ClientConnectionContext ctx)
     {
-        if (response.Body is not null)
+        if (response.Body is null)
         {
-            response.Body.ContentType.Charset = response.Body.Encoding.WebName;
-            response.Headers["Content-Type"] = response.Body.ContentType.Render();
-            response.Headers["Content-Length"] = response.Body.Content.Length.ToString();
+            throw new InvalidOperationException("Response body cannot be null when writing response with body.");
         }
         
+        var buffer = response.Body.AsReadOnlySpan();
+        
+        // Ensure the content type and length are set correctly
+        response.Body.ContentType.Charset = response.Body.Encoding.WebName;
+        response.Headers["Content-Type"] = response.Body.ContentType.Render();
+        response.Headers["Content-Length"] = buffer.Length.ToString();
+        
+        // Write the response metadata to the PipeWriter
         var metadata = WriteMetadata(response);
         var metadataMemory = ctx.ResponseWriter.PipeWriter.GetMemory(metadata.Length);
         metadata.CopyTo(metadataMemory);
         ctx.ResponseWriter.PipeWriter.Advance(metadata.Length);
         
-        if (response.Body is not null)
-        {
-            var responseLength = response.Body.Length;
-            var bodySpan = ctx.ResponseWriter.PipeWriter.GetSpan(responseLength);
-            response.Body.CopyTo(bodySpan);
-            ctx.ResponseWriter.PipeWriter.Advance(responseLength);
-        }
+        // Write the body content to the PipeWriter
+        var bodyMemory = ctx.ResponseWriter.PipeWriter.GetSpan(buffer.Length);
+        buffer.CopyTo(bodyMemory);
+        ctx.ResponseWriter.PipeWriter.Advance(buffer.Length);
         
         _ = await ctx.ResponseWriter.PipeWriter.FlushAsync();
+    }
+
+    private static async Task WriteResponseWithoutBodyAsync(HttpResponse response, ClientConnectionContext ctx)
+    {
+        var metadata = WriteMetadata(response);
+        var metadataMemory = ctx.ResponseWriter.PipeWriter.GetMemory(metadata.Length);
+        metadata.CopyTo(metadataMemory);
+        ctx.ResponseWriter.PipeWriter.Advance(metadata.Length);
+        
+        _ = await ctx.ResponseWriter.PipeWriter.FlushAsync();
+    }
+    
+    public static async Task WriteResponseAsync(HttpResponse response, ClientConnectionContext ctx)
+    {
+        if (response.Body is null)
+        {
+            await WriteResponseWithoutBodyAsync(response, ctx);
+            return;
+        }
+        
+        await WriteResponseWithBodyAsync(response, ctx);
     }
     
     public static void CopyTo(NetworkStream destination)

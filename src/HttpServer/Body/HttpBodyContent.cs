@@ -38,4 +38,10 @@ public interface HttpBodyContent
     /// </summary>
     /// <param name="destination">The <see cref="Span{T}"/> to be copied to.</param>
     public void CopyTo(Span<byte> destination);
+
+    /// <summary>
+    /// Returns the content as a read-only span of bytes.
+    /// </summary>
+    /// <returns>A read-only span of bytes representing the content.</returns>
+    public ReadOnlySpan<byte> AsReadOnlySpan();
 }

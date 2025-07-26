@@ -51,6 +51,11 @@ public class ByteArrayBodyContent : HttpBodyContent, IHttpBodyContentSerializer
     {
         Content.CopyTo(destination);
     }
+    
+    public ReadOnlySpan<byte> AsReadOnlySpan()
+    {
+        return Content.AsSpan();
+    }
 
     public static HttpBodyContent Deserialize(byte[] content, HttpContentType contentType, Encoding encoding)
     {

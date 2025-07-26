@@ -40,7 +40,7 @@ internal class TcpServer
     private HttpWebServerOptions _options;
     private readonly ILogger<TcpServer> _logger;
 
-    private readonly Func<ClientConnectionContext, HttpResponse> _requestHandler;
+    private readonly Func<ClientConnectionContext, Task<HttpResponse>> _requestHandler;
     private readonly IConnectionPool _connectionPool;
 
     /// <summary>
@@ -51,7 +51,7 @@ internal class TcpServer
     /// <param name="logger">The <see cref="ILogger"/> object to be logged to.</param>
     /// <param name="connectionPool">The <see cref="IConnectionPool"/> object to manage connections.</param>
     /// <param name="options">The <see cref="HttpWebServerOptions"/> object containing the server options.</param>
-    public TcpServer(int port, Func<ClientConnectionContext, HttpResponse> requestHandler, ILogger<TcpServer> logger, IConnectionPool connectionPool, HttpWebServerOptions options)
+    public TcpServer(int port, Func<ClientConnectionContext, Task<HttpResponse>> requestHandler, ILogger<TcpServer> logger, IConnectionPool connectionPool, HttpWebServerOptions options)
     {
         _requestHandler = requestHandler;
         _logger = logger;
@@ -135,7 +135,7 @@ internal class TcpServer
 
             while (!connection.IsDisposed)
             {
-                var response = _requestHandler(ctx);
+                var response = _requestHandler(ctx).GetAwaiter().GetResult();
                 
                 connection.RequestCount += 1;
                 if (connection.RequestCount >= _options.KeepAlive.MaxRequests)

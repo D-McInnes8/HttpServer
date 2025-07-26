@@ -32,6 +32,7 @@ public class ResponseCompressionPlugin : IRequestPipelinePlugin
                 response.Headers.Add("Content-Encoding", compressionProvider.EncodingName);
                 response.Headers.Add("Vary", "Accept-Encoding");
                 ctx.ResponseWriter = new ResponseCompressionWriter(ctx.ResponseWriter, compressionProvider);
+                ctx.ResponseBodyWriter = compressionProvider.GetCompressionStream(ctx.ResponseBodyWriter);
                 break;
             }
         }
