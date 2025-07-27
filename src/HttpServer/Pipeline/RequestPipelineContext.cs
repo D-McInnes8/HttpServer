@@ -1,5 +1,4 @@
 using System.Diagnostics.CodeAnalysis;
-using HttpServer.Networking;
 using HttpServer.Request;
 using HttpServer.Routing;
 
@@ -17,7 +16,7 @@ public interface IPipelineData
 /// different plugins in the pipeline. A single context may be used in multiple pipelines, if the server is configured
 /// to use nested request pipelines.
 /// </summary>
-public class RequestPipelineContext : IAsyncDisposable
+public class RequestPipelineContext
 {
     private readonly Dictionary<Type, object> _data = new();
     
@@ -52,17 +51,6 @@ public class RequestPipelineContext : IAsyncDisposable
     /// The unique identifier for this request.
     /// </summary>
     public string RequestId { get; init; }
-    
-    /// <summary>
-    /// The writer to be used to write the response to the network stream.
-    /// </summary>
-    public INetworkStreamWriter ResponseWriter { get; set; }
-    
-    /// <summary>
-    /// The inner memory stream used to write the response body.
-    /// This stream is used to buffer the response body before it is written to the network stream
-    /// </summary>
-    public Stream ResponseBodyWriter { get; set; }
 
     /// <summary>
     /// Construct a new <see cref="RequestPipelineContext"/> for the provided <see cref="HttpRequest"/>.
@@ -70,12 +58,11 @@ public class RequestPipelineContext : IAsyncDisposable
     /// <param name="request">The HTTP request associated with this context.</param>
     /// <param name="serviceProvider">The <see cref="IServiceProvider"/> scoped to this request.</param>
     /// <param name="options">The <see cref="RequestPipelineBuilderOptions"/> associated with the current pipeline.</param>
-    /// <param name="responseWriter">The writer to be used to write the response to the underlying network stream.</param>
     /// <exception cref="ArgumentNullException">
     /// If either the <paramref name="request"/> or <paramref name="serviceProvider"/> is <see langword="null"/>.
     /// </exception>
     [SetsRequiredMembers]
-    public RequestPipelineContext(HttpRequest request, IServiceProvider serviceProvider, RequestPipelineBuilderOptions options, INetworkStreamWriter responseWriter)
+    public RequestPipelineContext(HttpRequest request, IServiceProvider serviceProvider, RequestPipelineBuilderOptions options)
     {
         ArgumentNullException.ThrowIfNull(request);
         ArgumentNullException.ThrowIfNull(serviceProvider);
@@ -83,8 +70,6 @@ public class RequestPipelineContext : IAsyncDisposable
         Services = serviceProvider;
         Options = options;
         RequestId = Guid.CreateVersion7().ToString("N");
-        ResponseWriter = responseWriter;
-        ResponseBodyWriter = new MemoryStream();
     }
     
     /// <summary>
@@ -120,14 +105,5 @@ public class RequestPipelineContext : IAsyncDisposable
     public TOptions? GetOptions<TOptions>() where TOptions : RequestPipelineBuilderOptions
     {
         return Options as TOptions;
-    }
-
-    /// <summary>
-    /// Disposes the <see cref="RequestPipelineContext"/> and releases any resources it holds.
-    /// This includes disposing the <see cref="ResponseBodyWriter"/> stream.
-    /// </summary>
-    public async ValueTask DisposeAsync()
-    {
-        //await ResponseBodyWriter.DisposeAsync();
     }
 }

@@ -4,7 +4,6 @@ using HttpServer.Pipeline.Registry;
 using HttpServer.Request;
 using HttpServer.Request.Parser;
 using HttpServer.Response;
-using HttpServer.Response.Internal;
 using HttpServer.Routing;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -152,10 +151,8 @@ public class HttpWebServer : IHttpWebServer
             return HttpResponse.InternalServerError();
         }
 
-        await using var ctx = new RequestPipelineContext(httpRequest, scope.ServiceProvider, _pipelineRegistry.GlobalPipeline.Options, connection.ResponseBodyWriter);
-        var response = await ExecuteRequestPipeline(httpRequest, ctx);
-        connection.ResponseBodyWriter2 = ctx.ResponseBodyWriter;
-        return response;
+        var ctx = new RequestPipelineContext(httpRequest, scope.ServiceProvider, _pipelineRegistry.GlobalPipeline.Options);
+        return await ExecuteRequestPipeline(httpRequest, ctx);
     }
 
     private async Task<HttpResponse> ExecuteRequestPipeline(HttpRequest httpRequest, RequestPipelineContext ctx)
@@ -170,10 +167,6 @@ public class HttpWebServer : IHttpWebServer
             var httpResponse = await _pipelineRegistry.GlobalPipeline.ExecuteAsync(ctx);
             
             _logger.LogInformation("Sending response: {StatusCode}", httpResponse.StatusCode);
-            // if (connection.ResponseBodyWriter != ctx.ResponseWriter)
-            // {
-            //     connection.ResponseBodyWriter = ctx.ResponseWriter;
-            // }
             return httpResponse;
         }
     }
