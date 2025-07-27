@@ -190,4 +190,34 @@ public class HttpResponse
             { "Location", location },
         },
     };
+
+    /// <summary>
+    /// Creates a new <see cref="HttpResponse"/> with a status code of 304 Not Modified.
+    /// This response indicates that the resource has not been modified since the last request.
+    /// The response will include an ETag header with the specified value.
+    /// </summary>
+    /// <param name="eTag">ETag value to be included in the response headers.</param>
+    /// <returns>The <see cref="HttpResponse"/> with a status code of 304 Not Modified.</returns>
+    public static HttpResponse NotModified(string eTag) => new HttpResponse(HttpResponseStatusCode.NotModified)
+    {
+        Headers =
+        {
+            { "ETag", eTag }
+        }
+    };
+    
+    /// <summary>
+    /// Creates a new <see cref="HttpResponse"/> with a status code of 304 Not Modified.
+    /// This response indicates that the resource has not been modified since the last request.
+    /// The response will include a Last-Modified header with the specified date.
+    /// </summary>
+    /// <param name="lastModified">Last modified date to be included in the response headers.</param>
+    /// <returns>The <see cref="HttpResponse"/> with a status code of 304 Not Modified.</returns>
+    public static HttpResponse NotModified(DateTimeOffset lastModified) => new HttpResponse(HttpResponseStatusCode.NotModified)
+    {
+        Headers =
+        {
+            { "Last-Modified", lastModified.ToString("R") }
+        }
+    };
 }

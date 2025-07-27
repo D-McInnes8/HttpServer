@@ -21,6 +21,11 @@ public enum HttpResponseStatusCode
     MovePermanently = 301,
     
     /// <summary>
+    /// The requested resource has not been modified since the last request.
+    /// </summary>
+    NotModified = 304,
+    
+    /// <summary>
     /// The request was not acceptable.
     /// </summary>
     BadRequest = 400,
