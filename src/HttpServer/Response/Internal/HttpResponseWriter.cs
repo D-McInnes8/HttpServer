@@ -1,4 +1,5 @@
 using System.Buffers;
+using System.IO.Compression;
 using System.IO.Pipelines;
 using System.Net.Sockets;
 using System.Text;
@@ -45,7 +46,27 @@ public static class HttpResponseWriter
             throw new InvalidOperationException("Response body cannot be null when writing response with body.");
         }
         
-        var buffer = response.Body.AsReadOnlySpan();
+        var buffer = response.Body.ToArray();
+        // var bytes = Convert.FromBase64String("H4sIAAAAAAAAA3POzy0oSi0uTk1RBAAsG2/iCwAAAA==");
+        //
+        // if (buffer.Length < 2 || buffer[0] != 0x1F || buffer[1] != 0x8B)
+        // {
+        //     throw new InvalidOperationException("Input buffer is not in gzip format.");
+        // }
+        //
+        // // Write compressed data to memory stream
+        // await using var compressedStream = new MemoryStream(buffer);
+        //
+        // // Create GZipStream for decompression
+        // await using var gZipStream = new GZipStream(compressedStream, CompressionMode.Decompress);
+        //
+        // // Read decompressed data into another memory stream
+        // await using var decompressedStream = new MemoryStream();
+        // await gZipStream.CopyToAsync(decompressedStream);
+        // decompressedStream.Seek(0, SeekOrigin.Begin);
+        //
+        // var uncompressed = decompressedStream.ToArray();
+        // var resultString = Encoding.ASCII.GetString(uncompressed);
         
         // Ensure the content type and length are set correctly
         response.Body.ContentType.Charset = response.Body.Encoding.WebName;

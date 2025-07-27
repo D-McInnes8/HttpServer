@@ -14,6 +14,8 @@ public class HttpResponseCompressionTests : IAsyncLifetime
 {
     private readonly IHttpWebServer _server = HttpWebServer.CreateBuilder(0).Build();
     private readonly HttpClient _httpClient = new HttpClient();
+    private readonly HttpClient _httpClientWithDecompression = new HttpClient(
+        new HttpClientHandler { AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate | DecompressionMethods.Brotli });
     private TcpClient? _tcpClient;
     private NetworkStream? _networkStream;
 
@@ -25,6 +27,7 @@ public class HttpResponseCompressionTests : IAsyncLifetime
         });
         await _server.StartAsync();
         _httpClient.BaseAddress = new Uri($"http://localhost:{_server.Port}");
+        _httpClientWithDecompression.BaseAddress = new Uri($"http://localhost:{_server.Port}");
         _tcpClient = new TcpClient("localhost", _server.Port);
         _networkStream = _tcpClient.GetStream();
     }
@@ -83,14 +86,11 @@ public class HttpResponseCompressionTests : IAsyncLifetime
         _server.MapGet("/test", _ => HttpResponse.Ok("Compressed!"));
         var request = "GET /test HTTP/1.1\r\nHost: localhost\r\nAccept-Encoding: gzip\r\n\r\n";
         var requestBytes = Encoding.ASCII.GetBytes(request);
-        //var request = new HttpRequestMessage(HttpMethod.Get, "/test");
-        //request.Headers.AcceptEncoding.Add(new StringWithQualityHeaderValue("gzip"));
         
         // Act
         await _networkStream!.WriteAsync(requestBytes, 0, requestBytes.Length);
         var buffer = new byte[8192];
         var bytesRead = await _networkStream.ReadAsync(buffer, 0, buffer.Length);
-        //using var response = await _httpClient.SendAsync(request);
         
         // Assert
         using var memoryStream = new MemoryStream();
@@ -101,10 +101,6 @@ public class HttpResponseCompressionTests : IAsyncLifetime
 
         var bodyStart = buffer.AsSpan(0, bytesRead).IndexOf("\r\n\r\n"u8) + 4;
         var actual = buffer[bodyStart..bytesRead];
-        var span = buffer.AsSpan(0, bytesRead);
-        var ccc = Encoding.ASCII.GetString(span);
-        var aaa = Encoding.ASCII.GetString(buffer[bodyStart..bytesRead]);
-        var bbb = Encoding.ASCII.GetString(expected);
         Assert.Equal(expected, actual);
     }
 
@@ -123,6 +119,7 @@ public class HttpResponseCompressionTests : IAsyncLifetime
         using var memoryStream = new MemoryStream();
         await using var deflateStream = new DeflateStream(memoryStream, CompressionMode.Compress);
         await deflateStream.WriteAsync("Compressed!"u8.ToArray());
+        await deflateStream.FlushAsync();
         
         var expected = memoryStream.ToArray();
         var actual = await response.Content.ReadAsByteArrayAsync();
@@ -144,6 +141,7 @@ public class HttpResponseCompressionTests : IAsyncLifetime
         using var memoryStream = new MemoryStream();
         await using var brotliStream = new BrotliStream(memoryStream, CompressionMode.Compress);
         await brotliStream.WriteAsync("Compressed!"u8.ToArray());
+        await brotliStream.FlushAsync();
         
         var expected = memoryStream.ToArray();
         var actual = await response.Content.ReadAsByteArrayAsync();
@@ -162,7 +160,7 @@ public class HttpResponseCompressionTests : IAsyncLifetime
         request.Headers.AcceptEncoding.Add(new StringWithQualityHeaderValue(encoding));
         
         // Act
-        using var response = await _httpClient.SendAsync(request);
+        using var response = await _httpClientWithDecompression.SendAsync(request);
         
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -183,6 +181,6 @@ public class HttpResponseCompressionTests : IAsyncLifetime
         
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        Assert.Equal(11, response.Content.Headers.ContentLength);
+        Assert.Equal(27, response.Content.Headers.ContentLength);
     }
 }

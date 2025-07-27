@@ -27,12 +27,13 @@ public class ResponseCompressionPlugin : IRequestPipelinePlugin
                 _ => null
             };
             
-            if (compressionProvider is not null)
+            if (compressionProvider is not null && response.Body is not null)
             {
                 response.Headers.Add("Content-Encoding", compressionProvider.EncodingName);
                 response.Headers.Add("Vary", "Accept-Encoding");
-                ctx.ResponseWriter = new ResponseCompressionWriter(ctx.ResponseWriter, compressionProvider);
-                ctx.ResponseBodyWriter = compressionProvider.GetCompressionStream(ctx.ResponseBodyWriter);
+                //ctx.ResponseWriter = new ResponseCompressionWriter(ctx.ResponseWriter, compressionProvider);
+                //ctx.ResponseBodyWriter = compressionProvider.GetCompressionStream(ctx.ResponseBodyWriter);
+                response.Body = new CompressedBodyContent(response.Body, compressionProvider);
                 break;
             }
         }

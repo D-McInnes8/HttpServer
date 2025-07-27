@@ -128,6 +128,6 @@ public class RequestPipelineContext : IAsyncDisposable
     /// </summary>
     public async ValueTask DisposeAsync()
     {
-        await ResponseBodyWriter.DisposeAsync();
+        //await ResponseBodyWriter.DisposeAsync();
     }
 }

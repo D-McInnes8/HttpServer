@@ -11,6 +11,6 @@ public class DeflateCompressionProvider : ICompressionProvider
     
     public Stream GetCompressionStream(Stream responseStream)
     {
-        return new DeflateStream(responseStream, CompressionMode.Compress, leaveOpen: false);
+        return new DeflateStream(responseStream, CompressionMode.Compress, leaveOpen: true);
     }
 }

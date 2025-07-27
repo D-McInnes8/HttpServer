@@ -21,6 +21,14 @@ public class ClientConnectionContext : IDisposable
     /// The writer to be used to write the response body to the network stream.
     /// </summary>
     public INetworkStreamWriter ResponseBodyWriter { get; set; }
+    
+    public Stream? ResponseBodyWriter2 { get; set; }
+    
+    /// <summary>
+    /// The inner memory stream used to write the response body.
+    /// This is used to buffer the response body before sending it over the network.
+    /// </summary>
+    public MemoryStream ResponseMemoryStream { get; set; }
 
     /// <summary>
     /// Constructs a new <see cref="ClientConnectionContext"/> with the specified network stream.
@@ -32,10 +40,11 @@ public class ClientConnectionContext : IDisposable
         RequestReader = new TcpNetworkStreamReader(networkStream);
         ResponseWriter = new TcpNetworkStreamWriter(networkStream);
         ResponseBodyWriter = new TcpNetworkStreamWriter(networkStream);
+        ResponseMemoryStream = new MemoryStream();
     }
 
     public void Dispose()
     {
-        
+        ResponseMemoryStream.Dispose();
     }
 }

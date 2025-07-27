@@ -154,6 +154,7 @@ public class HttpWebServer : IHttpWebServer
 
         await using var ctx = new RequestPipelineContext(httpRequest, scope.ServiceProvider, _pipelineRegistry.GlobalPipeline.Options, connection.ResponseBodyWriter);
         var response = await ExecuteRequestPipeline(httpRequest, ctx);
+        connection.ResponseBodyWriter2 = ctx.ResponseBodyWriter;
         return response;
     }
 
